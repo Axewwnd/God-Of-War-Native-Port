@@ -4,7 +4,7 @@
 // sound engine's stream is played on that device through miniaudio directly. The
 // miniaudio implementation is raylib's own (compiled in raudio.c); the configuration macros below must stay identical
 // to raudio.c's, because they change miniaudio's structure layouts.
-#if !defined(PLATFORM_VITA)
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_SWITCH) // Switch: SDL2 audio in ps2_runtime.cpp
 #define MA_NO_JACK
 #define MA_NO_WAV
 #define MA_NO_FLAC

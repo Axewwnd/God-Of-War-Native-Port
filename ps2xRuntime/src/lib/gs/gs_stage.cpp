@@ -1,4 +1,5 @@
 #include "runtime/gs/gs_stage.h"
+#include "ThreadNaming.h"
 
 #include <condition_variable>
 #include <cstdio>
@@ -44,6 +45,7 @@ namespace
 
     void loop()
     {
+        ThreadNaming::SetCurrentThreadName("GSStage");
         Stage &s = stage();
         std::deque<Packet> batch;
         for (;;)

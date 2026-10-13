@@ -7,6 +7,14 @@
 #include <float.h>
 
 #include "VUmicro.h"
+#if !defined(_MSC_VER)
+// GOW-Port: GCC emits no out-of-line copy of an inline function, but these are also called from other files through
+// the extern declarations in VUflags.h / VUops.h (MSVC's __forceinline keeps one): plain definitions here.
+#undef __fi
+#define __fi
+#undef __ri
+#define __ri
+#endif
 
 /*****************************************/
 /*          NEW FLAGS                    */ //By asadr. Thnkx F|RES :p

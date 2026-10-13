@@ -154,8 +154,8 @@ namespace
 #if defined(PS2X_DEFAULT_BOOT_ELF)
         std::cout << "Using default boot file" << std::endl;
         const std::filesystem::path configuredPath = std::filesystem::path(PS2X_DEFAULT_BOOT_ELF);
-#if defined(PLATFORM_VITA)
-        return configuredPath;
+#if defined(PLATFORM_VITA) || defined(__SWITCH__)
+        return configuredPath; // device-prefixed path (ux0:/, sdmc:/)
 #endif
         if (configuredPath.is_absolute())
         {

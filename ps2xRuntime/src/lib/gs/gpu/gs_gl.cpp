@@ -102,6 +102,149 @@ namespace
         return DefWindowProcA(window, message, wparam, lparam);
     }
 }
+#elif defined(__SWITCH__)
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
+namespace
+{
+    void *loadProc(const char *name)
+    {
+        return reinterpret_cast<void *>(eglGetProcAddress(name));
+    }
+
+    template <typename T>
+    bool load(T &target, const char *name, std::string &missing)
+    {
+        target = reinterpret_cast<T>(loadProc(name));
+        if (!target)
+        {
+            missing += missing.empty() ? name : std::string(", ") + name;
+            return false;
+        }
+        return true;
+    }
+}
+#endif
+
+#if defined(_WIN32) || defined(__SWITCH__)
+namespace
+{
+    // Every entry point the GS backend uses; graphics/hwRaster/CopyImageSubData are optional groups (flags in Api).
+    void loadApi(GSGL::Api &a, std::string &missing)
+    {
+    load(a.GenBuffers, "glGenBuffers", missing);
+    load(a.DeleteBuffers, "glDeleteBuffers", missing);
+    load(a.BindBuffer, "glBindBuffer", missing);
+    load(a.BufferData, "glBufferData", missing);
+    load(a.BufferSubData, "glBufferSubData", missing);
+    load(a.GetBufferSubData, "glGetBufferSubData", missing);
+    load(a.BindBufferBase, "glBindBufferBase", missing);
+    load(a.BindBufferRange, "glBindBufferRange", missing);
+    load(a.ClearBufferData, "glClearBufferData", missing);
+    load(a.CopyBufferSubData, "glCopyBufferSubData", missing);
+    load(a.BufferStorage, "glBufferStorage", missing);
+    load(a.MapBufferRange, "glMapBufferRange", missing);
+    load(a.UnmapBuffer, "glUnmapBuffer", missing);
+    load(a.GenQueries, "glGenQueries", missing);
+    load(a.DeleteQueries, "glDeleteQueries", missing);
+    load(a.BeginQuery, "glBeginQuery", missing);
+    load(a.EndQuery, "glEndQuery", missing);
+    load(a.GetQueryObjectui64v, "glGetQueryObjectui64v", missing);
+    load(a.QueryCounter, "glQueryCounter", missing);
+    load(a.CreateShader, "glCreateShader", missing);
+    load(a.ShaderSource, "glShaderSource", missing);
+    load(a.CompileShader, "glCompileShader", missing);
+    load(a.GetShaderiv, "glGetShaderiv", missing);
+    load(a.GetShaderInfoLog, "glGetShaderInfoLog", missing);
+    load(a.DeleteShader, "glDeleteShader", missing);
+    load(a.CreateProgram, "glCreateProgram", missing);
+    load(a.AttachShader, "glAttachShader", missing);
+    load(a.LinkProgram, "glLinkProgram", missing);
+    load(a.GetProgramiv, "glGetProgramiv", missing);
+    load(a.GetProgramInfoLog, "glGetProgramInfoLog", missing);
+    load(a.ProgramParameteri, "glProgramParameteri", missing);
+    load(a.GetProgramBinary, "glGetProgramBinary", missing);
+    load(a.ProgramBinary, "glProgramBinary", missing);
+    load(a.DeleteProgram, "glDeleteProgram", missing);
+    load(a.UseProgram, "glUseProgram", missing);
+    load(a.GetUniformLocation, "glGetUniformLocation", missing);
+    load(a.Uniform1ui, "glUniform1ui", missing);
+    load(a.Uniform4ui, "glUniform4ui", missing);
+    load(a.Uniform1uiv, "glUniform1uiv", missing);
+    load(a.DispatchCompute, "glDispatchCompute", missing);
+    load(a.MemBarrier, "glMemoryBarrier", missing);
+    load(a.FenceSync, "glFenceSync", missing);
+    load(a.ClientWaitSync, "glClientWaitSync", missing);
+    load(a.DeleteSync, "glDeleteSync", missing);
+    load(a.Finish, "glFinish", missing);
+    load(a.Flush, "glFlush", missing);
+    load(a.GetError, "glGetError", missing);
+    load(a.GetString, "glGetString", missing);
+    load(a.GenTextures, "glGenTextures", missing);
+    load(a.DeleteTextures, "glDeleteTextures", missing);
+    load(a.BindTexture, "glBindTexture", missing);
+    load(a.TexParameteri, "glTexParameteri", missing);
+    load(a.TexImage2D, "glTexImage2D", missing);
+    load(a.TexSubImage2D, "glTexSubImage2D", missing);
+    {
+        std::string graphicsMissing;
+        load(a.GenFramebuffers, "glGenFramebuffers", graphicsMissing);
+        load(a.DeleteFramebuffers, "glDeleteFramebuffers", graphicsMissing);
+        load(a.BindFramebuffer, "glBindFramebuffer", graphicsMissing);
+        load(a.FramebufferParameteri, "glFramebufferParameteri", graphicsMissing);
+        load(a.Viewport, "glViewport", graphicsMissing);
+        load(a.DrawArrays, "glDrawArrays", graphicsMissing);
+        load(a.GenVertexArrays, "glGenVertexArrays", graphicsMissing);
+        load(a.DeleteVertexArrays, "glDeleteVertexArrays", graphicsMissing);
+        load(a.BindVertexArray, "glBindVertexArray", graphicsMissing);
+        load(a.Enable, "glEnable", graphicsMissing);
+        load(a.Disable, "glDisable", graphicsMissing);
+        std::string hwMissing;
+        load(a.ActiveTexture, "glActiveTexture", hwMissing);
+        load(a.FramebufferTexture2D, "glFramebufferTexture2D", hwMissing);
+        load(a.CheckFramebufferStatus, "glCheckFramebufferStatus", hwMissing);
+        load(a.BlendFuncSeparate, "glBlendFuncSeparate", hwMissing);
+        load(a.BlendEquationSeparate, "glBlendEquationSeparate", hwMissing);
+        load(a.BlendColor, "glBlendColor", hwMissing);
+        load(a.ColorMask, "glColorMask", hwMissing);
+        load(a.DepthMask, "glDepthMask", hwMissing);
+        load(a.DepthFunc, "glDepthFunc", hwMissing);
+        load(a.ClearColor, "glClearColor", hwMissing);
+        load(a.ClearDepth, "glClearDepth", hwMissing);
+        load(a.Clear, "glClear", hwMissing);
+        load(a.Scissor, "glScissor", hwMissing);
+        load(a.Uniform1i, "glUniform1i", hwMissing);
+        load(a.Uniform1f, "glUniform1f", hwMissing);
+        load(a.Uniform2f, "glUniform2f", hwMissing);
+        load(a.Uniform4f, "glUniform4f", hwMissing);
+        load(a.Uniform4i, "glUniform4i", hwMissing);
+        load(a.VertexAttribPointer, "glVertexAttribPointer", hwMissing);
+        load(a.VertexAttribIPointer, "glVertexAttribIPointer", hwMissing);
+        load(a.EnableVertexAttribArray, "glEnableVertexAttribArray", hwMissing);
+        load(a.DrawBuffers, "glDrawBuffers", hwMissing);
+        load(a.ReadPixels, "glReadPixels", hwMissing);
+        load(a.BlitFramebuffer, "glBlitFramebuffer", hwMissing);
+        load(a.PixelStorei, "glPixelStorei", hwMissing);
+        std::string barrierMissing; // core since 4.5; GL_NV_texture_barrier on older contexts (switch-mesa)
+        if (!load(a.TextureBarrier, "glTextureBarrier", barrierMissing))
+            load(a.TextureBarrier, "glTextureBarrierNV", hwMissing);
+        std::string copyMissing;
+        load(a.CopyImageSubData, "glCopyImageSubData", copyMissing);
+        a.hwRaster = graphicsMissing.empty() && hwMissing.empty();
+        if (!a.hwRaster)
+            std::fprintf(stderr, "[gs-gl] classic raster entry points missing: %s (graphics=%d)\n", hwMissing.c_str(), graphicsMissing.empty() ? 1 : 0);
+        std::string parallelMissing;
+        load(a.MaxShaderCompilerThreads, "glMaxShaderCompilerThreadsARB", parallelMissing);
+        if (!a.MaxShaderCompilerThreads)
+            load(a.MaxShaderCompilerThreads, "glMaxShaderCompilerThreadsKHR", parallelMissing);
+        a.graphics = graphicsMissing.empty();
+    }
+    }
+}
+#endif
+
+#if defined(_WIN32)
 
 namespace GSSharedPresent
 {
@@ -455,112 +598,7 @@ namespace GSGL
         m_context = context;
 
         std::string missing;
-        Api &a = m_api;
-        load(a.GenBuffers, "glGenBuffers", missing);
-        load(a.DeleteBuffers, "glDeleteBuffers", missing);
-        load(a.BindBuffer, "glBindBuffer", missing);
-        load(a.BufferData, "glBufferData", missing);
-        load(a.BufferSubData, "glBufferSubData", missing);
-        load(a.GetBufferSubData, "glGetBufferSubData", missing);
-        load(a.BindBufferBase, "glBindBufferBase", missing);
-        load(a.BindBufferRange, "glBindBufferRange", missing);
-        load(a.ClearBufferData, "glClearBufferData", missing);
-        load(a.CopyBufferSubData, "glCopyBufferSubData", missing);
-        load(a.BufferStorage, "glBufferStorage", missing);
-        load(a.MapBufferRange, "glMapBufferRange", missing);
-        load(a.UnmapBuffer, "glUnmapBuffer", missing);
-        load(a.GenQueries, "glGenQueries", missing);
-        load(a.DeleteQueries, "glDeleteQueries", missing);
-        load(a.BeginQuery, "glBeginQuery", missing);
-        load(a.EndQuery, "glEndQuery", missing);
-        load(a.GetQueryObjectui64v, "glGetQueryObjectui64v", missing);
-        load(a.QueryCounter, "glQueryCounter", missing);
-        load(a.CreateShader, "glCreateShader", missing);
-        load(a.ShaderSource, "glShaderSource", missing);
-        load(a.CompileShader, "glCompileShader", missing);
-        load(a.GetShaderiv, "glGetShaderiv", missing);
-        load(a.GetShaderInfoLog, "glGetShaderInfoLog", missing);
-        load(a.DeleteShader, "glDeleteShader", missing);
-        load(a.CreateProgram, "glCreateProgram", missing);
-        load(a.AttachShader, "glAttachShader", missing);
-        load(a.LinkProgram, "glLinkProgram", missing);
-        load(a.GetProgramiv, "glGetProgramiv", missing);
-        load(a.GetProgramInfoLog, "glGetProgramInfoLog", missing);
-        load(a.ProgramParameteri, "glProgramParameteri", missing);
-        load(a.GetProgramBinary, "glGetProgramBinary", missing);
-        load(a.ProgramBinary, "glProgramBinary", missing);
-        load(a.DeleteProgram, "glDeleteProgram", missing);
-        load(a.UseProgram, "glUseProgram", missing);
-        load(a.GetUniformLocation, "glGetUniformLocation", missing);
-        load(a.Uniform1ui, "glUniform1ui", missing);
-        load(a.Uniform4ui, "glUniform4ui", missing);
-        load(a.Uniform1uiv, "glUniform1uiv", missing);
-        load(a.DispatchCompute, "glDispatchCompute", missing);
-        load(a.MemBarrier, "glMemoryBarrier", missing);
-        load(a.FenceSync, "glFenceSync", missing);
-        load(a.ClientWaitSync, "glClientWaitSync", missing);
-        load(a.DeleteSync, "glDeleteSync", missing);
-        load(a.Finish, "glFinish", missing);
-        load(a.Flush, "glFlush", missing);
-        load(a.GetError, "glGetError", missing);
-        load(a.GetString, "glGetString", missing);
-        load(a.GenTextures, "glGenTextures", missing);
-        load(a.DeleteTextures, "glDeleteTextures", missing);
-        load(a.BindTexture, "glBindTexture", missing);
-        load(a.TexParameteri, "glTexParameteri", missing);
-        load(a.TexImage2D, "glTexImage2D", missing);
-        load(a.TexSubImage2D, "glTexSubImage2D", missing);
-        {
-            std::string graphicsMissing;
-            load(a.GenFramebuffers, "glGenFramebuffers", graphicsMissing);
-            load(a.DeleteFramebuffers, "glDeleteFramebuffers", graphicsMissing);
-            load(a.BindFramebuffer, "glBindFramebuffer", graphicsMissing);
-            load(a.FramebufferParameteri, "glFramebufferParameteri", graphicsMissing);
-            load(a.Viewport, "glViewport", graphicsMissing);
-            load(a.DrawArrays, "glDrawArrays", graphicsMissing);
-            load(a.GenVertexArrays, "glGenVertexArrays", graphicsMissing);
-            load(a.DeleteVertexArrays, "glDeleteVertexArrays", graphicsMissing);
-            load(a.BindVertexArray, "glBindVertexArray", graphicsMissing);
-            load(a.Enable, "glEnable", graphicsMissing);
-            load(a.Disable, "glDisable", graphicsMissing);
-            std::string hwMissing;
-            load(a.ActiveTexture, "glActiveTexture", hwMissing);
-            load(a.FramebufferTexture2D, "glFramebufferTexture2D", hwMissing);
-            load(a.CheckFramebufferStatus, "glCheckFramebufferStatus", hwMissing);
-            load(a.BlendFuncSeparate, "glBlendFuncSeparate", hwMissing);
-            load(a.BlendEquationSeparate, "glBlendEquationSeparate", hwMissing);
-            load(a.BlendColor, "glBlendColor", hwMissing);
-            load(a.ColorMask, "glColorMask", hwMissing);
-            load(a.DepthMask, "glDepthMask", hwMissing);
-            load(a.DepthFunc, "glDepthFunc", hwMissing);
-            load(a.ClearColor, "glClearColor", hwMissing);
-            load(a.ClearDepth, "glClearDepth", hwMissing);
-            load(a.Clear, "glClear", hwMissing);
-            load(a.Scissor, "glScissor", hwMissing);
-            load(a.Uniform1i, "glUniform1i", hwMissing);
-            load(a.Uniform1f, "glUniform1f", hwMissing);
-            load(a.Uniform2f, "glUniform2f", hwMissing);
-            load(a.Uniform4f, "glUniform4f", hwMissing);
-            load(a.Uniform4i, "glUniform4i", hwMissing);
-            load(a.VertexAttribPointer, "glVertexAttribPointer", hwMissing);
-            load(a.VertexAttribIPointer, "glVertexAttribIPointer", hwMissing);
-            load(a.EnableVertexAttribArray, "glEnableVertexAttribArray", hwMissing);
-            load(a.DrawBuffers, "glDrawBuffers", hwMissing);
-            load(a.ReadPixels, "glReadPixels", hwMissing);
-            load(a.BlitFramebuffer, "glBlitFramebuffer", hwMissing);
-            load(a.PixelStorei, "glPixelStorei", hwMissing);
-            load(a.TextureBarrier, "glTextureBarrier", hwMissing);
-            std::string copyMissing;
-            load(a.CopyImageSubData, "glCopyImageSubData", copyMissing);
-            a.hwRaster = graphicsMissing.empty() && hwMissing.empty();
-            if (!a.hwRaster)
-                std::fprintf(stderr, "[gs-gl] classic raster entry points missing: %s (graphics=%d)\n", hwMissing.c_str(), graphicsMissing.empty() ? 1 : 0);
-            std::string parallelMissing;
-            load(a.MaxShaderCompilerThreads, "glMaxShaderCompilerThreadsARB", parallelMissing);
-            if (!a.MaxShaderCompilerThreads)
-                load(a.MaxShaderCompilerThreads, "glMaxShaderCompilerThreadsKHR", parallelMissing);
-            a.graphics = graphicsMissing.empty();
-        }
+        loadApi(m_api, missing);
         if (!missing.empty())
         {
             error = "missing GL functions: " + missing;
@@ -616,6 +654,164 @@ namespace GSGL
         m_api = {};
         m_shared = false;
     }
+}
+#elif defined(__SWITCH__)
+// GOW-Port: Switch (switch-mesa): the GS renderer's own GL core context through EGL, surfaceless when the driver allows
+// it (the renderer only draws into its own framebuffers), else on a small pbuffer. No shared presentation: frames go
+// through the RAM path (readback + upload to raylib's texture). m_dc = EGLDisplay, m_window = EGLSurface (or none),
+// m_context = EGLContext; the config is s_eglConfig.
+namespace
+{
+    EGLConfig s_eglConfig = nullptr;
+    EGLDisplay s_eglDisplay = EGL_NO_DISPLAY;
+    bool s_surfaceless = false;
+
+    EGLContext createCore(EGLDisplay display, EGLContext share, int &major, int &minor)
+    {
+        static const int versions[][2] = {{4, 6}, {4, 5}, {4, 3}};
+        for (const auto &version : versions)
+        {
+            const EGLint attributes[] = {EGL_CONTEXT_MAJOR_VERSION, version[0], EGL_CONTEXT_MINOR_VERSION, version[1],
+                                         EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT, EGL_NONE};
+            const EGLContext context = eglCreateContext(display, s_eglConfig, share, attributes);
+            if (context != EGL_NO_CONTEXT)
+            {
+                major = version[0];
+                minor = version[1];
+                return context;
+            }
+        }
+        return EGL_NO_CONTEXT;
+    }
+}
+
+namespace GSGL
+{
+    bool PublishShared(const Api &, GLuint, uint32_t, uint32_t, uint64_t,
+                       uint32_t, uint32_t, bool, bool, uint64_t, GLuint, GLint) { return false; }
+    bool SharedAvailable(const Api &) { return false; }
+    bool PublishSharedTexture(const Api &, GLuint, uint32_t, uint32_t, uint64_t, uint32_t, uint32_t, uint64_t) { return false; }
+    void DestroyShared(const Api &) {}
+
+    Context::~Context()
+    {
+        Destroy();
+    }
+
+    bool Context::Create(std::string &error)
+    {
+        Destroy();
+        const EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        if (display == EGL_NO_DISPLAY || !eglInitialize(display, nullptr, nullptr))
+        {
+            error = "eglInitialize failed";
+            return false;
+        }
+        if (!eglBindAPI(EGL_OPENGL_API))
+        {
+            error = "eglBindAPI(OpenGL) failed";
+            return false;
+        }
+        // no surface type: switch-mesa offers window configs only, and the context is surfaceless when it can be
+        const EGLint configAttributes[] = {EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8,
+                                           EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8, EGL_NONE};
+        EGLint count = 0;
+        if (!eglChooseConfig(display, configAttributes, &s_eglConfig, 1, &count) || count == 0)
+        {
+            error = "no EGL config for OpenGL";
+            return false;
+        }
+        int major = 0, minor = 0;
+        const EGLContext context = createCore(display, EGL_NO_CONTEXT, major, minor);
+        if (context == EGL_NO_CONTEXT)
+        {
+            error = "OpenGL 4.3+ core context unavailable (EGL error " + std::to_string(eglGetError()) + ")";
+            return false;
+        }
+        const char *extensions = eglQueryString(display, EGL_EXTENSIONS);
+        s_surfaceless = extensions && std::string_view(extensions).find("EGL_KHR_surfaceless_context") != std::string_view::npos;
+        EGLSurface surface = EGL_NO_SURFACE;
+        if (!s_surfaceless)
+        {
+            const EGLint pbufferAttributes[] = {EGL_WIDTH, 16, EGL_HEIGHT, 16, EGL_NONE};
+            surface = eglCreatePbufferSurface(display, s_eglConfig, pbufferAttributes);
+        }
+        if (!eglMakeCurrent(display, surface, surface, context))
+        {
+            if (surface != EGL_NO_SURFACE)
+                eglDestroySurface(display, surface);
+            eglDestroyContext(display, context);
+            error = "eglMakeCurrent failed";
+            return false;
+        }
+        s_eglDisplay = display;
+        m_dc = display;
+        m_window = surface;
+        m_context = context;
+        std::string missing;
+        loadApi(m_api, missing);
+        if (!missing.empty())
+        {
+            error = "missing GL functions: " + missing;
+            Destroy();
+            return false;
+        }
+        std::fprintf(stderr, "[gs-gl] EGL OpenGL %d.%d core context (%s)%s\n", major, minor,
+                     m_api.GetString ? reinterpret_cast<const char *>(m_api.GetString(kRenderer)) : "?",
+                     s_surfaceless ? ", surfaceless" : ", pbuffer");
+        return true;
+    }
+
+    // Workers share the main context; without surfaceless contexts there is no surface to give them (they are optional)
+    void *Context::CreateWorker() const
+    {
+        if (!m_context || !s_surfaceless)
+            return nullptr;
+        int major = 0, minor = 0;
+        const EGLContext worker = createCore(static_cast<EGLDisplay>(m_dc), static_cast<EGLContext>(m_context), major, minor);
+        return worker == EGL_NO_CONTEXT ? nullptr : worker;
+    }
+
+    bool Context::MakeWorkerCurrent(void *worker) const
+    {
+        return worker && m_dc && eglMakeCurrent(static_cast<EGLDisplay>(m_dc), EGL_NO_SURFACE, EGL_NO_SURFACE, static_cast<EGLContext>(worker));
+    }
+
+    void Context::DestroyWorker(void *worker)
+    {
+        if (!worker || s_eglDisplay == EGL_NO_DISPLAY)
+            return;
+        if (eglGetCurrentContext() == static_cast<EGLContext>(worker))
+            eglMakeCurrent(s_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        eglDestroyContext(s_eglDisplay, static_cast<EGLContext>(worker));
+    }
+
+    void Context::Destroy()
+    {
+        if (m_dc)
+        {
+            const EGLDisplay display = static_cast<EGLDisplay>(m_dc);
+            if (m_context)
+            {
+                if (eglGetCurrentContext() == static_cast<EGLContext>(m_context))
+                    eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+                eglDestroyContext(display, static_cast<EGLContext>(m_context));
+            }
+            if (m_window)
+                eglDestroySurface(display, static_cast<EGLSurface>(m_window));
+        }
+        m_context = m_window = m_dc = nullptr;
+        m_api = {};
+        m_shared = false;
+    }
+}
+namespace GSSharedPresent
+{
+    void CaptureHostContext() {}
+    void RestoreHostContext() {}
+    bool Active() { return false; }
+    bool Acquire(Frame &) { return false; }
+    void ShutdownHost() {}
 }
 #else
 namespace GSGL

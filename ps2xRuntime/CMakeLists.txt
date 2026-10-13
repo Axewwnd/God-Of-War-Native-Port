@@ -47,6 +47,24 @@ if(ANDROID)
     set(PS2X_IS_ANDROID ON)
 endif()
 
+# Nintendo Switch homebrew (devkitPro Switch.cmake toolchain sets NINTENDO_SWITCH).
+set(PS2X_IS_SWITCH OFF)
+
+if(NINTENDO_SWITCH)
+    set(PS2X_IS_SWITCH ON)
+    set(PS2X_ENABLE_DEBUG_UI OFF CACHE BOOL "" FORCE)
+    set(PS2X_ENABLE_SCCACHE OFF CACHE BOOL "" FORCE)
+    # plain char is signed on x86 (the PC build) and unsigned on ARM: keep the PC behaviour
+    add_compile_options(-fsigned-char)
+    # sse2neon: x86 results for min/max with NaN inputs (PS2 code uses NaN bit patterns such as 0x7FFFFFFF as large
+    # values), division, square root and dot products, instead of NEON's faster approximations
+    add_compile_definitions(SSE2NEON_PRECISE_MINMAX=1 SSE2NEON_PRECISE_DIV=1 SSE2NEON_PRECISE_SQRT=1 SSE2NEON_PRECISE_DP=1)
+endif()
+
+set(PS2X_SWITCH_APP_NAME "God of War" CACHE STRING "Title shown in the Switch homebrew menu")
+set(PS2X_SWITCH_APP_AUTHOR "Waffle565" CACHE STRING "Author shown in the Switch homebrew menu")
+set(PS2X_SWITCH_APP_VERSION "0.1.0" CACHE STRING "Version shown in the Switch homebrew menu")
+
 option(PS2X_VITA_CREATE_PACKAGE "Create Vita eboot/vpk targets" ON)
 set(PS2X_VITA_APP_NAME "PS2 Retro X" CACHE STRING "Display name for the Vita bubble")
 set(PS2X_VITA_TITLEID "RANJ00001" CACHE STRING "9-character Vita title id")
@@ -73,6 +91,13 @@ else()
 
     if(PS2X_IS_ANDROID)
         set(PLATFORM "Android" CACHE STRING "" FORCE)
+    elseif(PS2X_IS_SWITCH)
+        # raylib's SDL platform on top of devkitPro's switch-sdl2 (OpenGL via switch-mesa).
+        # miniaudio has no Switch backend (and needs dlopen/sched APIs newlib lacks): build raylib
+        # without raudio; the runtime plays its sound through SDL2 audio (ps2_runtime.cpp).
+        set(PLATFORM "SDL" CACHE STRING "" FORCE)
+        set(CUSTOMIZE_BUILD ON CACHE BOOL "" FORCE)
+        set(SUPPORT_MODULE_RAUDIO OFF CACHE BOOL "" FORCE)
     endif()
 
     FetchContent_Declare(
@@ -239,6 +264,14 @@ else()
 
     if(PS2X_IS_ANDROID)
         target_link_libraries(ps2_host_backend INTERFACE log android)
+    elseif(PS2X_IS_SWITCH)
+        # SDL2 for the sound output (raylib's raudio is off on Switch); raylib already links it for video/input
+        find_package(SDL2 REQUIRED)
+        target_compile_definitions(ps2_host_backend INTERFACE PLATFORM_SWITCH)
+        # the GS renderer's own GL context: EGL + desktop GL through glapi (switch-mesa, nouveau; egl.pc)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(PS2X_SWITCH_EGL REQUIRED IMPORTED_TARGET egl)
+        target_link_libraries(ps2_host_backend INTERFACE SDL2::SDL2 PkgConfig::PS2X_SWITCH_EGL)
     endif()
 endif()
 
@@ -539,6 +572,12 @@ target_include_directories(ps2_runtime PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/Kernel
 )
+# GOW-Port: the PCSX2 reference sources include "common/..." relative to their own folder (MSVC finds it through the
+# include stack, GCC does not)
+target_include_directories(ps2_runtime PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/ee_ref
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/vu_pcsx2
+)
 
 target_link_libraries(ps2_runtime PUBLIC ps2_host_backend ffmpeg libmpeg2 ps2_iop)
 if(WIN32)
@@ -556,7 +595,21 @@ target_link_libraries(ps2EntryRunner
 # coinciden. Son datos del juego: se generan en la carpeta de compilación y no se publican.
 set(PS2X_VU1_MICROCODE_DIR "" CACHE PATH "Micromemorias de VU1 capturadas (vacío: solo intérprete)")
 set(PS2X_VU1_GENERATOR_SOURCE "" CACHE FILEPATH "Generador de C++ para VU1 (tools/vu1/generar_vu1.cpp)")
-if(PS2X_VU1_MICROCODE_DIR AND PS2X_VU1_GENERATOR_SOURCE AND NOT PS2X_IS_ANDROID AND NOT PS2X_IS_VITA)
+# GOW-Port: cross builds (Switch) cannot run the generator they would compile for the target: they take the C++ a host
+# build already generated (its ps2xRuntime build folder, holding vu1_generado/ and vu1n_generado/).
+set(PS2X_VU1_PREGENERATED_DIR "" CACHE PATH "Host build folder with vu1_generado/ and vu1n_generado/ (cross builds)")
+if(PS2X_VU1_PREGENERATED_DIR)
+    file(GLOB PS2X_VU1_PREGENERATED_PARTS
+        "${PS2X_VU1_PREGENERATED_DIR}/vu1_generado/programa*.cpp"
+        "${PS2X_VU1_PREGENERATED_DIR}/vu1n_generado/vu1n_part*.cpp")
+    target_sources(ps2EntryRunner PRIVATE ${PS2X_VU1_PREGENERATED_PARTS})
+    set_source_files_properties(${PS2X_VU1_PREGENERATED_PARTS} PROPERTIES
+        SKIP_UNITY_BUILD_INCLUSION ON
+        SKIP_PRECOMPILE_HEADERS ON)
+    target_include_directories(ps2EntryRunner PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/lib/vu")
+    list(LENGTH PS2X_VU1_PREGENERATED_PARTS PS2X_VU1_PREGENERATED_COUNT)
+    message(STATUS "VU1 compilada (pregenerated): ${PS2X_VU1_PREGENERATED_COUNT} files from ${PS2X_VU1_PREGENERATED_DIR}")
+elseif(PS2X_VU1_MICROCODE_DIR AND PS2X_VU1_GENERATOR_SOURCE AND NOT PS2X_IS_ANDROID AND NOT PS2X_IS_VITA)
     file(GLOB PS2X_VU1_IMAGES CONFIGURE_DEPENDS "${PS2X_VU1_MICROCODE_DIR}/*.bin")
     if(PS2X_VU1_IMAGES)
         add_executable(ps2x_vu1_generator "${PS2X_VU1_GENERATOR_SOURCE}")
@@ -694,6 +747,17 @@ endif()
 
 if(PS2X_IS_ANDROID)
     target_sources(ps2EntryRunner PRIVATE src/lib/ps2_android_runtime.cpp)
+endif()
+
+if(PS2X_IS_SWITCH)
+    target_sources(ps2EntryRunner PRIVATE src/lib/ps2_switch_runtime.cpp)
+    set_source_files_properties(src/lib/ps2_switch_runtime.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    nx_generate_nacp(ps2EntryRunner.nacp
+        NAME "${PS2X_SWITCH_APP_NAME}"
+        AUTHOR "${PS2X_SWITCH_APP_AUTHOR}"
+        VERSION "${PS2X_SWITCH_APP_VERSION}"
+    )
+    nx_create_nro(ps2EntryRunner NACP ps2EntryRunner.nacp)
 endif()
 
 install(TARGETS ps2_runtime ps2EntryRunner

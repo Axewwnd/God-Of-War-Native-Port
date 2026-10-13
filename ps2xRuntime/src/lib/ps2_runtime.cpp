@@ -19,7 +19,11 @@ static bool gowUsePcsx2Vu1(); // GOW_VU1_PCSX2=1, defined before PS2Runtime::ini
 #include "ps2_iop_host.h"
 #include "ps2x/iop/iop_subsystem.h"
 
+#if defined(USE_SSE2NEON)
+#include "sse2neon.h" // GOW-Port: ARM (Switch)
+#else
 #include <xmmintrin.h>
+#endif
 #include <iostream>
 #include <stdexcept>
 #include <fstream>
@@ -43,15 +47,24 @@ static bool gowUsePcsx2Vu1(); // GOW_VU1_PCSX2=1, defined before PS2Runtime::ini
 // has played (including silence fill) and frames the sound engine produced (= GOW_AUDIO_PCM file position).
 std::atomic<uint64_t> g_gowAudioFramesPlayed{0};
 std::atomic<uint64_t> g_gowAudioFramesProduced{0};
+#if defined(PLATFORM_SWITCH)
+#include <SDL.h>
+#endif
 #if !defined(PLATFORM_VITA)
+#if !defined(PLATFORM_SWITCH)
 bool ps2AudioOpenNamedDevice(void (*fill)(void *, unsigned int), unsigned int sampleRate); // ps2_audio_device.cpp
 void ps2AudioCloseNamedDevice();
+#endif
 namespace
 {
     // GOW-Port: salida del SPU2 emulado por el IOP. raylib pide las muestras desde su hilo de audio; el IOP las
     // produce en el hilo del EE (IopSubsystem::drainAudio usa un mutex). GOW_AUDIO=0 desactiva la salida.
     std::atomic<ps2x::iop::IopSubsystem *> g_spu2AudioSource{nullptr};
+#if defined(PLATFORM_SWITCH)
+    SDL_AudioDeviceID g_spu2SdlDevice = 0; // Switch: raylib has no audio module there, SDL2 plays the stream
+#else
     AudioStream g_spu2Stream{};
+#endif
     bool g_spu2StreamActive = false;
     bool g_spu2NamedDevice = false; // playing on a chosen device (ps2_audio_device.cpp), not the raylib stream
     constexpr size_t kSpu2MaxLatencyFrames = 4800u; // 100 ms a 48 kHz
@@ -79,6 +92,46 @@ namespace
         std::fill(out + produced * 2u, out + static_cast<size_t>(frames) * 2u, int16_t{0}); // sin datos: silencio
     }
 
+#if defined(PLATFORM_SWITCH)
+    void startSpu2Audio(ps2x::iop::IopSubsystem *source)
+    {
+        const char *setting = std::getenv("GOW_AUDIO");
+        if (g_spu2StreamActive || source == nullptr || (setting && setting[0] == '0'))
+            return;
+        if (SDL_WasInit(SDL_INIT_AUDIO) == 0 && SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+        {
+            std::cerr << "[SPU2] SDL audio unavailable: " << SDL_GetError() << std::endl;
+            return;
+        }
+        g_spu2AudioSource.store(source, std::memory_order_release);
+        SDL_AudioSpec wanted{};
+        wanted.freq = 48000;
+        wanted.format = AUDIO_S16SYS;
+        wanted.channels = 2;
+        wanted.samples = 1024;
+        wanted.callback = [](void *, Uint8 *stream, int bytes) { spu2AudioCallback(stream, static_cast<unsigned int>(bytes / 4)); };
+        SDL_AudioSpec obtained{};
+        g_spu2SdlDevice = SDL_OpenAudioDevice(nullptr, 0, &wanted, &obtained, 0);
+        if (g_spu2SdlDevice == 0)
+        {
+            std::cerr << "[SPU2] SDL_OpenAudioDevice failed: " << SDL_GetError() << std::endl;
+            return;
+        }
+        SDL_PauseAudioDevice(g_spu2SdlDevice, 0);
+        g_spu2StreamActive = true;
+        std::cerr << "[SPU2] audio output 48 kHz through SDL2 (" << obtained.samples << " frames per callback)" << std::endl;
+    }
+
+    void stopSpu2Audio()
+    {
+        if (!g_spu2StreamActive)
+            return;
+        SDL_CloseAudioDevice(g_spu2SdlDevice); // waits for the callback in progress
+        g_spu2SdlDevice = 0;
+        g_spu2AudioSource.store(nullptr, std::memory_order_release);
+        g_spu2StreamActive = false;
+    }
+#else
     void startSpu2Audio(ps2x::iop::IopSubsystem *source)
     {
         // GOW_AUDIO=0 mutes: no stream, except with GOW_AUDIO_PCM, where the stream runs at volume 0 so the recording is
@@ -123,6 +176,7 @@ namespace
         g_spu2AudioSource.store(nullptr, std::memory_order_release);
         g_spu2StreamActive = false;
     }
+#endif
 }
 #endif
 
@@ -407,7 +461,7 @@ namespace
             return {};
         }
 
-#if defined(PLATFORM_VITA)
+#if defined(PLATFORM_VITA) || defined(PLATFORM_SWITCH)
         const std::string generic = path.generic_string();
         const std::size_t colon = generic.find(':');
         if (colon != std::string::npos && colon != 0u)
@@ -545,7 +599,7 @@ PS2Runtime::~PS2Runtime()
 #endif
         m_iopSubsystem.reset();
         m_iopHost.reset();
-#if defined(PLATFORM_VITA)
+#if defined(PLATFORM_VITA) || defined(PLATFORM_SWITCH)
         m_audioBackend.stopAll();
         m_audioBackend.setAudioReady(false);
 #else
@@ -825,6 +879,8 @@ bool PS2Runtime::initialize(const char *title)
 
 #if defined(PLATFORM_VITA)
         InitWindow(HOST_WINDOW_WIDTH, HOST_WINDOW_HEIGHT, title); // raylib vita does not support audio
+#elif defined(PLATFORM_SWITCH)
+        InitWindow(1280, 720, title); // GOW-Port: the Switch screen (handheld 720p; docked output is scaled by the system)
 #else
         SetConfigFlags(FLAG_WINDOW_RESIZABLE);
         // GOW-Port: window size. GOW_WINDOW=<w>x<h>; default 1920x1080. The image is always fitted at 16:9
@@ -866,7 +922,9 @@ bool PS2Runtime::initialize(const char *title)
             return false;
         }
         m_hostPresentation->restoreHostContext();
-#if !defined(PLATFORM_VITA)
+#if defined(PLATFORM_SWITCH)
+        startSpu2Audio(m_iopSubsystem.get()); // GOW-Port: SDL2 audio (raylib's audio module is off on Switch)
+#elif !defined(PLATFORM_VITA)
         InitAudioDevice();
         m_audioBackend.setAudioReady(IsAudioDeviceReady());
         startSpu2Audio(m_iopSubsystem.get()); // GOW-Port

@@ -8,6 +8,14 @@
 #include "MTVU.h"
 
 #include <cmath>
+#if !defined(_MSC_VER)
+// GOW-Port: GCC emits no out-of-line copy of an inline function, but these are also called from other files through
+// the extern declarations in VUflags.h / VUops.h (MSVC's __forceinline keeps one): plain definitions here.
+#undef __fi
+#define __fi
+#undef __ri
+#define __ri
+#endif
 u32 laststall = 0;
 //Lower/Upper instructions can use that..
 #define _Ft_ ((VU->code >> 16) & 0x1F)  // The rt part of the instruction register
