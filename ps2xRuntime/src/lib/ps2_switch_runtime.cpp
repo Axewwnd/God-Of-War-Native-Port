@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <pthread.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 extern "C"
@@ -70,6 +71,11 @@ extern "C"
 
     void userAppInit(void)
     {
+        // the installed title (NSP) carries the extracted disc in its RomFS (romfs:/disc-usa/...); an NRO has none and
+        // reads it from the SD card. The SD folder holds what is written: log, memory card, settings.
+        romfsInit();
+        mkdir("sdmc:/switch", 0777);
+        mkdir("sdmc:/switch/gow", 0777);
         if (R_SUCCEEDED(socketInitializeDefault()))
             s_nxlinkSocket = nxlinkStdio();
         if (s_nxlinkSocket < 0)
@@ -109,6 +115,7 @@ extern "C"
         if (s_nxlinkSocket >= 0)
             close(s_nxlinkSocket);
         socketExit();
+        romfsExit();
     }
 }
 

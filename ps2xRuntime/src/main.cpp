@@ -154,6 +154,15 @@ namespace
 #if defined(PS2X_DEFAULT_BOOT_ELF)
         std::cout << "Using default boot file" << std::endl;
         const std::filesystem::path configuredPath = std::filesystem::path(PS2X_DEFAULT_BOOT_ELF);
+#if defined(__SWITCH__)
+        // GOW-Port: an installed title (NSP) carries the disc in its RomFS; the NRO reads it from the SD card
+        {
+            const std::filesystem::path romfsPath = std::filesystem::path("romfs:/disc-usa") / configuredPath.filename();
+            std::error_code error;
+            if (std::filesystem::exists(romfsPath, error))
+                return romfsPath;
+        }
+#endif
 #if defined(PLATFORM_VITA) || defined(__SWITCH__)
         return configuredPath; // device-prefixed path (ux0:/, sdmc:/)
 #endif
