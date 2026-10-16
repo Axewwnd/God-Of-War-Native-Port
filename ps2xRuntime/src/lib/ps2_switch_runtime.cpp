@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <pthread.h>
 #include <unistd.h>
 
 extern "C"
@@ -37,6 +38,32 @@ extern "C"
     {
         const Result rc = svcSetThreadCoreMask(CUR_THREAD_HANDLE, core, 1u << core);
         std::fprintf(stderr, "[switch] thread pinned to core %d%s\n", core, R_SUCCEEDED(rc) ? "" : " (failed)");
+    }
+
+    // Thread stacks: libnx gives every pthread (std::thread included) 128 KiB unless a size is set; the runtime's
+    // threads were sized by the 1 MiB Windows default (the VIF1/VU1 worker overflowed 128 KiB on its first VU1 job:
+    // a silent jump to 0). Linked with --wrap=pthread_create (CMakeLists.txt), threads without an explicit stack size
+    // get 1 MiB; explicit sizes (SDL's) are kept.
+    int __real_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start)(void *), void *arg);
+
+    int __wrap_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start)(void *), void *arg)
+    {
+        constexpr size_t hostThreadStack = 1u << 20;
+        size_t size = 0;
+        if (attr)
+            pthread_attr_getstacksize(attr, &size);
+        if (size != 0)
+            return __real_pthread_create(thread, attr, start, arg);
+        pthread_attr_t sized;
+        if (attr)
+            sized = *attr;
+        else
+            pthread_attr_init(&sized);
+        pthread_attr_setstacksize(&sized, hostThreadStack);
+        const int result = __real_pthread_create(thread, &sized, start, arg);
+        if (!attr)
+            pthread_attr_destroy(&sized);
+        return result;
     }
 
     static int s_nxlinkSocket = -1;

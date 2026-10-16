@@ -880,7 +880,11 @@ bool PS2Runtime::initialize(const char *title)
 #if defined(PLATFORM_VITA)
         InitWindow(HOST_WINDOW_WIDTH, HOST_WINDOW_HEIGHT, title); // raylib vita does not support audio
 #elif defined(PLATFORM_SWITCH)
-        InitWindow(1280, 720, title); // GOW-Port: the Switch screen (handheld 720p; docked output is scaled by the system)
+        // GOW-Port: the Switch screen (handheld 720p; docked output is scaled by the system). Frames are paced by the
+        // display's vertical sync: raylib's WaitTime has no sleep call on Horizon (its frame limiter would spin the
+        // whole frame, and Horizon does not time-slice threads of one priority, so the GS threads on core 0 starved).
+        SetConfigFlags(FLAG_VSYNC_HINT);
+        InitWindow(1280, 720, title);
 #else
         SetConfigFlags(FLAG_WINDOW_RESIZABLE);
         // GOW-Port: window size. GOW_WINDOW=<w>x<h>; default 1920x1080. The image is always fitted at 16:9
@@ -929,7 +933,9 @@ bool PS2Runtime::initialize(const char *title)
         m_audioBackend.setAudioReady(IsAudioDeviceReady());
         startSpu2Audio(m_iopSubsystem.get()); // GOW-Port
 #endif
+#if !defined(PLATFORM_SWITCH)
         SetTargetFPS(60);
+#endif
         if (m_debugUiInitCallback)
         {
             m_debugUiInitCallback(*this, m_debugUiUserData);

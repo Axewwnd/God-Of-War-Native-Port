@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdint>
+#include <mutex>
 
 namespace GSSharedPresent
 {
@@ -30,4 +31,13 @@ namespace GSSharedPresent
     bool Active();
     bool Acquire(Frame &frame);
     void ShutdownHost();
+
+    // GOW-Port: the GL driver lock. The host window's context (raylib, main thread) and the GS renderer's own context
+    // (GS thread) take it around their GL work where the driver is not thread-safe across contexts (Switch: Mesa
+    // nouveau shares buffer objects and command buffers between contexts without locking).
+    inline std::mutex &DriverMutex()
+    {
+        static std::mutex mutex;
+        return mutex;
+    }
 }

@@ -197,6 +197,9 @@ void GSThreadedBackend::WorkerLoop()
         }
         {
             std::lock_guard<std::mutex> exec(m_execMutex);
+#if defined(__SWITCH__)
+            std::lock_guard<std::mutex> driver(GSSharedPresent::DriverMutex());
+#endif
             Execute(chunk, draw);
         }
         {

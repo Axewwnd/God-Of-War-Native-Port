@@ -181,10 +181,13 @@ GSHostPresentation::View GSHostPresentation::prepare(GS &gs, uint64_t vsyncTick)
     const bool needsLatch = !hasLatched || vsyncTick != lastTick;
     if (needsLatch)
     {
-        gs.latchHostPresentationFrame();
+        gs.latchHostPresentationFrame(); // waits for the GS thread: before taking the driver lock (renderFrame)
         lastTick = vsyncTick;
         hasLatched = true;
     }
+#if defined(__SWITCH__)
+    driverLock = std::unique_lock<std::mutex>(GSSharedPresent::DriverMutex());
+#endif
     current.shared = shared;
     if (shared)
     {
@@ -350,6 +353,9 @@ GSHostPresentation::View GSHostPresentation::renderFrame(GS &gs, uint64_t vsyncT
         ps2_perf::Scope perf(ps2_perf::Bucket::HostWait);
         EndDrawing();
     }
+#if defined(__SWITCH__)
+    driverLock = {};
+#endif
     return selected;
 }
 

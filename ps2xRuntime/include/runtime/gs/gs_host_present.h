@@ -51,6 +51,9 @@ private:
     bool started = false;
     bool captureRequested = false;
     bool hasLatched = false;
+#if defined(__SWITCH__)
+    std::unique_lock<std::mutex> driverLock; // GL driver lock from prepare() to the end of renderFrame()
+#endif
     bool uploaded = false;
     bool uploadedBlank = false;
     bool modeKnown = false;
