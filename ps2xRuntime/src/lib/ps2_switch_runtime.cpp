@@ -35,10 +35,15 @@ extern "C"
     }
 
     // ThreadNaming.h: pin the calling thread to one application core (0-2)
-    void ps2xSwitchPinCurrentThread(int core)
+    void ps2xSwitchPinCurrentThread(int core, int priorityBoost)
     {
         const Result rc = svcSetThreadCoreMask(CUR_THREAD_HANDLE, core, 1u << core);
-        std::fprintf(stderr, "[switch] thread pinned to core %d%s\n", core, R_SUCCEEDED(rc) ? "" : " (failed)");
+        s32 priority = 0;
+        Result prc = 0;
+        if (priorityBoost != 0 && R_SUCCEEDED(svcGetThreadPriority(&priority, CUR_THREAD_HANDLE)))
+            prc = svcSetThreadPriority(CUR_THREAD_HANDLE, static_cast<u32>(priority - priorityBoost));
+        std::fprintf(stderr, "[switch] thread pinned to core %d%s, priority boost %d%s\n", core,
+                     R_SUCCEEDED(rc) ? "" : " (failed)", priorityBoost, R_SUCCEEDED(prc) ? "" : " (failed)");
     }
 
     // Thread stacks: libnx gives every pthread (std::thread included) 128 KiB unless a size is set; the runtime's
@@ -68,6 +73,95 @@ extern "C"
     }
 
     static int s_nxlinkSocket = -1;
+    // The EE thread is the bottleneck on the A57s. Applications run the CPU at 1020 MHz; 1785 MHz is Nintendo's own
+    // boost clock (games use it while loading; sys-clk sets it the same way). GOW_CPU_MHZ in env.txt picks another
+    // rate, 0 leaves the clock alone. The system resets the rate on dock changes and when the game returns from HOME,
+    // so a small thread re-applies it every 2 s; the rate found at start is restored at exit.
+    static u32 s_cpuHzWanted = 0;
+    static u32 s_cpuHzBefore = 0;
+    static Thread s_clockThread;
+    static UEvent s_clockStop;
+
+    static bool cpuClockGet(u32 *hz)
+    {
+        if (hosversionAtLeast(8, 0, 0))
+        {
+            ClkrstSession session;
+            if (R_FAILED(clkrstOpenSession(&session, PcvModuleId_CpuBus, 3)))
+                return false;
+            const bool ok = R_SUCCEEDED(clkrstGetClockRate(&session, hz));
+            clkrstCloseSession(&session);
+            return ok;
+        }
+        return R_SUCCEEDED(pcvGetClockRate(PcvModule_CpuBus, hz));
+    }
+
+    static Result cpuClockSet(u32 hz)
+    {
+        if (hosversionAtLeast(8, 0, 0))
+        {
+            ClkrstSession session;
+            Result rc = clkrstOpenSession(&session, PcvModuleId_CpuBus, 3);
+            if (R_SUCCEEDED(rc))
+            {
+                rc = clkrstSetClockRate(&session, hz);
+                clkrstCloseSession(&session);
+            }
+            return rc;
+        }
+        return pcvSetClockRate(PcvModule_CpuBus, hz);
+    }
+
+    static void clockKeeper(void *)
+    {
+        // waitSingle returns 0 when the stop event fires, a timeout result every 2 s otherwise
+        while (R_FAILED(waitSingle(waiterForUEvent(&s_clockStop), 2000000000ull)))
+        {
+            u32 now = 0;
+            if (cpuClockGet(&now) && now != s_cpuHzWanted)
+                cpuClockSet(s_cpuHzWanted);
+        }
+    }
+
+    static void startCpuClock()
+    {
+        const char *value = std::getenv("GOW_CPU_MHZ");
+        const u32 mhz = value ? static_cast<u32>(std::strtoul(value, nullptr, 10)) : 1785u;
+        if (mhz == 0u)
+            return;
+        const bool clkrst = hosversionAtLeast(8, 0, 0);
+        if (R_FAILED(clkrst ? clkrstInitialize() : pcvInitialize()))
+            return;
+        cpuClockGet(&s_cpuHzBefore);
+        s_cpuHzWanted = mhz * 1000000u;
+        const Result rc = cpuClockSet(s_cpuHzWanted);
+        u32 now = 0;
+        cpuClockGet(&now);
+        std::fprintf(stderr, "[switch] cpu clock %u -> %u Hz (rc=%x)\n", s_cpuHzBefore, now, rc);
+        ueventCreate(&s_clockStop, false);
+        if (R_FAILED(threadCreate(&s_clockThread, clockKeeper, nullptr, nullptr, 0x4000, 0x3B, -2)) ||
+            R_FAILED(threadStart(&s_clockThread)))
+            s_clockThread = {};
+    }
+
+    static void stopCpuClock()
+    {
+        if (s_cpuHzWanted == 0u)
+            return;
+        if (s_clockThread.handle)
+        {
+            ueventSignal(&s_clockStop);
+            threadWaitForExit(&s_clockThread);
+            threadClose(&s_clockThread);
+        }
+        if (s_cpuHzBefore != 0u)
+            cpuClockSet(s_cpuHzBefore);
+        if (hosversionAtLeast(8, 0, 0))
+            clkrstExit();
+        else
+            pcvExit();
+        s_cpuHzWanted = 0;
+    }
 
     void userAppInit(void)
     {
@@ -80,6 +174,9 @@ extern "C"
             s_nxlinkSocket = nxlinkStdio();
         if (s_nxlinkSocket < 0)
         {
+            // the previous run's log survives one more launch (a crash, then a restart, keeps the crash log)
+            std::remove("sdmc:/switch/gow/log_prev.txt");
+            std::rename("sdmc:/switch/gow/log.txt", "sdmc:/switch/gow/log_prev.txt");
             // one file descriptor for both streams (two opens of the file would overwrite each other's lines)
             if (std::freopen("sdmc:/switch/gow/log.txt", "w", stdout))
                 dup2(fileno(stdout), fileno(stderr));
@@ -106,10 +203,19 @@ extern "C"
         setenv("PS2X_GS_WORKER", "1", 0);
         setenv("GOW_GS_FINISH_ASINCRONO", "1", 0);
         setenv("GOW_MC0", "sdmc:/switch/gow/play.mcd", 0);
+        // one bilinear tap to present (the bicubic + sharpen pass costs GPU time the Tegra lacks, and crashes Citron)
+        setenv("GOW_SCALER", "bilinear", 0);
+        // speed lines in every log (a few lines every 5 s), so a log from the console says where the time goes
+        setenv("GOW_PERF_DIAG", "1", 0);
+        setenv("GOW_PERF_FRAME_PC", "0x001837B8", 0);
+        setenv("GOW_DELTA_DIAG", "1", 0);
+        setenv("GOW_GS_HW_STATS", "1", 0);
+        startCpuClock();
     }
 
     void userAppExit(void)
     {
+        stopCpuClock();
         std::fflush(stdout);
         std::fflush(stderr);
         if (s_nxlinkSocket >= 0)

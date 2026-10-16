@@ -358,7 +358,14 @@ namespace vu1n
     VU1N_INLINE __m128 bc(__m128 v) { return _mm_shuffle_ps(v, v, _MM_SHUFFLE(C, C, C, C)); }
     VU1N_INLINE __m128 clampv(__m128 r)
     {
+#if defined(__aarch64__)
+        // ARMv8 FMAXNM/FMINNM: one instruction each, and the x86 result for a quiet NaN in r (maxps returns its second
+        // operand, FMAXNM the number), which is all arithmetic can produce; sse2neon's precise min/max (the Switch
+        // build's setting) needs a compare and a select per call, and this runs after every FMAC
+        return vminnmq_f32(vmaxnmq_f32(r, vdupq_n_f32(-FLT_MAX)), vdupq_n_f32(FLT_MAX));
+#else
         return _mm_min_ps(_mm_max_ps(r, _mm_set1_ps(-FLT_MAX)), _mm_set1_ps(FLT_MAX));
+#endif
     }
     // MAC register after an FMAC: per-lane zero / sign / overflow (underflow is not tracked); lanes outside DEST are 0.
     template <int M>
