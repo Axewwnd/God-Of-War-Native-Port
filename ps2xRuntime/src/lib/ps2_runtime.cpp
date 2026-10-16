@@ -536,6 +536,10 @@ PS2Runtime::PS2Runtime()
     m_iopSubsystem = std::make_unique<ps2x::iop::IopSubsystem>(*m_iopHost);
 
     m_eeScheduler = std::make_unique<EeScheduler>(*this);
+    // EE timer registers read the guest EE clock: the scheduler hands over the cycles its fast path deferred first.
+    m_memory.setEeCycleSync([](void *scheduler, bool limitsChanged)
+                            { static_cast<EeScheduler *>(scheduler)->syncDeferredCycles(limitsChanged); },
+                            m_eeScheduler.get());
 
     // GOW-Port: VU1 sin colas de escritura (un tercio más rápido); GOW_VU1_COLAS=1 vuelve al modelo con colas.
     {
@@ -680,6 +684,11 @@ void PS2Runtime::advanceIopEeCycles(uint64_t eeCycles) noexcept
         return;
     ps2_perf::Scope perf(ps2_perf::Bucket::Iop);
     m_iopSubsystem->runPendingEeCycles();
+}
+
+uint64_t PS2Runtime::iopEeCyclesUntilBatch() const noexcept
+{
+    return m_iopSubsystem->eeCyclesUntilBatch();
 }
 
 void PS2Runtime::resetIop()
@@ -2531,7 +2540,7 @@ void PS2Runtime::postEeEvent(EeEvent event)
 
 bool PS2Runtime::eeCheckpointDue(uint32_t cycles) noexcept
 {
-    const bool due = m_eeScheduler->checkpointDue(cycles);
+    const bool due = m_eeScheduler->checkpointDueFast(cycles);
     if (due) ++m_eeCheckpointSerial;
     return due;
 }

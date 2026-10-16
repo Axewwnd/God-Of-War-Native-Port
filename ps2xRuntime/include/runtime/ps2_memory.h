@@ -313,6 +313,18 @@ public:
     // EE timers advance from the scheduler's emulated EE-cycle clock. The
     // returned mask uses bits 0..3 for newly raised TIM0..TIM3 interrupts.
     uint32_t advanceEeTimers(uint64_t eeCycles) noexcept;
+    // EE cycles advanceEeTimers can still take without stepping the timers (0: the next call steps them).
+    uint64_t eeTimerQuietCycles() const noexcept
+    {
+        return m_eeTimerPendingCycles < m_eeTimerBudget ? m_eeTimerBudget - m_eeTimerPendingCycles : 0u;
+    }
+    // Called before every EE timer register access (EeScheduler::syncDeferredCycles): the scheduler's checkpoint
+    // fast path defers the timer cycles; limitsChanged = a write that can move the next timer event.
+    void setEeCycleSync(void (*sync)(void *, bool), void *context) noexcept
+    {
+        m_eeCycleSync = sync;
+        m_eeCycleSyncContext = context;
+    }
     // GOW-Port: native EE clock. A timer without compare/overflow events (no CMPE/OVFE/ZRET, e.g. the game's
     // T0 = BUSCLK/256 and T1 = H-BLNK counters) is not stepped: its count is computed when read, from the guest
     // EE cycle count since its epoch (the last COUNT write or clock change). Timers with events keep the stepping
@@ -529,6 +541,8 @@ public:
     // counts and interrupts as with per-call advancing (the tick math carries its remainder exactly).
     uint64_t m_eeTimerPendingCycles = 0;
     uint64_t m_eeTimerBudget = 0;
+    void (*m_eeCycleSync)(void *, bool) = nullptr;
+    void *m_eeCycleSyncContext = nullptr;
     uint64_t m_eeCycleTotal = 0; // guest EE cycles seen by advanceEeTimers (the scheduler's EE cycle count)
     uint32_t eeTimerCount(const EeTimer &timer) const noexcept;
     uint32_t stepEeTimers(uint64_t eeCycles) noexcept;

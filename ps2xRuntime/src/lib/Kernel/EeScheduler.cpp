@@ -115,6 +115,9 @@ void EeScheduler::reset(uint8_t *rdram, const R5900Context &mainContext)
     m_pendingEeTimerInterrupts = 0u;
     m_eeCycle = 0u;
     m_sliceEndCycle = kDefaultTimeSliceCycles;
+    m_quietCycles = 0u;
+    m_deferredCycles = 0u;
+    m_limitsChanged.store(true, std::memory_order_seq_cst);
     m_stopRequested.store(false, std::memory_order_release);
     m_checkpointPending.store(false, std::memory_order_release);
     m_debugPublishCountdown = 0u;
@@ -363,6 +366,43 @@ void EeScheduler::postEvent(EeEvent event)
 
 bool EeScheduler::checkpointDue(uint32_t cycles) noexcept
 {
+    // seq_cst: a limit moved by another thread before this exchange is visible to quietCycles() below; one moved
+    // after it leaves the flag set, so the next checkpoint is a full one again.
+    m_limitsChanged.exchange(false, std::memory_order_seq_cst);
+    const bool due = checkpointDueFull(cycles);
+    m_quietCycles = due ? 0u : quietCycles();
+    return due;
+}
+
+uint64_t EeScheduler::quietCycles() const noexcept
+{
+    if (m_pendingEeTimerInterrupts != 0u || m_eeCycle >= m_sliceEndCycle)
+        return 0u;
+    uint64_t quiet = m_sliceEndCycle - m_eeCycle;
+    const uint64_t nextEventCycle = m_nextDeadlineCycle.load(std::memory_order_acquire);
+    if (nextEventCycle != 0u)
+        quiet = nextEventCycle > m_eeCycle ? std::min(quiet, nextEventCycle - m_eeCycle) : 0u;
+    quiet = std::min(quiet, m_runtime.memory().eeTimerQuietCycles());
+    return std::min(quiet, m_runtime.iopEeCyclesUntilBatch());
+}
+
+void EeScheduler::syncDeferredCycles(bool limitsChanged) noexcept
+{
+    if (m_deferredCycles != 0u)
+    {
+        const uint64_t deferred = m_deferredCycles;
+        m_deferredCycles = 0u;
+        m_pendingEeTimerInterrupts |= m_runtime.memory().advanceEeTimers(deferred);
+        m_runtime.advanceIopEeCycles(deferred);
+        if (m_pendingEeTimerInterrupts != 0u)
+            m_checkpointPending.store(true, std::memory_order_release);
+    }
+    if (limitsChanged)
+        m_quietCycles = 0u;
+}
+
+bool EeScheduler::checkpointDueFull(uint32_t cycles) noexcept
+{
     accountCycles(cycles);
 
     if (m_checkpointPending.load(std::memory_order_acquire) ||
@@ -399,8 +439,12 @@ void EeScheduler::accountCycles(uint32_t cycles) noexcept
 {
     const uint64_t elapsed = std::max<uint64_t>(1u, cycles);
     m_eeCycle += elapsed;
-    m_pendingEeTimerInterrupts |= m_runtime.memory().advanceEeTimers(elapsed);
-    m_runtime.advanceIopEeCycles(elapsed);
+    // cycles deferred by checkpointDueFast are already in m_eeCycle
+    const uint64_t accrued = elapsed + m_deferredCycles;
+    m_deferredCycles = 0u;
+    m_quietCycles = 0u; // recomputed by the next full checkpoint
+    m_pendingEeTimerInterrupts |= m_runtime.memory().advanceEeTimers(accrued);
+    m_runtime.advanceIopEeCycles(accrued);
     if (m_pendingEeTimerInterrupts != 0u)
     {
         m_checkpointPending.store(true, std::memory_order_release);
@@ -2175,6 +2219,7 @@ void EeScheduler::updateNextDeadline()
     if (m_deadlines.empty())
     {
         m_nextDeadlineCycle.store(0u, std::memory_order_release);
+        m_limitsChanged.store(true, std::memory_order_seq_cst);
         return;
     }
     const auto it = std::min_element(m_deadlines.begin(), m_deadlines.end(),
@@ -2187,6 +2232,7 @@ void EeScheduler::updateNextDeadline()
                                          return left.sequence < right.sequence;
                                      });
     m_nextDeadlineCycle.store(it->deadlineCycle, std::memory_order_release);
+    m_limitsChanged.store(true, std::memory_order_seq_cst);
 }
 
 bool EeScheduler::hasReadyAtOrAbovePriority(int priority) const
@@ -2206,6 +2252,7 @@ void EeScheduler::renewTimeSlice()
 {
     m_sliceEndCycle = m_eeCycle + kDefaultTimeSliceCycles;
     m_timeSliceExpired = false;
+    m_limitsChanged.store(true, std::memory_order_seq_cst);
 }
 
 void EeScheduler::copyMainContextToRuntime()

@@ -476,6 +476,8 @@ uint32_t PS2Memory::eeTimerLoad(uint32_t address) noexcept
     uint32_t offset = 0u;
     if (!decodeEeTimerRegister(eeTimerPhysical(address), index, offset))
         return 0u;
+    if (m_eeCycleSync)
+        m_eeCycleSync(m_eeCycleSyncContext, false);
     flushEeTimers();
     const EeTimer &timer = m_eeTimers[index];
     switch (offset)
@@ -508,6 +510,8 @@ bool PS2Memory::eeTimerStore(uint32_t address, uint32_t value) noexcept
     uint32_t offset = 0u;
     if (!decodeEeTimerRegister(eeTimerPhysical(address), index, offset))
         return false;
+    if (m_eeCycleSync)
+        m_eeCycleSync(m_eeCycleSyncContext, true);
     flushEeTimers();
     m_eeTimerBudget = 0; // recompute the distance to the next interrupt at the next advance
     EeTimer &timer = m_eeTimers[index];

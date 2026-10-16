@@ -489,6 +489,7 @@ private:
     [[nodiscard]] ps2x::iop::RpcResult handleIopRpc(uint8_t *rdram, R5900Context *ctx, ps2x::iop::RpcRequest request);
     void notifyIopSifTransfer(uint8_t *rdram, const ps2x::iop::SifTransfer &transfer);
     void advanceIopEeCycles(uint64_t eeCycles) noexcept;
+    [[nodiscard]] uint64_t iopEeCyclesUntilBatch() const noexcept;
     void resetIop();
     void shutdownHostGraphics(); // GOW-Port: destruir GS antes de cerrar el contexto raylib.
 

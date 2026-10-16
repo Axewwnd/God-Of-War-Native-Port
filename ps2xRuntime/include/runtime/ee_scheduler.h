@@ -279,6 +279,27 @@ public:
     void requestStop();
     void postEvent(EeEvent event);
     [[nodiscard]] bool checkpointDue(uint32_t cycles = kGeneratedCheckpointCycles) noexcept;
+    // GOW-Port: checkpointDue for the generated code (tens of millions of calls per second). While the cycles stay
+    // below m_quietCycles (the distance to the next EE timer step, IOP batch, scheduled event or slice end, computed
+    // by the last full checkpoint) and no other thread asked for a checkpoint, the full one would only add cycles and
+    // return false: the guest clock advances here and the timer and IOP cycles wait in m_deferredCycles until the next
+    // full checkpoint or EE timer access (syncDeferredCycles). Same results at the same checkpoints as checkpointDue.
+    [[nodiscard]] bool checkpointDueFast(uint32_t cycles = kGeneratedCheckpointCycles) noexcept
+    {
+        const uint64_t elapsed = cycles != 0u ? cycles : 1u;
+        if (elapsed < m_quietCycles && !m_checkpointPending.load(std::memory_order_relaxed) &&
+            !m_limitsChanged.load(std::memory_order_relaxed))
+        {
+            m_quietCycles -= elapsed;
+            m_eeCycle += elapsed;
+            m_deferredCycles += elapsed;
+            return false;
+        }
+        return checkpointDue(cycles);
+    }
+    // Hands the deferred cycles to the EE timers and the IOP (below their next step by construction); limitsChanged
+    // also makes the next checkpoint a full one (an EE timer write can bring its next event closer).
+    void syncDeferredCycles(bool limitsChanged) noexcept;
     void accountCycles(uint32_t cycles) noexcept;
     // GOW-Port: for a guest busy-wait that never blocks (the movie player): when guest time has fallen behind the
     // host clock (a scheduled event's host deadline has passed but its guest cycle is not reached), account the
@@ -461,6 +482,12 @@ private:
     uint32_t m_gsVSyncCallbackSp = 0;
     std::unordered_map<uint64_t, uint32_t> m_invocationStackTops;
     std::atomic<uint64_t> m_nextDeadlineCycle{0};
+    // checkpointDueFast state (EE thread only, except m_limitsChanged: set by any thread that moves a limit)
+    uint64_t m_quietCycles = 0;
+    uint64_t m_deferredCycles = 0;
+    std::atomic<bool> m_limitsChanged{true};
+    bool checkpointDueFull(uint32_t cycles) noexcept;
+    uint64_t quietCycles() const noexcept;
 
     mutable std::mutex m_snapshotMutex;
     EeKernelSnapshot m_snapshot;
