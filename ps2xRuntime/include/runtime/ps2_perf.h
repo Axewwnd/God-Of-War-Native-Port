@@ -15,7 +15,9 @@
 
 namespace ps2_perf
 {
-    enum class Bucket : size_t { Ee, Vu, Gs, Iop, GuestWait, Upload, HostWait, Count, None = Count };
+    // GsQueueWait: the GS frontend blocked on a full GL-thread queue (or a drain); counted apart from Gs so the log shows
+    // whether the frontend or the GL thread behind it is the limit
+    enum class Bucket : size_t { Ee, Vu, Gs, Iop, GuestWait, Upload, HostWait, GsQueueWait, Count, None = Count };
     constexpr size_t bucketCount = static_cast<size_t>(Bucket::Count);
 
     // Contabilidad con reloj inyectable para comprobar el anidamiento sin sleeps.
@@ -152,9 +154,9 @@ namespace ps2_perf
         }
         const uint64_t flips = guestFlips.load(std::memory_order_relaxed);
         const uint64_t frames = hostFrames.load(std::memory_order_relaxed);
-        std::fprintf(stderr, "[gow-perf] t=%.2f window=%.2f ee_ms=%.2f vu_ms=%.2f gs_ms=%.2f iop_ms=%.2f guest_wait_ms=%.2f upload_ms=%.2f host_wait_ms=%.2f guest_flip_hz=%.2f host_hz=%.2f\n",
+        std::fprintf(stderr, "[gow-perf] t=%.2f window=%.2f ee_ms=%.2f vu_ms=%.2f gs_ms=%.2f iop_ms=%.2f guest_wait_ms=%.2f upload_ms=%.2f host_wait_ms=%.2f guest_flip_hz=%.2f host_hz=%.2f gsq_wait_ms=%.2f\n",
             (now - first) * 1e-9, seconds, ms[0], ms[1], ms[2], ms[3], ms[4], ms[5], ms[6],
-            (flips - previousFlips) / seconds, (frames - previousFrames) / seconds);
+            (flips - previousFlips) / seconds, (frames - previousFrames) / seconds, ms[7]);
         previousFlips = flips; previousFrames = frames; last = now;
     }
 }

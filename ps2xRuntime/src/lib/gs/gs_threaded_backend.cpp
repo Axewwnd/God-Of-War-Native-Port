@@ -6,6 +6,7 @@
 #include "gs_inventory.h"
 #include "ThreadPriority.h"
 #include "ThreadNaming.h"
+#include "runtime/ps2_perf.h"
 
 #include <atomic>
 #include <algorithm>
@@ -143,6 +144,7 @@ void GSThreadedBackend::PublishLocked()
     std::vector<uint8_t> next;
     {
         std::unique_lock<std::mutex> lock(m_queueMutex);
+        ps2_perf::Scope perf(ps2_perf::Bucket::GsQueueWait);
         m_doneCv.wait(lock, [&]
                       { return m_stop || m_pending.size() < m_queueChunkLimit; });
         m_pending.push_back(std::move(m_open));
@@ -171,6 +173,7 @@ void GSThreadedBackend::Drain() const
         target = m_published;
     }
     std::unique_lock<std::mutex> lock(m_queueMutex);
+    ps2_perf::Scope perf(ps2_perf::Bucket::GsQueueWait);
     m_doneCv.wait(lock, [&]
                   { return m_completed >= target || m_stop; });
 }
