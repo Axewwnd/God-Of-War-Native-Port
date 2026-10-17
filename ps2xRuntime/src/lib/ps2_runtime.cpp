@@ -2538,9 +2538,9 @@ void PS2Runtime::postEeEvent(EeEvent event)
     m_eeScheduler->postEvent(event);
 }
 
-bool PS2Runtime::eeCheckpointDue(uint32_t cycles) noexcept
+bool PS2Runtime::eeCheckpointDueFull(uint32_t cycles) noexcept
 {
-    const bool due = m_eeScheduler->checkpointDueFast(cycles);
+    const bool due = m_eeScheduler->checkpointDue(cycles);
     if (due) ++m_eeCheckpointSerial;
     return due;
 }

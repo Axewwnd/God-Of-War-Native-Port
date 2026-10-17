@@ -13,8 +13,9 @@
 #endif
 
 #include "ps2_runtime.h"
+#include "runtime/ps2_inline.h"
 
-static inline int32_t Ps2ExtractEpi32(__m128i v, int index)
+static PS2_FORCEINLINE int32_t Ps2ExtractEpi32(__m128i v, int index)
 {
     switch (index & 3)
     {
@@ -29,7 +30,7 @@ static inline int32_t Ps2ExtractEpi32(__m128i v, int index)
     }
 }
 
-static inline int64_t Ps2ExtractEpi64(__m128i v, int index)
+static PS2_FORCEINLINE int64_t Ps2ExtractEpi64(__m128i v, int index)
 {
     if ((index & 1) == 0)
     {
@@ -46,12 +47,12 @@ static inline uint32_t ps2_clz32(uint32_t x)
     return static_cast<uint32_t>(std::countl_zero(x));
 }
 
-static inline uint64_t Ps2HiLoToU64(uint64_t hi, uint64_t lo)
+static PS2_FORCEINLINE uint64_t Ps2HiLoToU64(uint64_t hi, uint64_t lo)
 {
     return ((hi & 0xFFFFFFFFull) << 32) | (lo & 0xFFFFFFFFull);
 }
 
-static inline uint64_t Ps2SignExt32ToU64(uint32_t v)
+static PS2_FORCEINLINE uint64_t Ps2SignExt32ToU64(uint32_t v)
 {
     return (uint64_t)(int64_t)(int32_t)v;
 }
@@ -143,7 +144,7 @@ static inline uint32_t ps2_plzcw32(uint32_t x)
 // GOW-Port: semantica de la FPU (COP1) y de VU0 en modo macro del PS2: no hay NaN ni infinitos (se satura al maximo
 // finito), suma/resta sin bits de guarda, division y raices con flags de FCR31 y comparaciones sobre el patron de bits.
 // Tomado del port de Shadow of the Colossus (TaylorNAlbarnaz/PS2Recomp, rama sotc-port: 8b51cb9, 9bb389e, c419f26).
-inline __m128 ps2VuClampVector(__m128 value)
+PS2_FORCEINLINE __m128 ps2VuClampVector(__m128 value)
 {
     const __m128i bits = _mm_castps_si128(value);
     const __m128i exponentMask = _mm_set1_epi32(0x7F800000);
@@ -152,7 +153,7 @@ inline __m128 ps2VuClampVector(__m128 value)
     return _mm_castsi128_ps(_mm_or_si128(_mm_and_si128(special, saturated), _mm_andnot_si128(special, bits)));
 }
 
-inline float ps2FpuClamp(float value)
+PS2_FORCEINLINE float ps2FpuClamp(float value)
 {
     uint32_t bits;
     std::memcpy(&bits, &value, sizeof(bits));
@@ -164,7 +165,7 @@ inline float ps2FpuClamp(float value)
     return value;
 }
 
-inline void ps2FpuAlignOperands(float &a, float &b)
+PS2_FORCEINLINE void ps2FpuAlignOperands(float &a, float &b)
 {
     uint32_t ua;
     uint32_t ub;
@@ -183,19 +184,19 @@ inline void ps2FpuAlignOperands(float &a, float &b)
     std::memcpy(&b, &ub, sizeof(b));
 }
 
-inline float ps2FpuAdd(float a, float b)
+PS2_FORCEINLINE float ps2FpuAdd(float a, float b)
 {
     ps2FpuAlignOperands(a, b);
     return ps2FpuClamp(a + b);
 }
 
-inline float ps2FpuSub(float a, float b)
+PS2_FORCEINLINE float ps2FpuSub(float a, float b)
 {
     ps2FpuAlignOperands(a, b);
     return ps2FpuClamp(a - b);
 }
 
-inline float ps2SignedFloatMax(uint32_t signSource)
+PS2_FORCEINLINE float ps2SignedFloatMax(uint32_t signSource)
 {
     const uint32_t bits = (signSource & 0x80000000u) | 0x7F7FFFFFu;
     float out;
@@ -203,14 +204,14 @@ inline float ps2SignedFloatMax(uint32_t signSource)
     return out;
 }
 
-inline uint32_t ps2FloatBits(float value)
+PS2_FORCEINLINE uint32_t ps2FloatBits(float value)
 {
     uint32_t bits;
     std::memcpy(&bits, &value, sizeof(bits));
     return bits;
 }
 
-inline uint32_t ps2FpuCompareKey(float value)
+PS2_FORCEINLINE uint32_t ps2FpuCompareKey(float value)
 {
     uint32_t bits = ps2FloatBits(value);
     if ((bits & 0x7F800000u) == 0u)
@@ -218,7 +219,7 @@ inline uint32_t ps2FpuCompareKey(float value)
     return (bits & 0x80000000u) != 0u ? ~bits : bits ^ 0x80000000u;
 }
 
-inline bool ps2FloatIsZero(float value)
+PS2_FORCEINLINE bool ps2FloatIsZero(float value)
 {
     return (ps2FloatBits(value) & 0x7F800000u) == 0u;
 }
@@ -341,161 +342,122 @@ inline float ps2VuRsqrt(uint16_t &status, float numerator, float value)
 // Fast path: Direct RDRAM access (masked).
 // Slow path: Full runtime->Load/Store
 
-static inline bool Ps2FastRangeIsContiguous(uint32_t offset, uint32_t bytes)
+static PS2_FORCEINLINE bool Ps2FastRangeIsContiguous(uint32_t offset, uint32_t bytes)
 {
     return offset <= (PS2_RAM_SIZE - bytes);
 }
 
-static inline uint8_t Ps2FastRead8(const uint8_t *rdram, uint32_t addr)
+// An access that runs past the end of RAM wraps to its start (never for an aligned access).
+template <typename T>
+static PS2_NOINLINE T Ps2FastReadWrapped(const uint8_t *rdram, uint32_t offset)
+{
+    uint8_t wrapped[sizeof(T)];
+    for (uint32_t i = 0; i < sizeof(T); ++i)
+        wrapped[i] = rdram[(offset + i) & PS2_RAM_MASK];
+    T value;
+    std::memcpy(&value, wrapped, sizeof(value));
+    return value;
+}
+
+template <typename T>
+static PS2_NOINLINE void Ps2FastWriteWrapped(uint8_t *rdram, uint32_t offset, T value)
+{
+    uint8_t wrapped[sizeof(T)];
+    std::memcpy(wrapped, &value, sizeof(value));
+    for (uint32_t i = 0; i < sizeof(T); ++i)
+        rdram[(offset + i) & PS2_RAM_MASK] = wrapped[i];
+}
+
+static PS2_FORCEINLINE uint8_t Ps2FastRead8(const uint8_t *rdram, uint32_t addr)
 {
     return rdram[addr & PS2_RAM_MASK];
 }
 
-static inline uint16_t Ps2FastRead16(const uint8_t *rdram, uint32_t addr)
+static PS2_FORCEINLINE uint16_t Ps2FastRead16(const uint8_t *rdram, uint32_t addr)
 {
     const uint32_t offset = addr & PS2_RAM_MASK;
     if (!Ps2FastRangeIsContiguous(offset, sizeof(uint16_t)))
-    {
-        uint8_t wrapped[sizeof(uint16_t)];
-        for (uint32_t i = 0; i < sizeof(uint16_t); ++i)
-        {
-            wrapped[i] = rdram[(offset + i) & PS2_RAM_MASK];
-        }
-        uint16_t value;
-        std::memcpy(&value, wrapped, sizeof(value));
-        return value;
-    }
-
+        return Ps2FastReadWrapped<uint16_t>(rdram, offset);
     uint16_t value;
     std::memcpy(&value, rdram + offset, sizeof(value));
     return value;
 }
 
-static inline uint32_t Ps2FastRead32(const uint8_t *rdram, uint32_t addr)
+static PS2_FORCEINLINE uint32_t Ps2FastRead32(const uint8_t *rdram, uint32_t addr)
 {
     const uint32_t offset = addr & PS2_RAM_MASK;
     if (!Ps2FastRangeIsContiguous(offset, sizeof(uint32_t)))
-    {
-        uint8_t wrapped[sizeof(uint32_t)];
-        for (uint32_t i = 0; i < sizeof(uint32_t); ++i)
-        {
-            wrapped[i] = rdram[(offset + i) & PS2_RAM_MASK];
-        }
-        uint32_t value;
-        std::memcpy(&value, wrapped, sizeof(value));
-        return value;
-    }
-
+        return Ps2FastReadWrapped<uint32_t>(rdram, offset);
     uint32_t value;
     std::memcpy(&value, rdram + offset, sizeof(value));
     return value;
 }
 
-static inline uint64_t Ps2FastRead64(const uint8_t *rdram, uint32_t addr)
+static PS2_FORCEINLINE uint64_t Ps2FastRead64(const uint8_t *rdram, uint32_t addr)
 {
     const uint32_t offset = addr & PS2_RAM_MASK;
     if (!Ps2FastRangeIsContiguous(offset, sizeof(uint64_t)))
-    {
-        uint8_t wrapped[sizeof(uint64_t)];
-        for (uint32_t i = 0; i < sizeof(uint64_t); ++i)
-        {
-            wrapped[i] = rdram[(offset + i) & PS2_RAM_MASK];
-        }
-        uint64_t value;
-        std::memcpy(&value, wrapped, sizeof(value));
-        return value;
-    }
-
+        return Ps2FastReadWrapped<uint64_t>(rdram, offset);
     uint64_t value;
     std::memcpy(&value, rdram + offset, sizeof(value));
     return value;
 }
 
-static inline __m128i Ps2FastRead128(const uint8_t *rdram, uint32_t addr)
+static PS2_FORCEINLINE __m128i Ps2FastRead128(const uint8_t *rdram, uint32_t addr)
 {
     // GOW-Port: LQ/SQ/LQC2/SQC2 ignoran los 4 bits bajos de la direccion (fork de SotC, 9bb389e).
     const uint32_t offset = addr & PS2_RAM_MASK & ~0xFu;
     if (!Ps2FastRangeIsContiguous(offset, sizeof(__m128i)))
-    {
-        alignas(16) uint8_t wrapped[sizeof(__m128i)];
-        for (uint32_t i = 0; i < sizeof(__m128i); ++i)
-        {
-            wrapped[i] = rdram[(offset + i) & PS2_RAM_MASK];
-        }
-        __m128i value;
-        std::memcpy(&value, wrapped, sizeof(value));
-        return value;
-    }
-
+        return Ps2FastReadWrapped<__m128i>(rdram, offset);
     __m128i value;
     std::memcpy(&value, rdram + offset, sizeof(value));
     return value;
 }
 
-static inline void Ps2FastWrite8(uint8_t *rdram, uint32_t addr, uint8_t value)
+static PS2_FORCEINLINE void Ps2FastWrite8(uint8_t *rdram, uint32_t addr, uint8_t value)
 {
     rdram[addr & PS2_RAM_MASK] = value;
 }
 
-static inline void Ps2FastWrite16(uint8_t *rdram, uint32_t addr, uint16_t value)
+static PS2_FORCEINLINE void Ps2FastWrite16(uint8_t *rdram, uint32_t addr, uint16_t value)
 {
     const uint32_t offset = addr & PS2_RAM_MASK;
     if (!Ps2FastRangeIsContiguous(offset, sizeof(uint16_t)))
     {
-        uint8_t wrapped[sizeof(uint16_t)];
-        std::memcpy(wrapped, &value, sizeof(value));
-        for (uint32_t i = 0; i < sizeof(uint16_t); ++i)
-        {
-            rdram[(offset + i) & PS2_RAM_MASK] = wrapped[i];
-        }
+        Ps2FastWriteWrapped(rdram, offset, value);
         return;
     }
     std::memcpy(rdram + offset, &value, sizeof(value));
 }
 
-static inline void Ps2FastWrite32(uint8_t *rdram, uint32_t addr, uint32_t value)
+static PS2_FORCEINLINE void Ps2FastWrite32(uint8_t *rdram, uint32_t addr, uint32_t value)
 {
     const uint32_t offset = addr & PS2_RAM_MASK;
     if (!Ps2FastRangeIsContiguous(offset, sizeof(uint32_t)))
     {
-        uint8_t wrapped[sizeof(uint32_t)];
-        std::memcpy(wrapped, &value, sizeof(value));
-        for (uint32_t i = 0; i < sizeof(uint32_t); ++i)
-        {
-            rdram[(offset + i) & PS2_RAM_MASK] = wrapped[i];
-        }
+        Ps2FastWriteWrapped(rdram, offset, value);
         return;
     }
     std::memcpy(rdram + offset, &value, sizeof(value));
 }
 
-static inline void Ps2FastWrite64(uint8_t *rdram, uint32_t addr, uint64_t value)
+static PS2_FORCEINLINE void Ps2FastWrite64(uint8_t *rdram, uint32_t addr, uint64_t value)
 {
     const uint32_t offset = addr & PS2_RAM_MASK;
     if (!Ps2FastRangeIsContiguous(offset, sizeof(uint64_t)))
     {
-        uint8_t wrapped[sizeof(uint64_t)];
-        std::memcpy(wrapped, &value, sizeof(value));
-        for (uint32_t i = 0; i < sizeof(uint64_t); ++i)
-        {
-            rdram[(offset + i) & PS2_RAM_MASK] = wrapped[i];
-        }
+        Ps2FastWriteWrapped(rdram, offset, value);
         return;
     }
     std::memcpy(rdram + offset, &value, sizeof(value));
 }
 
-static inline void Ps2FastWrite128(uint8_t *rdram, uint32_t addr, __m128i value)
+static PS2_FORCEINLINE void Ps2FastWrite128(uint8_t *rdram, uint32_t addr, __m128i value)
 {
     const uint32_t offset = addr & PS2_RAM_MASK & ~0xFu; // GOW-Port
     if (!Ps2FastRangeIsContiguous(offset, sizeof(__m128i)))
     {
-        alignas(16) uint8_t wrapped[sizeof(__m128i)];
-        std::memcpy(wrapped, &value, sizeof(value));
-        for (uint32_t i = 0; i < sizeof(__m128i); ++i)
-        {
-            rdram[(offset + i) & PS2_RAM_MASK] = wrapped[i];
-        }
+        Ps2FastWriteWrapped(rdram, offset, value);
         return;
     }
     std::memcpy(rdram + offset, &value, sizeof(value));
@@ -1016,7 +978,7 @@ inline __m128i ps2_qfsrv(__m128i rs, __m128i rt, uint32_t sa)
 #define GPR_S64(ctx_ptr, reg_idx) ((reg_idx == 0) ? 0LL : PS2_EXTRACT_EPI64_0(ctx_ptr->r[reg_idx]))
 #define GPR_VEC(ctx_ptr, reg_idx) ((reg_idx == 0) ? _mm_setzero_si128() : ctx_ptr->r[reg_idx])
 
-static inline void Ps2SetGprLow64(R5900Context *ctx, int reg, __m128i new_low)
+static PS2_FORCEINLINE void Ps2SetGprLow64(R5900Context *ctx, int reg, __m128i new_low)
 {
     if (reg != 0)
     {
@@ -1027,7 +989,7 @@ static inline void Ps2SetGprLow64(R5900Context *ctx, int reg, __m128i new_low)
 // Writes the low 64 bits of a GPR with one scalar store; the upper 64 bits stay untouched in memory.
 // Same result as Ps2SetGprLow64 without the 128-bit load/merge/store (and without NEON lane inserts on ARM).
 // Little-endian hosts only (x86-64, AArch64), like the rest of the runtime.
-static inline void Ps2SetGprLow64Bits(R5900Context *ctx, int reg, uint64_t new_low)
+static PS2_FORCEINLINE void Ps2SetGprLow64Bits(R5900Context *ctx, int reg, uint64_t new_low)
 {
     if (reg != 0)
     {
