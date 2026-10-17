@@ -2091,7 +2091,7 @@ const GSDrawState &GS::drawState()
 {
     if (m_builtStateSerial == m_stateSerial)
         return m_builtState;
-    GSPrimitiveBatch batch{}; // value-initialised: the padding bytes compared by memcmp are zero
+    GSPrimitiveBatch batch{};
     batch.state.context = m_ctx[m_prim.ctxt ? 1 : 0];
     batch.state.prim = m_prim;
     if (gowFogOff())

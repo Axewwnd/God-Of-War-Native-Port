@@ -1294,7 +1294,7 @@ struct GSHwBackend::Impl
     // ---- drawing --------------------------------------------------------------------------------------------------
     static bool sameState(const GSDrawState &a, const GSDrawState &b)
     {
-        return std::memcmp(&a, &b, sizeof(GSDrawState)) == 0;
+        return a == b;
     }
 
     void addVertex(const GSDrawState &s, const GSVertex &v, float u, float tv, float zmax)

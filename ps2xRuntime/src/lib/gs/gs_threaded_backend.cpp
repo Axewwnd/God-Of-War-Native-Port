@@ -145,7 +145,7 @@ void GSThreadedBackend::AppendLocked(Op op, const void *payload, uint32_t size, 
 void GSThreadedBackend::AppendDrawStateLocked(const GSDrawState &state, uint64_t serial)
 {
     const bool sameSerial = m_drawStateValid && serial != 0u && serial == m_lastDrawSerial;
-    if (!sameSerial && (!m_drawStateValid || std::memcmp(&m_lastDrawState, &state, sizeof(state)) != 0))
+    if (!sameSerial && (!m_drawStateValid || !(m_lastDrawState == state)))
     {
         std::memcpy(&m_lastDrawState, &state, sizeof(state));
         m_drawStateValid = true;
