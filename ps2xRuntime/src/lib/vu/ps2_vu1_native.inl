@@ -772,6 +772,10 @@ bool VU1Interpreter::runNative(StepContext &context)
     ctx.clipRing = &ns.clipRing;
 
     bool handled = false;
+    // per-block bookkeeping kept in registers across the block calls (the blocks are opaque calls: anything in memory is
+    // reloaded after each one): diagnostics counters added to ns on exit, the verify bisection limit fixed for the run
+    const bool bisecting = ns.limit != ~0u;
+    uint64_t blocks = 0u, pairs = 0u;
     for (;;)
     {
         if (m_stopRequested || m_cycle >= context.budgetEnd)
@@ -818,7 +822,7 @@ bool VU1Interpreter::runNative(StepContext &context)
             vu_fpmode::set((savedFpMode & ~vu_fpmode::kRoundMask) | vu_fpmode::kRoundZero | vu_fpmode::kFlushZero);
             armed = true;
         }
-        if (ns.limit != ~0u)
+        if (bisecting)
         {
             if (ns.count >= ns.limit)
                 break;
@@ -847,8 +851,8 @@ bool VU1Interpreter::runNative(StepContext &context)
         VU1NativeAccess::finishBlockTiming(*this, sl, cyc, cycId, start);
         if (m_cycle >= m_nextCommitCycle)
             commitReadyPipelines(); // FDIV/EFU entries kept for timing retire when ready (values are written already)
-        ns.nativePairs += sl.pairs;
-        ++ns.nativeBlocks;
+        pairs += sl.pairs;
+        ++blocks;
         m_state.pc = result & 0x3FFFu;
         if (result & kVu1nEnded)
         {
@@ -859,6 +863,8 @@ bool VU1Interpreter::runNative(StepContext &context)
         if (result & kVu1nBail)
             break;
     }
+    ns.nativePairs += pairs;
+    ns.nativeBlocks += blocks;
     m_state.cycles = m_cycle; // only read outside the blocks (diagnostics)
     if (armed)
     {
