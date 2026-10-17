@@ -213,7 +213,8 @@ extern "C"
         setenv("GOW_PERF_FRAME_PC", "0x001837B8", 0);
         setenv("GOW_DELTA_DIAG", "1", 0);
         setenv("GOW_GS_HW_STATS", "1", 0);
-        setenv("GOW_GS_GPU_TIME", "1", 0); // [gs-gpu]: GPU time per draw path (on the console the GPU is the limit)
+        setenv("GOW_GS_GPU_TIME", "1", 0);
+        setenv("GOW_GPU_BISECT", "1", 0); // [gpu-bisect]: GPU features off in turns (diagnostic NSP; env.txt GOW_GPU_BISECT=0) // [gs-gpu]: GPU time per draw path (on the console the GPU is the limit)
         startCpuClock();
     }
 

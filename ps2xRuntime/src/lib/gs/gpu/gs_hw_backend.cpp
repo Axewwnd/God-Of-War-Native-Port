@@ -649,6 +649,50 @@ struct GSHwBackend::Impl
         g.BeginQuery(kTimeElapsed, t.query);
     }
     void gpuTag(uint32_t bits) { gpuTimer.kind |= bits; }
+
+    // GOW-Port: GOW_GPU_BISECT=1 (on by default on the Switch, for the GPU hunt): from 30 s after start the renderer runs
+    // 12 s phases, the baseline and one GPU feature switched off in turns (the picture is wrong in the "off" phases).
+    // At each phase end it prints [gpu-bisect] with presents per second and GPU ms per second ([gs-gpu] queries), so
+    // one console run says what each feature costs: compare an "off" phase with the baseline phases around it.
+    enum BisectMode : int
+    {
+        BisectBase, BisectNoFail, BisectNoShaderBlend, BisectNoTexture, BisectPoint, BisectNoShuffle, BisectNoDraw,
+        BisectNoReadback, BisectModes
+    };
+    struct Bisect
+    {
+        bool enabled = [] { const char *v = std::getenv("GOW_GPU_BISECT"); return v && *v == '1'; }();
+        int mode = BisectBase;
+        long phase = -1;
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now(), phaseStart = start;
+        int presentsAtStart = 0;
+        uint64_t gpuNanosAtStart = 0u;
+    } bisect;
+    uint64_t gpuNanosAll = 0u; // every collected query, for the bisect phases
+    void updateBisect()
+    {
+        Bisect &b = bisect;
+        if (!b.enabled)
+            return;
+        static const char *const names[BisectModes] = {"base", "no-fail-pass", "no-shader-blend", "no-texture", "point-filter",
+                                                       "no-shuffle", "no-draw", "no-readback"};
+        const auto now = std::chrono::steady_clock::now();
+        const double t = std::chrono::duration<double>(now - b.start).count();
+        const long phase = t < 30.0 ? -1 : static_cast<long>((t - 30.0) / 12.0);
+        if (phase == b.phase)
+            return;
+        gpuCollect();
+        const double seconds = std::chrono::duration<double>(now - b.phaseStart).count();
+        if (b.phase >= 0 && seconds > 0.0)
+            std::fprintf(stderr, "[gpu-bisect] phase=%ld mode=%s secs=%.1f presents_hz=%.2f gpu_ms_per_s=%.1f\n", b.phase,
+                         names[b.mode], seconds, (presentCount - b.presentsAtStart) / seconds,
+                         (gpuNanosAll - b.gpuNanosAtStart) * 1e-6 / seconds);
+        b.phase = phase;
+        b.mode = phase < 0 || (phase % 2) == 0 ? BisectBase : static_cast<int>((phase / 2) % (BisectModes - 1)) + 1;
+        b.phaseStart = now;
+        b.presentsAtStart = presentCount;
+        b.gpuNanosAtStart = gpuNanosAll;
+    }
     void gpuEnd()
     {
         GpuTimer &t = gpuTimer;
@@ -687,6 +731,7 @@ struct GSHwBackend::Impl
             g.GetQueryObjectui64v(p.query, kQueryResult, &nanos);
             GpuTimer::Total &total = t.totals[p.kind];
             total.nanos += nanos;
+            gpuNanosAll += nanos;
             ++total.count;
             total.area += p.area;
             t.spare.push_back(p.query);
@@ -1698,7 +1743,7 @@ struct GSHwBackend::Impl
             return;
         haveShuffle = false;
         GpuSpan gpuSpan(*this, GpuShuffle);
-        if (!shuffleProgram)
+        if (!shuffleProgram || bisect.mode == BisectNoShuffle)
         {
             for (auto &q : shuffleQuads)
                 q.clear();
@@ -2118,6 +2163,8 @@ struct GSHwBackend::Impl
         if (onlyLo >= 0 && (frameBatch < onlyLo || frameBatch > onlyHi) && s.context.frame.fbp == 0 && s.context.frame.fbw == 8 && !(s.prim.tme && s.context.tex0.tbp0 == 0))
             return;
         const GSContext &c = s.context;
+        if (bisect.mode == BisectNoDraw)
+            return;
         GpuSpan gpuSpan(*this, GpuDraw);
         if (gpuTimer.open && !verts.empty())
         {
@@ -2229,6 +2276,8 @@ struct GSHwBackend::Impl
         GLenum sf, df, equation;
         float fixScale, constant;
         blendState(s, blend, sf, df, fixScale, constant, equation, softBlend);
+        if (bisect.mode == BisectNoShaderBlend)
+            softBlend = false;
         // COLCLAMP=0 with Cs*FIX + Cd and one flat untextured colour (the shadow-volume counting passes: G += 255, then
         // G += 1, modulo 256): every fragment adds the same constant modulo 256, and additions commute, so the fixed-function
         // blend does it in one draw: adding v < 128 is an add, adding v >= 128 is subtracting 256 - v. Exact while the
@@ -2308,7 +2357,7 @@ struct GSHwBackend::Impl
             }
         }
         u2f(locInvSize, 1.0f / rt.pxW, 1.0f / rt.pxH);
-        u1i(locTme, s.prim.tme ? 1 : 0);
+        u1i(locTme, s.prim.tme && bisect.mode != BisectNoTexture ? 1 : 0);
         u1i(locFst, s.prim.fst ? 1 : 0);
         u1i(locIip, s.prim.iip ? 1 : 0);
         u1i(locTfx, c.tex0.tfx);
@@ -2343,9 +2392,10 @@ struct GSHwBackend::Impl
             const bool indexed = !(src || rsrc || zsrc) && isIndexed(c.tex0.psm) && vram != nullptr;
             Texture &tex = (src || rsrc || zsrc) ? dummy : indexed ? indexTextureFor(s) : textureFor(s);
             u1i(locIndexed, indexed ? 1 : 0);
-            u1i(locLinear, s.linearFilter ? 1 : 0);
+            const bool linearFilter = s.linearFilter && bisect.mode != BisectPoint;
+            u1i(locLinear, linearFilter ? 1 : 0);
             gpuTag(GpuTex | (indexed ? GpuIndexed : 0u) | (src ? GpuRtSrc : 0u) | (rsrc ? GpuReinterp : 0u) | (zsrc ? GpuZSrc : 0u) |
-                   (s.linearFilter ? GpuLinear : 0u));
+                   (linearFilter ? GpuLinear : 0u));
             if (indexed)
             {
                 g.ActiveTexture(kTexture0 + 5);
@@ -2367,7 +2417,7 @@ struct GSHwBackend::Impl
             // GOW-Port: index textures and depth sources are sampled nearest (the shader filters indexed ones itself);
             // the final filter is set once, not linear first and then nearest (each change makes the driver
             // revalidate the texture before the draw)
-            const GLint filter = (indexed || zsrc || !s.linearFilter) ? kNearest : kLinear;
+            const GLint filter = (indexed || zsrc || !linearFilter) ? kNearest : kLinear;
             g.TexParameteri(kTexture2D, kTextureMinFilter, filter);
             g.TexParameteri(kTexture2D, kTextureMagFilter, filter);
             const uint64_t clamp = c.clamp;
@@ -2500,7 +2550,7 @@ struct GSHwBackend::Impl
             std::fprintf(stderr, "[gs-hw-vol]   after: G<127 %zu, G>127 %zu, G=127 %zu\n", below, above, equal);
         }
         static const bool noFailPass = std::getenv("GOW_GS_HW_NOFAIL") != nullptr;
-        if (ate && afail != 0u && !noFailPass)
+        if (ate && afail != 0u && !noFailPass && bisect.mode != BisectNoFail)
         {
             // failing fragments: 1 FB_ONLY (colour+alpha, no Z), 2 ZB_ONLY (Z only), 3 RGB_ONLY (colour, no alpha, no Z)
             u1i(locPass, 2);
@@ -2832,6 +2882,7 @@ PresentationFrame GSHwBackend::Present(const GSPresentationRequest &request)
     if (!d.ensure())
         return frame;
     d.flushPending();
+    d.updateBisect();
     d.reportGpu();
     Impl::GpuSpan gpuSpan(d, Impl::GpuPresent);
     d.reportGlError("present");
@@ -3060,7 +3111,8 @@ PresentationFrame GSHwBackend::Present(const GSPresentationRequest &request)
         GSGL::PublishSharedTexture(g, d.presentTex, outW, outH, d.presentCount, fbp, fbp, request.vsyncTick);
         return PresentationFrame{};
     }
-    g.ReadPixels(0, 0, outW, outH, kRgba, kUnsignedByte, frame.pixels.data());
+    if (d.bisect.mode != Impl::BisectNoReadback)
+        g.ReadPixels(0, 0, outW, outH, kRgba, kUnsignedByte, frame.pixels.data());
     // the frontend packs presentation rows with a fixed 640 pixel stride
     if (frame.width < 640u)
     {
