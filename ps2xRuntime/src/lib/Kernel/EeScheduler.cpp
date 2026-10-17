@@ -477,6 +477,21 @@ uint64_t EeScheduler::catchUpToHost(uint64_t maxCycles) noexcept
     return added;
 }
 
+uint64_t EeScheduler::advanceQuietRepeated(uint32_t cycles, uint64_t maxCount) noexcept
+{
+    const uint64_t each = cycles != 0u ? cycles : 1u;
+    if (m_clock.quietCycles == 0u || m_clock.checkpointPending.load(std::memory_order_relaxed) ||
+        m_clock.limitsChanged.load(std::memory_order_relaxed))
+        return 0u;
+    // advanceQuiet passes a checkpoint while its cycles stay below the remaining quiet cycles
+    const uint64_t count = std::min(maxCount, (m_clock.quietCycles - 1u) / each);
+    const uint64_t total = count * each;
+    m_clock.quietCycles -= total;
+    m_clock.eeCycle += total;
+    m_clock.deferredCycles += total;
+    return count;
+}
+
 bool EeScheduler::isExecutingGuest() const noexcept
 {
     return m_guestExecuting.load(std::memory_order_acquire);
