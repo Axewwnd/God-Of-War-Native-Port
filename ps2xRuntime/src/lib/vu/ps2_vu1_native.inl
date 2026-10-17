@@ -760,7 +760,7 @@ bool VU1Interpreter::runNative(StepContext &context)
         VU1NativeAccess::codeChanged(ns, context.vuCode);
     }
 
-    const unsigned savedCsr = _mm_getcsr();
+    const uint64_t savedFpMode = vu_fpmode::get();
     bool armed = false; // pending exact-engine pipelines are committed only when a native block really runs
     VU1NativeCtx ctx;
     ctx.s = &m_state;
@@ -815,7 +815,7 @@ bool VU1Interpreter::runNative(StepContext &context)
                 ns.arraysReadyBy = readyBy;
             }
             ++ns.nativeRuns;
-            _mm_setcsr((savedCsr & ~0x6000u) | 0x6000u | 0x8000u | 0x0040u); // round toward zero, FTZ, DAZ
+            vu_fpmode::set((savedFpMode & ~vu_fpmode::kRoundMask) | vu_fpmode::kRoundZero | vu_fpmode::kFlushZero);
             armed = true;
         }
         if (ns.limit != ~0u)
@@ -866,7 +866,7 @@ bool VU1Interpreter::runNative(StepContext &context)
         VU1NativeAccess::exportFlags(*this);
         ns.exitCycle = m_cycle;
     }
-    _mm_setcsr(savedCsr);
+    vu_fpmode::set(savedFpMode);
     if (ns.diag)
     {
         static auto last = std::chrono::steady_clock::now();
