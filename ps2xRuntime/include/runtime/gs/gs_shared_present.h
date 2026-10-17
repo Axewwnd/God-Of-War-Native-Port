@@ -29,6 +29,8 @@ namespace GSSharedPresent
     void CaptureHostContext();
     void RestoreHostContext();
     bool Active();
+    // sequence of the newest published frame (it may still be rendering on the GPU); readable without any lock
+    uint64_t LatestSequence();
     bool Acquire(Frame &frame);
     void ShutdownHost();
 

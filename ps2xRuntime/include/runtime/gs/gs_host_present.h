@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "runtime/gs/gs_shared_present.h"
 
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <vector>
@@ -22,6 +23,7 @@ public:
         bool borrowed = false;
         bool blank = true;
         GSSharedPresent::Frame frame{};
+        bool presented = true; // false: renderFrame drew and swapped nothing (Switch, no new shared frame)
     };
 
     // GOW-Port: InitWindow precede a capture; Initialize del GS precede a restore.
@@ -53,6 +55,9 @@ private:
     bool hasLatched = false;
 #if defined(__SWITCH__)
     std::unique_lock<std::mutex> driverLock; // GL driver lock from prepare() to the end of renderFrame()
+    uint64_t triedSequence = 0u; // the published sequence the last drawn pass looked for, and when (renderFrame)
+    std::chrono::steady_clock::time_point triedAt{};
+    std::chrono::steady_clock::time_point nextPresent{}; // 60 Hz window pacing (renderFrame)
 #endif
     bool uploaded = false;
     bool uploadedBlank = false;

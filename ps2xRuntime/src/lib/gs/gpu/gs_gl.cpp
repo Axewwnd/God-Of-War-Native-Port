@@ -249,6 +249,7 @@ namespace
     int s_readingSlot = -1;
     uint64_t s_sharedSequence = 0;
     std::atomic<bool> s_sharedActive{false};
+    std::atomic<uint64_t> s_publishedSequence{0}; // s_sharedSequence, readable without the lock (LatestSequence)
 
     bool completed(const GSGL::Api &gl, GSGL::GLsync fence)
     {
@@ -275,6 +276,11 @@ namespace GSSharedPresent
     bool Active()
     {
         return s_sharedActive.load(std::memory_order_acquire);
+    }
+
+    uint64_t LatestSequence()
+    {
+        return s_publishedSequence.load(std::memory_order_acquire);
     }
 
     bool Acquire(Frame &frame)
@@ -419,6 +425,7 @@ namespace GSGL
         slot.frame.width = width;
         slot.frame.height = height;
         slot.frame.sequence = ++s_sharedSequence;
+        s_publishedSequence.store(s_sharedSequence, std::memory_order_release);
         slot.frame.renderSequence = renderSequence;
         slot.frame.displayFbp = displayFbp;
         slot.frame.sourceFbp = sourceFbp;
@@ -474,6 +481,7 @@ namespace GSGL
                                 static_cast<GLsizei>(width), static_cast<GLsizei>(height), 1);
         }
         slot.frame.sequence = ++s_sharedSequence;
+        s_publishedSequence.store(s_sharedSequence, std::memory_order_release);
         slot.frame.renderSequence = renderSequence;
         slot.frame.displayFbp = displayFbp;
         slot.frame.sourceFbp = sourceFbp;
@@ -912,6 +920,7 @@ namespace GSSharedPresent
     void CaptureHostContext() {}
     void RestoreHostContext() {}
     bool Active() { return false; }
+    uint64_t LatestSequence() { return 0u; }
     bool Acquire(Frame &) { return false; }
     void ShutdownHost() {}
 }
