@@ -183,9 +183,21 @@ void VU1NativeAccess::xgkick(VU1NativeCtx &n, uint32_t qwordAddress)
         }
         if (ok)
         {
-            uint8_t *dst = vu.m_xgkick.packet.data();
             const uint32_t first = src & (size - 1u);
             const uint32_t head = std::min(total, size - first);
+            vu.m_xgkick.copiedBytes = total;
+            vu.m_xgkick.totalBytes = total;
+            vu.m_xgkick.currentTagEnd = total;
+            vu.m_xgkick.currentTagEop = true;
+            vu.m_xgkick.cycleCredit = 0x40000000u - (total / 16u) * 2u + 1u;
+            if (head == total)
+            {
+                // the packet is contiguous in VU memory and is handed on before the next VU instruction: no copy here
+                // (the GS stage queue copies it once, ~170 MB/s in gameplay)
+                vu.finishXgkick(vu.m_activeVuData + first);
+                return;
+            }
+            uint8_t *dst = vu.m_xgkick.packet.data();
             std::memcpy(dst, vu.m_activeVuData + first, head);
             for (uint32_t done = head; done < total;)
             {
@@ -193,11 +205,6 @@ void VU1NativeAccess::xgkick(VU1NativeCtx &n, uint32_t qwordAddress)
                 std::memcpy(dst + done, vu.m_activeVuData, chunk);
                 done += chunk;
             }
-            vu.m_xgkick.copiedBytes = total;
-            vu.m_xgkick.totalBytes = total;
-            vu.m_xgkick.currentTagEnd = total;
-            vu.m_xgkick.currentTagEop = true;
-            vu.m_xgkick.cycleCredit = 0x40000000u - (total / 16u) * 2u + 1u;
             vu.finishXgkick();
             return;
         }

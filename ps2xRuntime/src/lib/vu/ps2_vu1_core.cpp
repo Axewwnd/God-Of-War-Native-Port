@@ -1182,14 +1182,16 @@ namespace
     std::vector<uint8_t> g_vuVerifyPackets;
 }
 
-void VU1Interpreter::finishXgkick()
+void VU1Interpreter::finishXgkick(const uint8_t *packet)
 {
     if (!m_xgkick.active)
         return;
+    if (!packet)
+        packet = m_xgkick.packet.data();
     if (m_verifySilent)
     {
         if (g_vuVerifyCapture)
-            g_vuVerifyPackets.insert(g_vuVerifyPackets.end(), m_xgkick.packet.data(), m_xgkick.packet.data() + m_xgkick.totalBytes);
+            g_vuVerifyPackets.insert(g_vuVerifyPackets.end(), packet, packet + m_xgkick.totalBytes);
         m_xgkick.active = false;
         return;
     }
@@ -1200,7 +1202,7 @@ void VU1Interpreter::finishXgkick()
     if (kickPrim >= 0)
     {
         static int kickShown = 0;
-        const uint8_t *pk = m_xgkick.packet.data();
+        const uint8_t *pk = packet;
         uint32_t off = 0, kicks = 0, noKicks = 0;
         bool match = false;
         while (off + 16u <= m_xgkick.totalBytes)
@@ -1236,9 +1238,9 @@ void VU1Interpreter::finishXgkick()
         }
     }
     if (m_activeMemory)
-        m_activeMemory->submitGifPacket(GifPathId::Path1, m_xgkick.packet.data(), m_xgkick.totalBytes);
+        m_activeMemory->submitGifPacket(GifPathId::Path1, packet, m_xgkick.totalBytes);
     else if (m_activeGs)
-        m_activeGs->processGIFPacket(m_xgkick.packet.data(), m_xgkick.totalBytes);
+        m_activeGs->processGIFPacket(packet, m_xgkick.totalBytes);
     m_xgkick.active = false;
 }
 
