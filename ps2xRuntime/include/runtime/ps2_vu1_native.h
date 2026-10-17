@@ -367,16 +367,45 @@ namespace vu1n
         return _mm_min_ps(_mm_max_ps(r, _mm_set1_ps(-FLT_MAX)), _mm_set1_ps(FLT_MAX));
 #endif
     }
+#if defined(__aarch64__)
+    // NEON: the MAC bits of all lanes (DEST order: x = bit 3 of each nibble) from the lane masks with one ADDV. Through
+    // sse2neon each of the three _mm_movemask_ps below is a shift, a variable shift and an ADDV, for every FMAC.
+    // Big: round-toward-zero's largest finite value also counts as overflow (macVal), not only exponent 255 (macFlags).
+    template <bool Big>
+    VU1N_INLINE uint32_t macBitsNeon(__m128 r)
+    {
+        static constexpr uint32_t kZero[4] = {0x8u, 0x4u, 0x2u, 0x1u};
+        static constexpr uint32_t kSign[4] = {0x80u, 0x40u, 0x20u, 0x10u};
+        static constexpr uint32_t kOver[4] = {0x8000u, 0x4000u, 0x2000u, 0x1000u};
+        const uint32x4_t b = vreinterpretq_u32_f32(r);
+        const uint32x4_t mag = vandq_u32(b, vdupq_n_u32(0x7FFFFFFFu));
+        const uint32x4_t expMask = vdupq_n_u32(0x7F800000u);
+        uint32x4_t over = vceqq_u32(vandq_u32(b, expMask), expMask);
+        if constexpr (Big)
+            over = vorrq_u32(over, vceqq_u32(mag, vdupq_n_u32(0x7F7FFFFFu)));
+        const uint32x4_t zero = vceqq_u32(mag, vdupq_n_u32(0u));
+        const uint32x4_t sign = vreinterpretq_u32_s32(vshrq_n_s32(vreinterpretq_s32_u32(b), 31));
+        const uint32x4_t bits = vorrq_u32(vorrq_u32(vandq_u32(zero, vld1q_u32(kZero)), vandq_u32(sign, vld1q_u32(kSign))),
+                                          vandq_u32(over, vld1q_u32(kOver)));
+        return vaddvq_u32(bits);
+    }
+    // the MAC bits a DEST mask (SSE order) keeps
+    VU1N_INLINE uint32_t macDestBits(uint32_t m) { return static_cast<uint32_t>(kRev4[m & 15u]) * 0x1011u; }
+#endif
     // MAC register after an FMAC: per-lane zero / sign / overflow (underflow is not tracked); lanes outside DEST are 0.
     template <int M>
     VU1N_INLINE void macFlags(VU1State &s, __m128 r)
     {
+#if defined(__aarch64__)
+        s.mac = macBitsNeon<false>(r) & macDestBits(M);
+#else
         const __m128i b = _mm_castps_si128(r);
         const __m128i expMask = _mm_set1_epi32(0x7F800000);
         const int z = _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(b, _mm_set1_epi32(0x7FFFFFFF)), _mm_setzero_si128()))) & M;
         const int sg = _mm_movemask_ps(r) & M;
         const int o = _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(b, expMask), expMask))) & M;
         s.mac = static_cast<uint32_t>(kRev4[z] | (kRev4[sg] << 4) | (kRev4[o] << 12));
+#endif
     }
     // acc +/- a*b. The exact engine evaluates it unrounded, so a product that overflows float can still cancel against ACC:
     // when the float result is not finite the lanes are redone in double (out of line: rare, and keeping it out lets the
@@ -406,13 +435,21 @@ namespace vu1n
         const __m128i lim = _mm_set1_epi32(0x7F7FFFFE);
         const __m128i hot = _mm_or_si128(_mm_cmpgt_epi32(_mm_and_si128(_mm_castps_si128(p), _mm_set1_epi32(0x7FFFFFFF)), lim),
                                          _mm_cmpgt_epi32(_mm_and_si128(_mm_castps_si128(r), _mm_set1_epi32(0x7FFFFFFF)), lim));
+#if defined(__aarch64__)
+        if (vmaxvq_u32(vreinterpretq_u32_m128i(hot)) == 0u) // one UMAXV instead of sse2neon's byte movemask
+            return r;
+#else
         if (_mm_movemask_epi8(hot) == 0)
             return r;
+#endif
         return maddWide<Sub>(acc, a, b);
     }
     // macVal with the DEST mask (SSE order) at run time: flags of a MAC writer read after its block ended
     inline uint32_t macValRt(__m128 r, uint32_t m)
     {
+#if defined(__aarch64__)
+        return macBitsNeon<true>(r) & macDestBits(m);
+#else
         const __m128i b = _mm_castps_si128(r);
         const __m128i expMask = _mm_set1_epi32(0x7F800000);
         const int z = _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(b, _mm_set1_epi32(0x7FFFFFFF)), _mm_setzero_si128()))) & m;
@@ -420,10 +457,14 @@ namespace vu1n
         const __m128i big = _mm_cmpeq_epi32(_mm_and_si128(b, _mm_set1_epi32(0x7FFFFFFF)), _mm_set1_epi32(0x7F7FFFFF));
         const int o = _mm_movemask_ps(_mm_castsi128_ps(_mm_or_si128(_mm_cmpeq_epi32(_mm_and_si128(b, expMask), expMask), big))) & m;
         return static_cast<uint32_t>(kRev4[z] | (kRev4[sg] << 4) | (kRev4[o] << 12));
+#endif
     }
     template <int M>
     VU1N_INLINE uint32_t macVal(__m128 r)
     {
+#if defined(__aarch64__)
+        return macBitsNeon<true>(r) & macDestBits(M);
+#else
         const __m128i b = _mm_castps_si128(r);
         const __m128i expMask = _mm_set1_epi32(0x7F800000);
         const int z = _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(b, _mm_set1_epi32(0x7FFFFFFF)), _mm_setzero_si128()))) & M;
@@ -432,6 +473,7 @@ namespace vu1n
         const __m128i big = _mm_cmpeq_epi32(_mm_and_si128(b, _mm_set1_epi32(0x7FFFFFFF)), _mm_set1_epi32(0x7F7FFFFF));
         const int o = _mm_movemask_ps(_mm_castsi128_ps(_mm_or_si128(_mm_cmpeq_epi32(_mm_and_si128(b, expMask), expMask), big))) & M;
         return static_cast<uint32_t>(kRev4[z] | (kRev4[sg] << 4) | (kRev4[o] << 12));
+#endif
     }
     VU1N_INLINE uint32_t clipVal(const VU1State &s, int fs, int ft, uint32_t prev)
     {
