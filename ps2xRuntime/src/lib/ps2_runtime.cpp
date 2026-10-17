@@ -892,10 +892,12 @@ bool PS2Runtime::initialize(const char *title)
 #if defined(PLATFORM_VITA)
         InitWindow(HOST_WINDOW_WIDTH, HOST_WINDOW_HEIGHT, title); // raylib vita does not support audio
 #elif defined(PLATFORM_SWITCH)
-        // GOW-Port: the Switch screen (handheld 720p; docked output is scaled by the system). Frames are paced by the
-        // display's vertical sync: raylib's WaitTime has no sleep call on Horizon (its frame limiter would spin the
-        // whole frame, and Horizon does not time-slice threads of one priority, so the GS threads on core 0 starved).
-        SetConfigFlags(FLAG_VSYNC_HINT);
+        // GOW-Port: the Switch screen (handheld 720p; docked output is scaled by the system). No vertical-sync swap
+        // interval: the wait for the display happened inside the first GL call of a frame (the back buffer is taken
+        // there), i.e. while this thread holds the GL driver lock, and the GL backend on the same core waited ~15 ms of
+        // every host frame. GSHostPresentation::renderFrame paces the window at 60 Hz with a sleep after the lock is
+        // released instead (raylib's WaitTime has no sleep call on Horizon: its frame limiter would spin, and Horizon
+        // does not time-slice threads of one priority).
         InitWindow(1280, 720, title);
 #else
         SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -2774,12 +2776,12 @@ void PS2Runtime::run()
             }
         });
         // GOW-Port: el helper real termina el batch antes del próximo Acquire.
-        m_hostPresentation->renderFrame(m_gs, m_eeScheduler->currentVSyncTick(), [this]
+        const bool presented = m_hostPresentation->renderFrame(m_gs, m_eeScheduler->currentVSyncTick(), [this]
         {
             if (m_debugUiInitialized && m_debugUiDrawCallback)
                 m_debugUiDrawCallback(*this, m_debugUiUserData);
-        });
-        if (ps2_perf::countFrames()) ps2_perf::hostFrames.fetch_add(1, std::memory_order_relaxed);
+        }).presented;
+        if (presented && ps2_perf::countFrames()) ps2_perf::hostFrames.fetch_add(1, std::memory_order_relaxed);
         ps2_perf::report();
 
         if (WindowShouldClose())

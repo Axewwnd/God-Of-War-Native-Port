@@ -6,10 +6,12 @@
 #include "ps2_log.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <thread>
 
 namespace
 {
@@ -294,6 +296,32 @@ GSHostPresentation::View GSHostPresentation::prepare(GS &gs, uint64_t vsyncTick)
 GSHostPresentation::View GSHostPresentation::renderFrame(GS &gs, uint64_t vsyncTick, const std::function<void()> &overlay)
 {
     View selected;
+#if defined(__SWITCH__)
+    // GOW-Port: with shared textures nothing here waits for the GS thread, and Horizon does not time-slice threads of
+    // one priority: the GL backend shares core 0 with this thread, and while this thread drew and swapped at 60 Hz
+    // holding the GL driver lock the backend ran one queued chunk per host frame (Citron: lock_wait ~4.4 s of 5 s,
+    // 2 game fps). So the window is only drawn when a newer frame was published; otherwise input is polled and this
+    // thread sleeps (giving the core to the backend), keeping the last image on screen. A published frame the GPU has
+    // not finished (Acquire keeps the previous one) is retried every 8 ms, not on every pass.
+    const uint64_t latest = GSSharedPresent::LatestSequence();
+    const auto now = std::chrono::steady_clock::now();
+    const bool retryDue = latest != triedSequence || now - triedAt >= std::chrono::milliseconds(8);
+    if (sharedMode && current.texture.id != 0u && (latest == lastSharedSequence || !retryDue))
+    {
+        if (vsyncTick != lastTick)
+        {
+            gs.latchHostPresentationFrame(); // shared: only queues the Present op
+            lastTick = vsyncTick;
+        }
+        PollInputEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        selected = current;
+        selected.presented = false;
+        return selected;
+    }
+    triedSequence = latest;
+    triedAt = now;
+#endif
     {
         ps2_perf::Scope perf(ps2_perf::Bucket::Upload);
         selected = prepare(gs, vsyncTick);
@@ -355,6 +383,15 @@ GSHostPresentation::View GSHostPresentation::renderFrame(GS &gs, uint64_t vsyncT
     }
 #if defined(__SWITCH__)
     driverLock = {};
+    // 60 Hz pacing outside the driver lock (the window has no vertical-sync swap interval, ps2_runtime.cpp)
+    {
+        ps2_perf::Scope perf(ps2_perf::Bucket::HostWait);
+        constexpr auto period = std::chrono::nanoseconds(16666667);
+        const auto done = std::chrono::steady_clock::now();
+        if (done < nextPresent)
+            std::this_thread::sleep_until(nextPresent);
+        nextPresent = std::max(done, nextPresent) + period;
+    }
 #endif
     return selected;
 }
