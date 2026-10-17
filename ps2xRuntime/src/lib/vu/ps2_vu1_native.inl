@@ -183,9 +183,21 @@ void VU1NativeAccess::xgkick(VU1NativeCtx &n, uint32_t qwordAddress)
         }
         if (ok)
         {
-            uint8_t *dst = vu.m_xgkick.packet.data();
             const uint32_t first = src & (size - 1u);
             const uint32_t head = std::min(total, size - first);
+            vu.m_xgkick.copiedBytes = total;
+            vu.m_xgkick.totalBytes = total;
+            vu.m_xgkick.currentTagEnd = total;
+            vu.m_xgkick.currentTagEop = true;
+            vu.m_xgkick.cycleCredit = 0x40000000u - (total / 16u) * 2u + 1u;
+            if (head == total)
+            {
+                // the packet is contiguous in VU memory and is handed on before the next VU instruction: no copy here
+                // (the GS stage queue copies it once, ~170 MB/s in gameplay)
+                vu.finishXgkick(vu.m_activeVuData + first);
+                return;
+            }
+            uint8_t *dst = vu.m_xgkick.packet.data();
             std::memcpy(dst, vu.m_activeVuData + first, head);
             for (uint32_t done = head; done < total;)
             {
@@ -193,11 +205,6 @@ void VU1NativeAccess::xgkick(VU1NativeCtx &n, uint32_t qwordAddress)
                 std::memcpy(dst + done, vu.m_activeVuData, chunk);
                 done += chunk;
             }
-            vu.m_xgkick.copiedBytes = total;
-            vu.m_xgkick.totalBytes = total;
-            vu.m_xgkick.currentTagEnd = total;
-            vu.m_xgkick.currentTagEop = true;
-            vu.m_xgkick.cycleCredit = 0x40000000u - (total / 16u) * 2u + 1u;
             vu.finishXgkick();
             return;
         }
@@ -760,7 +767,7 @@ bool VU1Interpreter::runNative(StepContext &context)
         VU1NativeAccess::codeChanged(ns, context.vuCode);
     }
 
-    const unsigned savedCsr = _mm_getcsr();
+    const uint64_t savedFpMode = vu_fpmode::get();
     bool armed = false; // pending exact-engine pipelines are committed only when a native block really runs
     VU1NativeCtx ctx;
     ctx.s = &m_state;
@@ -772,6 +779,10 @@ bool VU1Interpreter::runNative(StepContext &context)
     ctx.clipRing = &ns.clipRing;
 
     bool handled = false;
+    // per-block bookkeeping kept in registers across the block calls (the blocks are opaque calls: anything in memory is
+    // reloaded after each one): diagnostics counters added to ns on exit, the verify bisection limit fixed for the run
+    const bool bisecting = ns.limit != ~0u;
+    uint64_t blocks = 0u, pairs = 0u;
     for (;;)
     {
         if (m_stopRequested || m_cycle >= context.budgetEnd)
@@ -815,10 +826,10 @@ bool VU1Interpreter::runNative(StepContext &context)
                 ns.arraysReadyBy = readyBy;
             }
             ++ns.nativeRuns;
-            _mm_setcsr((savedCsr & ~0x6000u) | 0x6000u | 0x8000u | 0x0040u); // round toward zero, FTZ, DAZ
+            vu_fpmode::set((savedFpMode & ~vu_fpmode::kRoundMask) | vu_fpmode::kRoundZero | vu_fpmode::kFlushZero);
             armed = true;
         }
-        if (ns.limit != ~0u)
+        if (bisecting)
         {
             if (ns.count >= ns.limit)
                 break;
@@ -847,8 +858,8 @@ bool VU1Interpreter::runNative(StepContext &context)
         VU1NativeAccess::finishBlockTiming(*this, sl, cyc, cycId, start);
         if (m_cycle >= m_nextCommitCycle)
             commitReadyPipelines(); // FDIV/EFU entries kept for timing retire when ready (values are written already)
-        ns.nativePairs += sl.pairs;
-        ++ns.nativeBlocks;
+        pairs += sl.pairs;
+        ++blocks;
         m_state.pc = result & 0x3FFFu;
         if (result & kVu1nEnded)
         {
@@ -859,6 +870,8 @@ bool VU1Interpreter::runNative(StepContext &context)
         if (result & kVu1nBail)
             break;
     }
+    ns.nativePairs += pairs;
+    ns.nativeBlocks += blocks;
     m_state.cycles = m_cycle; // only read outside the blocks (diagnostics)
     if (armed)
     {
@@ -866,7 +879,7 @@ bool VU1Interpreter::runNative(StepContext &context)
         VU1NativeAccess::exportFlags(*this);
         ns.exitCycle = m_cycle;
     }
-    _mm_setcsr(savedCsr);
+    vu_fpmode::set(savedFpMode);
     if (ns.diag)
     {
         static auto last = std::chrono::steady_clock::now();

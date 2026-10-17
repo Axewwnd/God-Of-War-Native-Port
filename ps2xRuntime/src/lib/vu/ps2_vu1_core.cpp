@@ -30,6 +30,29 @@
 #pragma fp_contract(off)
 #endif
 
+// GOW-Port: the float control register for a VU run (x86 MXCSR, ARM64 FPCR), read and written directly. std::fesetround
+// (MSVC: x87 and SSE control words) and sse2neon's _mm_getcsr / _mm_setcsr (fegetround plus several FPCR reads and
+// writes) are library calls; run() and runNative switch the mode for each of the ~100k VU1 programs per second.
+namespace vu_fpmode
+{
+#if defined(__aarch64__)
+    inline uint64_t get()
+    {
+        uint64_t v;
+        __asm__ volatile("mrs %0, fpcr" : "=r"(v));
+        return v;
+    }
+    inline void set(uint64_t v) { __asm__ volatile("msr fpcr, %0" : : "r"(v) : "memory"); }
+    constexpr uint64_t kRoundMask = 3ull << 22, kRoundZero = 3ull << 22; // RMode = RZ
+    constexpr uint64_t kFlushZero = 1ull << 24;                          // FZ (inputs and results)
+#else
+    inline uint64_t get() { return _mm_getcsr(); }
+    inline void set(uint64_t v) { _mm_setcsr(static_cast<unsigned>(v)); }
+    constexpr uint64_t kRoundMask = 0x6000u, kRoundZero = 0x6000u; // RC = toward zero
+    constexpr uint64_t kFlushZero = 0x8040u;                       // FTZ + DAZ
+#endif
+}
+
 namespace
 {
     // GOW-Port: GOW_XGKICK_IMMEDIATE se lee una vez (-1 = sin leer). getenv recorre el entorno
@@ -104,6 +127,16 @@ void VU1Interpreter::setDirectRegisterWrites(bool enabled)
     m_statusQuiet = false;
 }
 
+namespace
+{
+    template <typename Queue>
+    void clearPending(Queue &queue, uint32_t &pending)
+    {
+        for (; pending != 0u; pending &= pending - 1u)
+            queue[static_cast<size_t>(std::countr_zero(pending))] = {};
+    }
+}
+
 void VU1Interpreter::resetScheduler()
 {
     commitReadyFlags(); // GOW-Port: las ya listas se habrían confirmado en su ciclo
@@ -112,11 +145,12 @@ void VU1Interpreter::resetScheduler()
     m_flagPipeline = {};
     m_fdiv = {};
     m_efu = {};
-    m_storePipeline = {};
-    m_vfWritePipeline = {};
-    m_viWritePipeline = {};
-    m_accWritePipeline = {};
-    m_storePending = m_vfPending = m_viPending = m_accPending = 0u;
+    // GOW-Port: an entry is valid exactly while its pending bit is set and is {} otherwise (committing resets it), so
+    // clearing the pending ones leaves the queues as `= {}` would, without writing ~1.5 KB at every MSCAL.
+    clearPending(m_storePipeline, m_storePending);
+    clearPending(m_vfWritePipeline, m_vfPending);
+    clearPending(m_viWritePipeline, m_viPending);
+    clearPending(m_accWritePipeline, m_accPending);
     m_flagHead = m_flagCount = 0u;
     m_xgkick.reset();
     m_vfReady = {};
@@ -127,9 +161,8 @@ void VU1Interpreter::resetScheduler()
         m_native->arraysReadyBy = 0u;
         m_native->exitCycle = m_cycle;
     }
-    m_vfLatestWrite = {};
-    m_viLatestWrite = {};
-    m_accLatestWrite = {};
+    // m_*LatestWrite are not cleared: a lane's entry is only compared with the sequence of a pending write of that lane,
+    // which set it when it was queued (after this reset), so older values are never looked at.
     m_nextWriteSequence = 0;
     m_efuResourceReady = 0;
     m_workingClip = m_state.clip;
@@ -1149,14 +1182,16 @@ namespace
     std::vector<uint8_t> g_vuVerifyPackets;
 }
 
-void VU1Interpreter::finishXgkick()
+void VU1Interpreter::finishXgkick(const uint8_t *packet)
 {
     if (!m_xgkick.active)
         return;
+    if (!packet)
+        packet = m_xgkick.packet.data();
     if (m_verifySilent)
     {
         if (g_vuVerifyCapture)
-            g_vuVerifyPackets.insert(g_vuVerifyPackets.end(), m_xgkick.packet.data(), m_xgkick.packet.data() + m_xgkick.totalBytes);
+            g_vuVerifyPackets.insert(g_vuVerifyPackets.end(), packet, packet + m_xgkick.totalBytes);
         m_xgkick.active = false;
         return;
     }
@@ -1167,7 +1202,7 @@ void VU1Interpreter::finishXgkick()
     if (kickPrim >= 0)
     {
         static int kickShown = 0;
-        const uint8_t *pk = m_xgkick.packet.data();
+        const uint8_t *pk = packet;
         uint32_t off = 0, kicks = 0, noKicks = 0;
         bool match = false;
         while (off + 16u <= m_xgkick.totalBytes)
@@ -1203,9 +1238,9 @@ void VU1Interpreter::finishXgkick()
         }
     }
     if (m_activeMemory)
-        m_activeMemory->submitGifPacket(GifPathId::Path1, m_xgkick.packet.data(), m_xgkick.totalBytes);
+        m_activeMemory->submitGifPacket(GifPathId::Path1, packet, m_xgkick.totalBytes);
     else if (m_activeGs)
-        m_activeGs->processGIFPacket(m_xgkick.packet.data(), m_xgkick.totalBytes);
+        m_activeGs->processGIFPacket(packet, m_xgkick.totalBytes);
     m_xgkick.active = false;
 }
 
@@ -1912,8 +1947,8 @@ void VU1Interpreter::run(uint8_t *vuCode, uint32_t codeSize,
     m_activeMemory = memory;
 
     ps2_perf::Scope perf(ps2_perf::Bucket::Vu); // GOW-Port: VU0/VU1; las llamadas al GS se descuentan.
-    const int previousRoundingMode = std::fegetround();
-    const bool useVuRounding = std::fesetround(FE_TOWARDZERO) == 0;
+    const uint64_t previousFpMode = vu_fpmode::get();
+    vu_fpmode::set((previousFpMode & ~vu_fpmode::kRoundMask) | vu_fpmode::kRoundZero); // VU float rounding
     StepContext context{vuCode, codeSize, vuData, dataSize, &gs, memory, m_cycle + maxCycles, false};
     m_lastRunHitBudget = false; // GOW-Port: funciona también con un despachador compilado.
     const uint32_t runStartPc = m_state.pc;
@@ -2240,8 +2275,7 @@ void VU1Interpreter::run(uint8_t *vuCode, uint32_t codeSize,
         if (++endMacRuns % 20000u == 0u)
             std::fprintf(stderr, "[vu1-endmac] ours runs=%u mac12=%u mac0=%u other=%u\n", endMacRuns, endMacCount[0], endMacCount[1], endMacCount[2]);
     }
-    if (useVuRounding && previousRoundingMode != -1)
-        std::fesetround(previousRoundingMode);
+    vu_fpmode::set(previousFpMode);
 }
 
 // GOW-Port: GOW_VU1C_VERIFICAR. Antes de un bloque compilado se ejecutan sus pares con el interprete desde el

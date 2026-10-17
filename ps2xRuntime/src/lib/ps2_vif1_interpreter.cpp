@@ -36,14 +36,15 @@ enum VIFCmd : uint8_t
 // GOW-Port: VIF1 UNPACK without a write mask and with CL >= WL (every write cycle reads source data): the format,
 // the STMOD mode and the vector layout are fixed per command, so one specialised loop per (VN, VL, MODE) replaces the
 // per-vector, per-field decisions of the general loop below. Same results as that loop, including its quirks: V3 keeps
-// the W already in VU memory (and adds ROW to it in the offset modes), V2 writes XYXY, V4-5 never adds ROW.
+// the W already in VU memory (and adds ROW to it in the offset modes), V2 writes XYXY, V4-5 never adds ROW. Each vector
+// is built and written as one 128-bit value (unpackVector), the sign/zero extension is a template parameter.
 namespace
 {
     using UnpackFastFn = void (*)(uint8_t *vuData, const uint8_t *src, uint32_t count, uint32_t vuAddr, uint32_t cl,
                                   uint32_t wl, bool zeroExtend, uint32_t row[4]);
 
-    template <unsigned VL>
-    inline uint32_t unpackComponent(const uint8_t *src, unsigned c, bool zeroExtend)
+    template <unsigned VL, bool ZX>
+    inline uint32_t unpackComponent(const uint8_t *src, unsigned c)
     {
         if constexpr (VL == 0u)
         {
@@ -55,21 +56,83 @@ namespace
         {
             uint16_t raw;
             std::memcpy(&raw, src + c * 2u, 2u);
-            return zeroExtend ? raw : static_cast<uint32_t>(static_cast<int32_t>(static_cast<int16_t>(raw)));
+            return ZX ? raw : static_cast<uint32_t>(static_cast<int32_t>(static_cast<int16_t>(raw)));
         }
         else
         {
             const uint8_t raw = src[c];
-            return zeroExtend ? raw : static_cast<uint32_t>(static_cast<int32_t>(static_cast<int8_t>(raw)));
+            return ZX ? raw : static_cast<uint32_t>(static_cast<int32_t>(static_cast<int8_t>(raw)));
         }
     }
 
-    template <unsigned VN, unsigned VL, unsigned MODE>
-    void unpackFast(uint8_t *vuData, const uint8_t *src, uint32_t count, uint32_t vuAddr, uint32_t cl, uint32_t wl,
-                    bool zeroExtend, uint32_t row[4])
+    inline uint32_t load32(const uint8_t *p)
+    {
+        uint32_t v;
+        std::memcpy(&v, p, 4u);
+        return v;
+    }
+
+    inline uint16_t load16(const uint8_t *p)
+    {
+        uint16_t v;
+        std::memcpy(&v, p, 2u);
+        return v;
+    }
+
+    // One source vector as the four words written to VU memory (`dest`: its current contents, for V3's W). The SSE
+    // intrinsics map to NEON through sse2neon on ARM. Reads exactly the vector's bytes (the packet may end right after).
+    template <unsigned VN, unsigned VL, bool ZX>
+    inline __m128i unpackVector(const uint8_t *src, const uint8_t *dest)
+    {
+        if constexpr (VL == 3u) // V4-5: RGBA 5551
+        {
+            const uint32_t packed = load16(src);
+            return _mm_setr_epi32(static_cast<int>((packed & 0x001Fu) << 3u), static_cast<int>((packed & 0x03E0u) >> 2u),
+                                  static_cast<int>((packed & 0x7C00u) >> 7u), static_cast<int>((packed & 0x8000u) >> 8u));
+        }
+        else if constexpr (VN == 0u)
+            return _mm_set1_epi32(static_cast<int>(unpackComponent<VL, ZX>(src, 0u)));
+        else
+        {
+            constexpr uint32_t bytes = (VN + 1u) * (VL == 0u ? 4u : VL == 1u ? 2u : 1u);
+            __m128i raw; // the components' bytes, from byte 0
+            if constexpr (bytes == 16u)
+                raw = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src));
+            else if constexpr (bytes == 12u)
+                raw = _mm_insert_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(src)), static_cast<int>(load32(src + 8u)), 2);
+            else if constexpr (bytes == 8u)
+                raw = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(src));
+            else if constexpr (bytes == 6u)
+                raw = _mm_insert_epi16(_mm_cvtsi32_si128(static_cast<int>(load32(src))), load16(src + 4u), 2);
+            else if constexpr (bytes == 4u)
+                raw = _mm_cvtsi32_si128(static_cast<int>(load32(src)));
+            else if constexpr (bytes == 3u)
+                raw = _mm_cvtsi32_si128(static_cast<int>(load16(src) | (static_cast<uint32_t>(src[2]) << 16u)));
+            else
+                raw = _mm_cvtsi32_si128(load16(src));
+            __m128i v;
+            if constexpr (VL == 0u)
+                v = raw;
+            else if constexpr (VL == 1u)
+                v = ZX ? _mm_cvtepu16_epi32(raw) : _mm_cvtepi16_epi32(raw);
+            else
+                v = ZX ? _mm_cvtepu8_epi32(raw) : _mm_cvtepi8_epi32(raw);
+            if constexpr (VN == 1u)
+                v = _mm_unpacklo_epi64(v, v); // XYXY
+            else if constexpr (VN == 2u)
+                v = _mm_insert_epi32(v, static_cast<int>(load32(dest + 12u)), 3); // W stays
+            return v;
+        }
+    }
+
+    template <unsigned VN, unsigned VL, unsigned MODE, bool ZX>
+    void unpackLoop(uint8_t *vuData, const uint8_t *src, uint32_t count, uint32_t vuAddr, uint32_t cl, uint32_t wl,
+                    uint32_t row[4])
     {
         constexpr bool v45 = (VL == 3u);
+        constexpr bool useRow = !v45 && MODE != 0u;
         constexpr uint32_t bytesPerVector = v45 ? 2u : (VN + 1u) * (VL == 0u ? 4u : VL == 1u ? 2u : 1u);
+        __m128i r = useRow ? _mm_loadu_si128(reinterpret_cast<const __m128i *>(row)) : _mm_setzero_si128();
         uint32_t block = 0u, cyclePos = 0u;
         for (uint32_t i = 0; i < count; ++i, src += bytesPerVector)
         {
@@ -79,52 +142,27 @@ namespace
                 cyclePos = 0u;
                 ++block;
             }
-            uint32_t v[4];
-            if constexpr (v45)
-            {
-                uint16_t packed;
-                std::memcpy(&packed, src, 2u);
-                v[0] = (packed & 0x001Fu) << 3u;
-                v[1] = (packed & 0x03E0u) >> 2u;
-                v[2] = (packed & 0x7C00u) >> 7u;
-                v[3] = (packed & 0x8000u) >> 8u;
-            }
-            else if constexpr (VN == 0u)
-            {
-                v[0] = v[1] = v[2] = v[3] = unpackComponent<VL>(src, 0u, zeroExtend);
-            }
-            else
-            {
-                v[0] = unpackComponent<VL>(src, 0u, zeroExtend);
-                v[1] = unpackComponent<VL>(src, 1u, zeroExtend);
-                if constexpr (VN == 1u)
-                {
-                    v[2] = v[0];
-                    v[3] = v[1];
-                }
-                else
-                {
-                    v[2] = unpackComponent<VL>(src, 2u, zeroExtend);
-                    if constexpr (VN == 3u)
-                        v[3] = unpackComponent<VL>(src, 3u, zeroExtend);
-                    else
-                        std::memcpy(&v[3], dest + 12u, 4u);
-                }
-            }
-            if constexpr (!v45 && MODE != 0u)
-            {
-                for (unsigned f = 0; f < 4u; ++f)
-                {
-                    if constexpr (MODE == 1u)
-                        v[f] += row[f];
-                    else if constexpr (MODE == 2u)
-                        row[f] = v[f] += row[f];
-                    else
-                        row[f] = v[f];
-                }
-            }
-            std::memcpy(dest, v, 16u);
+            __m128i v = unpackVector<VN, VL, ZX>(src, dest);
+            if constexpr (useRow && MODE == 1u)
+                v = _mm_add_epi32(v, r);
+            else if constexpr (useRow && MODE == 2u)
+                r = v = _mm_add_epi32(v, r);
+            else if constexpr (useRow)
+                r = v;
+            _mm_storeu_si128(reinterpret_cast<__m128i *>(dest), v);
         }
+        if constexpr (useRow && MODE >= 2u)
+            _mm_storeu_si128(reinterpret_cast<__m128i *>(row), r);
+    }
+
+    template <unsigned VN, unsigned VL, unsigned MODE>
+    void unpackFast(uint8_t *vuData, const uint8_t *src, uint32_t count, uint32_t vuAddr, uint32_t cl, uint32_t wl,
+                    bool zeroExtend, uint32_t row[4])
+    {
+        if (zeroExtend)
+            unpackLoop<VN, VL, MODE, true>(vuData, src, count, vuAddr, cl, wl, row);
+        else
+            unpackLoop<VN, VL, MODE, false>(vuData, src, count, vuAddr, cl, wl, row);
     }
 
     template <unsigned VN, unsigned VL>

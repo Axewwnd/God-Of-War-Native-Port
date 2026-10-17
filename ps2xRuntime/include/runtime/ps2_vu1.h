@@ -395,7 +395,8 @@ private:
     void advanceTo(uint64_t targetCycle);
     void flushPipelines();
     void progressXgkick();
-    void finishXgkick();
+    // packet: the whole PATH1 packet (nullptr: m_xgkick.packet); the native XGKICK passes it in VU memory when it does not wrap
+    void finishXgkick(const uint8_t *packet = nullptr);
     uint64_t calculatePairReadyCycle(const DecodedInstructionPair &decoded) const;
     void markPairWrites(const DecodedInstructionPair &decoded);
     bool stepPair(const DecodedInstructionPair &decoded, StepContext &context);
