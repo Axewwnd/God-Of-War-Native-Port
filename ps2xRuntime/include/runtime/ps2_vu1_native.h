@@ -338,11 +338,20 @@ namespace vu1n
     // itself keeps its raw bits (integer data travels through VF registers).
     VU1N_INLINE __m128 nrm(__m128 v)
     {
+#if defined(__aarch64__)
+        // NEON: the same selects as two BSL (sse2neon's blendv adds a shift to build its byte mask), for every operand
+        const uint32x4_t b = vreinterpretq_u32_f32(v);
+        const uint32x4_t expMask = vdupq_n_u32(0x7F800000u);
+        const uint32x4_t bad = vceqq_u32(vandq_u32(b, expMask), expMask);
+        const uint32x4_t fixed = vbslq_u32(vdupq_n_u32(0x80000000u), b, vdupq_n_u32(0x7F7FFFFFu));
+        return vreinterpretq_f32_u32(vbslq_u32(bad, fixed, b));
+#else
         const __m128i b = _mm_castps_si128(v);
         const __m128i expMask = _mm_set1_epi32(0x7F800000);
         const __m128i bad = _mm_cmpeq_epi32(_mm_and_si128(b, expMask), expMask);
         const __m128i fixed = _mm_or_si128(_mm_and_si128(b, _mm_set1_epi32(static_cast<int>(0x80000000u))), _mm_set1_epi32(0x7F7FFFFF));
         return _mm_castsi128_ps(_mm_blendv_epi8(b, fixed, bad));
+#endif
     }
     VU1N_INLINE __m128 ldn(const VU1State &s, int r) { return nrm(_mm_loadu_ps(s.vf[r])); }
     VU1N_INLINE __m128 ldAcc(const VU1State &s) { return _mm_loadu_ps(s.acc); }
@@ -540,11 +549,17 @@ namespace vu1n
         __m128 v = ldn(s, fs);
         constexpr float scale = Shift == 0 ? 1.0f : Shift == 4 ? 16.0f : Shift == 12 ? 4096.0f : 32768.0f;
         v = _mm_mul_ps(clampv(v), _mm_set1_ps(scale));
+#if defined(__aarch64__)
+        // FCVTZS saturates (>= 2^31 -> INT_MAX, <= -2^31 -> INT_MIN) and clampv leaves no NaN: floatToInt's result
+        // without sse2neon's x86 fix-up of cvtt and the blend below
+        stf<M>(s.vf[ft], vreinterpretq_f32_s32(vcvtq_s32_f32(v)));
+#else
         // saturate like floatToInt: >= 2^31 -> INT_MAX (cvtt gives INT_MIN for out of range)
         const __m128 big = _mm_cmpge_ps(v, _mm_set1_ps(2147483648.0f));
         __m128i i = _mm_cvttps_epi32(v);
         i = _mm_castps_si128(_mm_blendv_ps(_mm_castsi128_ps(i), _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)), big));
         stf<M>(s.vf[ft], _mm_castsi128_ps(i));
+#endif
     }
     template <int M>
     VU1N_INLINE void absOp(VU1State &s, int fs, int ft)
