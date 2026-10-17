@@ -69,10 +69,11 @@ private:
         Vertices,
         VerticesRun, // GSPrimitiveVerts[n] drawn with the current DrawState
         Call,
+        Pad, // filler bytes in front of a payload that is read in place (AppendLocked's align)
     };
 
     void Enqueue(Op op, const void *payload, uint32_t size);
-    void AppendLocked(Op op, const void *payload, uint32_t size);
+    void AppendLocked(Op op, const void *payload, uint32_t size, uint32_t align = 1u);
     void AppendDrawStateLocked(const GSDrawState &state, uint64_t serial);
     void PublishLocked();
     void Drain() const;

@@ -2176,25 +2176,21 @@ struct GSHwBackend::Impl
             u1f(locTa0, static_cast<float>(s.texa.ta0));
             u1f(locTa1, static_cast<float>(s.texa.ta1));
             u1i(locAem, s.texa.aem ? 1 : 0);
-            const GLint filter = s.linearFilter ? kLinear : kNearest;
+            // GOW-Port: index textures and depth sources are sampled nearest (the shader filters indexed ones itself);
+            // the final filter is set once, not linear first and then nearest (each change makes the driver
+            // revalidate the texture before the draw)
+            const GLint filter = (indexed || zsrc || !s.linearFilter) ? kNearest : kLinear;
             g.TexParameteri(kTexture2D, kTextureMinFilter, filter);
             g.TexParameteri(kTexture2D, kTextureMagFilter, filter);
             const uint64_t clamp = c.clamp;
             const GLint wu = (clamp & 3u) == 0u ? kRepeat : kClampToEdge, wv = ((clamp >> 2) & 3u) == 0u ? kRepeat : kClampToEdge;
             g.TexParameteri(kTexture2D, kTextureWrapS, wu);
             g.TexParameteri(kTexture2D, kTextureWrapT, wv);
-            if (indexed)
-            {
-                g.TexParameteri(kTexture2D, kTextureMinFilter, kNearest);
-                g.TexParameteri(kTexture2D, kTextureMagFilter, kNearest);
-            }
             u1i(locTex, 0);
             u2f(locTexDim, static_cast<float>(std::max<uint16_t>(s.textureWidth, 1)), static_cast<float>(std::max<uint16_t>(s.textureHeight, 1)));
             if (zsrc)
             {
                 u2f(locTexSize, static_cast<float>(zsrc->pxW), static_cast<float>(zsrc->pxH));
-                g.TexParameteri(kTexture2D, kTextureMinFilter, kNearest);
-                g.TexParameteri(kTexture2D, kTextureMagFilter, kNearest);
             }
             else if (src)
                 u2f(locTexSize, static_cast<float>(src->pxW), static_cast<float>(src->pxH));
@@ -2339,10 +2335,18 @@ struct GSHwBackend::Impl
             }
         }
 
+        if (statsEnabled) // GOW-Port: per batch only with GOW_GS_HW_STATS; otherwise once per frame (Present)
+            reportGlError("batch");
+    }
+
+    // glGetError makes a threaded GL driver (NVIDIA's threaded optimisation, Mesa glthread) finish every queued
+    // command: called after each of the ~700 batches of a frame it serialised the driver with the GL thread.
+    void reportGlError(const char *where)
+    {
         static int errorsShown = 0;
         if (errorsShown < 8)
-            if (const GLenum err = g.GetError())
-                std::fprintf(stderr, "[gs-hw] GL error 0x%x after batch %llu\n", err, (unsigned long long)stats.batches), ++errorsShown;
+            if (const GLenum err = gl().GetError())
+                std::fprintf(stderr, "[gs-hw] GL error 0x%x at %s (batch %llu)\n", err, where, (unsigned long long)stats.batches), ++errorsShown;
     }
 
     // GOW-Port: GOW_GS_TEXSRC=1 classifies every texture decode (and target readback) by where its data came from, every
@@ -2606,6 +2610,7 @@ PresentationFrame GSHwBackend::Present(const GSPresentationRequest &request)
     if (!d.ensure())
         return frame;
     d.flushPending();
+    d.reportGlError("present");
     ++d.presentCount;
     d.dumpAfterSkip = false;
     d.frameBatch = 0;
