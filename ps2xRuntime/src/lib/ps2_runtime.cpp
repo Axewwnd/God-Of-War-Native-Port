@@ -1632,7 +1632,11 @@ bool PS2Runtime::dispatchGuestBranch(uint8_t *rdram,
         return false;
     }
 
-    if (!hasFunction(targetPc))
+    // one table lookup (hasFunction + lookupFunction did two)
+    uint32_t targetSlot = 0u;
+    const RecompiledFunction targetFn =
+        generatedFunctionTableSlot(targetPc, targetSlot) ? g_ps2RecompiledFunctionTable[targetSlot] : nullptr;
+    if (targetFn == nullptr)
     {
         reportMissingFunction(rdram, ctx, targetPc, sourcePc, kind, debugName);
 
@@ -1654,7 +1658,7 @@ bool PS2Runtime::dispatchGuestBranch(uint8_t *rdram,
         return false;
     }
 
-    RecompiledFunction targetFn = lookupFunction(targetPc);
+    pushDispatchPc(targetPc); // as lookupFunction
     const uint32_t entryPc = ctx->pc;
     const uint64_t checkpointSerial = m_eeCheckpointSerial;
     const uint64_t jumpSerial = g_guestJumpSerial;

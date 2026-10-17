@@ -441,7 +441,8 @@ public:
 
     static PS2_FORCEINLINE bool isSpecialAddress(uint32_t addr)
     {
-        return Ps2IsSpecialAddress(addr);
+        // main RAM (almost every access) inline, the rest of the check out of line
+        return addr >= PS2_RAM_SIZE && Ps2IsSpecialAddress(addr);
     }
 
 public:
