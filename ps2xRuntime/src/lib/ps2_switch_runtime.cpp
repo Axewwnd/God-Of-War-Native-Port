@@ -205,6 +205,9 @@ extern "C"
         setenv("GOW_MC0", "sdmc:/switch/gow/play.mcd", 0);
         // one bilinear tap to present (the bicubic + sharpen pass costs GPU time the Tegra lacks, and crashes Citron)
         setenv("GOW_SCALER", "bilinear", 0);
+        // native PS2 resolution (640x448 targets): the console shows 720p, and the 2x targets (up to 2048x2048) cost the
+        // Tegra four times the fill and readback for detail the screen cannot show
+        setenv("PS2X_GS_HW_SCALE", "1", 0);
         // speed lines in every log (a few lines every 5 s), so a log from the console says where the time goes
         setenv("GOW_PERF_DIAG", "1", 0);
         setenv("GOW_PERF_FRAME_PC", "0x001837B8", 0);

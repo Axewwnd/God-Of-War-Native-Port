@@ -10,6 +10,7 @@
 #include "runtime/gs/gs_stage.h"
 
 #include <atomic>
+#include <chrono>
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -35,6 +36,35 @@ namespace
         return constantCsr ? firstCsr : _mm_getcsr();
     }
     constexpr size_t kMaxPendingChunks = 256u;
+
+    // GOW-Port: GL-thread time per queued op kind (GOW_PERF_DIAG=1), printed as [gs-gl] every 5 s: the GS frontend's
+    // gsq_wait_ms says it waits on this thread, this line says on what (draws, CLUT readbacks, uploads, the present
+    // readback, or the Switch driver lock). Only the GL thread touches it.
+    struct GlOpTiming
+    {
+        static constexpr size_t kOps = 16u;
+        uint64_t nanos[kOps] = {}, count[kOps] = {}, lockWait = 0u, busy = 0u, chunks = 0u;
+        std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
+        void report()
+        {
+            static const char *const names[kOps] = {"mxcsr", "submit", "clut", "begintx", "upload", "texflush", "wvram", "sync",
+                                                    "present", "state", "verts", "vrun", "call", "pad", "?", "?"};
+            const auto now = std::chrono::steady_clock::now();
+            if (now - last < std::chrono::seconds(5))
+                return;
+            char line[768];
+            int at = std::snprintf(line, sizeof(line), "[gs-gl] window=%.2f busy_ms=%.1f lock_wait_ms=%.1f chunks=%llu",
+                                   std::chrono::duration<double>(now - last).count(), busy * 1e-6, lockWait * 1e-6,
+                                   static_cast<unsigned long long>(chunks));
+            for (size_t i = 0; i < kOps && at > 0 && at < static_cast<int>(sizeof(line)); ++i)
+                if (count[i])
+                    at += std::snprintf(line + at, sizeof(line) - at, " %s=%.1fms/%llu", names[i], nanos[i] * 1e-6,
+                                        static_cast<unsigned long long>(count[i]));
+            std::fprintf(stderr, "%s\n", line);
+            *this = GlOpTiming{};
+        }
+    };
+    GlOpTiming s_glTiming;
     std::atomic<bool> s_enabledByDefault{false};
 
     bool discardDraws()
@@ -231,11 +261,21 @@ void GSThreadedBackend::WorkerLoop()
             m_pending.pop_front();
         }
         {
+            static const bool timed = ps2_perf::countFrames();
+            const auto t0 = timed ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
             std::lock_guard<std::mutex> exec(m_execMutex);
 #if defined(__SWITCH__)
             std::lock_guard<std::mutex> driver(GSSharedPresent::DriverMutex());
 #endif
+            const auto t1 = timed ? std::chrono::steady_clock::now() : t0;
             Execute(chunk, draw);
+            if (timed)
+            {
+                s_glTiming.lockWait += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+                s_glTiming.busy += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - t1).count();
+                ++s_glTiming.chunks;
+                s_glTiming.report();
+            }
         }
         {
             std::lock_guard<std::mutex> lock(m_queueMutex);
@@ -258,6 +298,21 @@ void GSThreadedBackend::Execute(const std::vector<uint8_t> &chunk, GSPrimitiveBa
         const uint32_t length = readAt<uint32_t>(data + offset + 1u);
         const uint8_t *payload = data + offset + 5u;
         offset += 5u + length;
+        static const bool timed = ps2_perf::countFrames();
+        struct OpTimer
+        {
+            bool on;
+            size_t index;
+            std::chrono::steady_clock::time_point start;
+            ~OpTimer()
+            {
+                if (!on)
+                    return;
+                s_glTiming.nanos[index] += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count();
+                ++s_glTiming.count[index];
+            }
+        } opTimer{timed, std::min<size_t>(static_cast<size_t>(op), GlOpTiming::kOps - 1u),
+                  timed ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{}};
         switch (op)
         {
         case Op::Mxcsr:
