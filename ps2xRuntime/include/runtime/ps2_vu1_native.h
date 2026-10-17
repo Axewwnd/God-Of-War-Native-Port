@@ -207,6 +207,7 @@ struct VU1NativeAccess
                                    uint32_t pc, uint32_t count, const uint8_t *idle);
     static const uint8_t *blockTiming(VU1Interpreter &vu, VU1Interpreter::NativeState::Slot &sl, uint32_t &cycId);
     static void scalarStart(VU1Interpreter &vu, uint64_t issue, uint32_t latency, bool fdiv);
+    static void commitDue(VU1Interpreter &vu); // commitReadyPipelines after a native block (FDIV/EFU-only fast path)
     static VU1Interpreter::NativeState::Slot &slotFor(VU1Interpreter &vu, const uint8_t *code, uint32_t codeSize, uint32_t pc);
     static void codeChanged(VU1Interpreter::NativeState &ns, const uint8_t *code); // micro memory (16 KB) rewritten
     static uint64_t &laneWord(VU1Interpreter &vu, uint32_t lane);

@@ -619,6 +619,45 @@ void VU1NativeAccess::scalarStart(VU1Interpreter &vu, uint64_t issue, uint32_t l
     vu.m_efuResourceReady = issue + (latency > 0u ? latency - 1u : 0u);
 }
 
+// commitReadyPipelines once m_cycle reached m_nextCommitCycle after a native block. The blocks write their values
+// directly and queue only FDIV/EFU entries (kept for timing, scalarStart). While no other queue holds anything (the
+// usual case; otherwise commitReadyPipelines runs), only those entries can be due: retired here with the same effects
+// and the same next commit cycle as commitReadyPipelines, without its call and its scan of the other queues.
+VU1N_INLINE void VU1NativeAccess::commitDue(VU1Interpreter &vu)
+{
+    if ((vu.m_storePending | vu.m_vfPending | vu.m_viPending | vu.m_accPending) != 0u || vu.m_flagCount != 0u)
+    {
+        vu.commitReadyPipelines();
+        return;
+    }
+    uint64_t next = ~0ull;
+    if (vu.m_fdiv.valid)
+    {
+        if (vu.m_fdiv.readyCycle <= vu.m_cycle)
+        {
+            vu.m_state.q = vu.m_fdiv.value;
+            const uint32_t currentDi = vu.m_fdiv.statusDi & 0x30u;
+            vu.m_state.status = (vu.m_state.status & 0xFCFu) | currentDi | (currentDi << 6);
+            vu.m_fdiv.valid = false;
+        }
+        else
+            next = vu.m_fdiv.readyCycle;
+    }
+    for (VU1Interpreter::ScalarPipelineEntry &entry : vu.m_efu)
+    {
+        if (!entry.valid)
+            continue;
+        if (entry.readyCycle <= vu.m_cycle)
+        {
+            vu.m_state.p = entry.value;
+            entry.valid = false;
+        }
+        else
+            next = std::min(next, entry.readyCycle);
+    }
+    vu.m_nextCommitCycle = next;
+}
+
 // After a native block: it joins the history (its results that outlive it are found there when needed); FDIV/EFU stay
 // busy until their ready cycle.
 VU1N_INLINE void VU1NativeAccess::finishBlockTiming(VU1Interpreter &vu, const VU1Interpreter::NativeState::Slot &sl, const uint8_t *cyc,
@@ -857,7 +896,7 @@ bool VU1Interpreter::runNative(StepContext &context)
         const uint32_t result = fn(ctx);
         VU1NativeAccess::finishBlockTiming(*this, sl, cyc, cycId, start);
         if (m_cycle >= m_nextCommitCycle)
-            commitReadyPipelines(); // FDIV/EFU entries kept for timing retire when ready (values are written already)
+            VU1NativeAccess::commitDue(*this); // FDIV/EFU entries kept for timing retire when ready (values are written already)
         pairs += sl.pairs;
         ++blocks;
         m_state.pc = result & 0x3FFFu;
