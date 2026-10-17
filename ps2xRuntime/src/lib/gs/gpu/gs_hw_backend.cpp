@@ -77,7 +77,11 @@ noperspective in vec3 vSTQ;
 noperspective in vec2 vUV;
 flat in vec4 vUVClamp;
 layout(location = 0, index = 0) out vec4 oColor;
+// GOW-Port: a specialised variant (GS_SPECIALIZED) has the second (dual-source) output only when the blend reads it
+#if !defined(GS_SPECIALIZED) || defined(GS_DUAL_SOURCE)
 layout(location = 0, index = 1) out vec4 oBlend;
+#define GS_WRITE_BLEND 1
+#endif
 uniform sampler2D uTex;
 uniform vec2 uTexSize;   // size the sampled image is normalised by (render targets: their own size)
 uniform vec2 uTexDim;    // TEX0 TW/TH: size STQ coordinates are scaled by
@@ -86,19 +90,35 @@ uniform vec2 uTexDim;    // TEX0 TW/TH: size STQ coordinates are scaled by
 // layout (16 bit view of a 32 bit target, T8H = alpha plane, other pitch...). The texel's GS memory address is computed
 // from the texture format, mapped back to the render-target pixel that owns it and the bits are re-extracted: pure address
 // math on the GPU, no memory image.
+// GOW-Port: the uniforms the shader branches on are #defined to constants in a specialised variant (drawVariantFor)
+#ifndef uReinterp
 uniform int uReinterp;
-uniform int uDate, uDatm;   // destination alpha test (reads the target itself)
+#endif
+#ifndef uDate
+uniform int uDate;   // destination alpha test (reads the target itself)
+#endif
+uniform int uDatm;
 // GS blend done in the shader (reads the target): destination-alpha factor (Ad, 0x80 = 1.0) and COLCLAMP=0 wrap-around,
 // which fixed-function blending cannot express. uAbcd = ALPHA A, B, C, D selectors.
-uniform int uSwBlend, uColClamp;
+#ifndef uSwBlend
+uniform int uSwBlend;
+#endif
+uniform int uColClamp;
 uniform ivec4 uAbcd;
 uniform float uFix;
 // Z buffer in the colour memory of the target itself (ZBP == FBP): the test reads the Z word from the target's colour,
 // a passing write stores the Z word there. 0 = off, else 1 + ZTST.
-uniform int uZAlias, uZAliasWrite;
+#ifndef uZAlias
+uniform int uZAlias;
+#endif
+#ifndef uZAliasWrite
+uniform int uZAliasWrite;
+#endif
 uniform float uZAliasMax;
 uniform sampler2D uDest;
+#ifndef uZTex
 uniform int uZTex;     // 16/24/32: sampling a depth buffer (Z16/Z24/Z32 texture)
+#endif
 uniform float uZMax;
 )";
 
@@ -162,7 +182,12 @@ vec4 reinterpretTexel(ivec2 p)
     const char *kFsTail = R"(
 // Paletted textures (T8/T4 and their H variants): uTex holds the indices (R8, cached per VRAM upload), the colour comes
 // from uIdxPalette (256x1, cached per CLUT); filtering is done on the looked-up colours like the GS.
-uniform int uIndexed, uLinear;
+#ifndef uIndexed
+uniform int uIndexed;
+#endif
+#ifndef uLinear
+uniform int uLinear;
+#endif
 uniform ivec4 uWrap; // per axis (x, y): 0 repeat, 1 clamp
 uniform sampler2D uIdxPalette;
 vec4 indexedTexel(ivec2 p)
@@ -173,14 +198,32 @@ vec4 indexedTexel(ivec2 p)
     int idx = int(texelFetch(uTex, p, 0).r * 255.0 + 0.5);
     return texelFetch(uIdxPalette, ivec2(idx, 0), 0);
 }
-uniform int uTme, uFst, uTfx, uTcc, uIip;
+#ifndef uTme
+uniform int uTme;
+#endif
+#ifndef uFst
+uniform int uFst;
+#endif
+#ifndef uTfx
+uniform int uTfx;
+#endif
+#ifndef uTcc
+uniform int uTcc;
+#endif
+#ifndef uIip
+uniform int uIip;
+#endif
+#ifndef uRtTex24
 uniform int uRtTex24; // sampling a render target as PSMCT24 (1) or PSMCT16 (2): alpha comes from TEXA
+#endif
 uniform float uTa0;
 uniform float uTa1;
 uniform int uAem;
 uniform int uAte, uAtst, uAref;
 uniform int uFailTint; // debug: GOW_GS_HW_FAILTINT paints alpha-test failing fragments magenta
+#ifndef uPass
 uniform int uPass; // 0 = no alpha test, 1 = keep passing fragments, 2 = keep failing fragments
+#endif
 uniform float uBlendScale; // 1/128 style: alpha factor = min(a * scale, 1)
 
 float clamp255(float v) { return clamp(floor(v), 0.0, 255.0); }
@@ -320,8 +363,10 @@ void main()
     if (uZAlias != 0 && uZAliasWrite != 0)
         rgb = vec3(float(zFrag & 255u), float((zFrag >> 8) & 255u), float((zFrag >> 16) & 255u));
     oColor = vec4(rgb / 255.0, a / 255.0);
+#ifdef GS_WRITE_BLEND
     float f = min(a * uBlendScale, 1.0);
     oBlend = vec4(f);
+#endif
 }
 )";
 
@@ -479,11 +524,19 @@ struct GSHwBackend::Impl
 
     float scale = 2.0f;
     GLuint program = 0, vao = 0, vbo = 0;
-    GLint locInvSize = -1, locTex = -1, locTexSize = -1, locTexDim = -1, locTme = -1, locFst = -1, locTfx = -1, locTcc = -1, locIip = -1,
-          locAte = -1, locFailTint = -1, locAtst = -1, locAref = -1, locPass = -1, locBlendScale = -1, locRtTex24 = -1, locTa0 = -1, locTa1 = -1, locReinterp = -1, locDate = -1, locDatm = -1, locDest = -1, locZTex = -1, locZMax = -1, locTables = -1, locRtColor = -1, locPalette = -1, locTexFmt = -1, locTexFmt2 = -1,
-          locRtFmt = -1, locRtFmt2 = -1, locTex0 = -1, locRtPx = -1, locAem = -1;
-    GLint locIndexed = -1, locLinear = -1, locWrap = -1, locIdxPalette = -1;
-    GLint locSwBlend = -1, locColClamp = -1, locAbcd = -1, locFix = -1, locZAlias = -1, locZAliasWrite = -1, locZAliasMax = -1;
+    // GOW-Port: the draw program's uniforms by id (locXxx = uniform uXxx). u1i/u4i/u1f/u2f record values; before each
+    // draw, useDrawProgram picks the program variant for them and sends that program the values it does not have yet.
+#define GS_DRAW_UNIFORMS(X) X(InvSize) X(Tex) X(TexSize) X(TexDim) X(Tme) X(Fst) X(Tfx) X(Tcc) X(Iip) X(Ate) X(FailTint) X(Atst) \
+    X(Aref) X(Pass) X(BlendScale) X(RtTex24) X(Ta0) X(Ta1) X(Reinterp) X(Date) X(Datm) X(Dest) X(ZTex) X(ZMax) X(Tables) \
+    X(RtColor) X(Palette) X(TexFmt) X(TexFmt2) X(RtFmt) X(RtFmt2) X(Tex0) X(RtPx) X(Aem) X(Indexed) X(Linear) X(Wrap) \
+    X(IdxPalette) X(SwBlend) X(ColClamp) X(Abcd) X(Fix) X(ZAlias) X(ZAliasWrite) X(ZAliasMax)
+    enum DrawUniform : int
+    {
+#define GS_DRAW_UNIFORM_ID(name) loc##name,
+        GS_DRAW_UNIFORMS(GS_DRAW_UNIFORM_ID)
+#undef GS_DRAW_UNIFORM_ID
+        kDrawUniforms
+    };
 
     GLuint tableTex = 0, paletteTex = 0;
     GLuint presentProgram = 0, presentVao = 0, presentFbo = 0, presentTex = 0;
@@ -852,6 +905,7 @@ struct GSHwBackend::Impl
         }
         const Api &g = gl();
         const GLuint v = compile(GSGL::kVertexShader, kVsSource);
+        drawVs = v;
         const GLuint f = compile(GSGL::kFragmentShader, {kFsSource, kReinterpretSource, kFsTail});
         if (!v || !f)
         {
@@ -873,17 +927,7 @@ struct GSHwBackend::Impl
             failed = true;
             return false;
         }
-        const auto loc = [&](const char *name) { return g.GetUniformLocation(program, name); };
-        locInvSize = loc("uInvSize"); locTex = loc("uTex"); locTexSize = loc("uTexSize"); locTexDim = loc("uTexDim"); locTme = loc("uTme");
-        locFst = loc("uFst"); locTfx = loc("uTfx"); locTcc = loc("uTcc"); locIip = loc("uIip"); locAte = loc("uAte");
-        locAtst = loc("uAtst"); locFailTint = loc("uFailTint"); locAref = loc("uAref"); locPass = loc("uPass"); locBlendScale = loc("uBlendScale");
-        locReinterp = loc("uReinterp"); locDate = loc("uDate"); locDatm = loc("uDatm"); locDest = loc("uDest"); locZTex = loc("uZTex"); locZMax = loc("uZMax"); locTables = loc("uTables"); locRtColor = loc("uRtColor"); locPalette = loc("uPalette");
-        locTexFmt = loc("uTexFmt"); locTexFmt2 = loc("uTexFmt2"); locRtFmt = loc("uRtFmt"); locRtFmt2 = loc("uRtFmt2");
-        locTex0 = loc("uTex0"); locRtPx = loc("uRtPx");
-        locIndexed = loc("uIndexed"); locLinear = loc("uLinear"); locWrap = loc("uWrap"); locIdxPalette = loc("uIdxPalette");
-        locSwBlend = loc("uSwBlend"); locColClamp = loc("uColClamp"); locAbcd = loc("uAbcd"); locFix = loc("uFix");
-        locZAlias = loc("uZAlias"); locZAliasWrite = loc("uZAliasWrite"); locZAliasMax = loc("uZAliasMax");
-        locRtTex24 = loc("uRtTex24"); locTa0 = loc("uTa0"); locTa1 = loc("uTa1"); locAem = loc("uAem");
+        drawVariants[kUberVariant] = makeDrawVariant(program);
 
         g.GenVertexArrays(1, &vao);
         g.BindVertexArray(vao);
@@ -1394,16 +1438,16 @@ struct GSHwBackend::Impl
         g.ActiveTexture(kTexture0 + 2);
         g.BindTexture(kTexture2D, tableTex);
         g.ActiveTexture(kTexture0);
-        g.Uniform1i(locRtColor, 1);
-        g.Uniform1i(locTables, 2);
-        g.Uniform1i(locPalette, 3);
-        g.Uniform4i(locTexFmt, tf.pageShiftX, tf.pageShiftY, tf.pixelsPerPageShift, tf.unpackedShift);
-        g.Uniform4i(locTexFmt2, tf.bitOffset, texelBits, static_cast<GLint>(offsetOf(tf.table)), kind);
+        u1i(locRtColor, 1);
+        u1i(locTables, 2);
+        u1i(locPalette, 3);
+        u4i(locTexFmt, tf.pageShiftX, tf.pageShiftY, tf.pixelsPerPageShift, tf.unpackedShift);
+        u4i(locTexFmt2, tf.bitOffset, texelBits, static_cast<GLint>(offsetOf(tf.table)), kind);
         const auto inv = inverseOffset.find(rt.psm);
-        g.Uniform4i(locRtFmt, rf.pageShiftX, rf.pageShiftY, rf.pixelsPerPageShift, 1 << rf.unpackedShift);
-        g.Uniform4i(locRtFmt2, inv == inverseOffset.end() ? 0 : static_cast<GLint>(inv->second), static_cast<GLint>(rt.fbp), static_cast<GLint>(rt.fbw), 0);
-        g.Uniform4i(locTex0, static_cast<GLint>(c.tex0.tbp0), c.tex0.tbw, s.textureWidth, s.textureHeight);
-        g.Uniform2f(locRtPx, static_cast<float>(rt.pxW), static_cast<float>(rt.pxH));
+        u4i(locRtFmt, rf.pageShiftX, rf.pageShiftY, rf.pixelsPerPageShift, 1 << rf.unpackedShift);
+        u4i(locRtFmt2, inv == inverseOffset.end() ? 0 : static_cast<GLint>(inv->second), static_cast<GLint>(rt.fbp), static_cast<GLint>(rt.fbw), 0);
+        u4i(locTex0, static_cast<GLint>(c.tex0.tbp0), c.tex0.tbw, s.textureWidth, s.textureHeight);
+        u2f(locRtPx, static_cast<float>(rt.pxW), static_cast<float>(rt.pxH));
     }
 
     // ---- CLUT from a render target --------------------------------------------------------------------------------
@@ -1502,7 +1546,6 @@ struct GSHwBackend::Impl
         g.PixelStorei(kPackAlignment, 4);
         g.ReadPixels(0, 0, static_cast<GLsizei>(count), 1, kRgba, kUnsignedByte, words);
         g.BindVertexArray(vao);
-        g.UseProgram(program);
         g.BindBuffer(kArrayBuffer, vbo);
         if (clutCache.size() > 4096u)
             clutCache.clear();
@@ -2107,53 +2150,170 @@ struct GSHwBackend::Impl
         return x0 <= c.scissor.x0 + 1.0f && y0 <= c.scissor.y0 + 1.0f && x1 >= c.scissor.x1 && y1 >= c.scissor.y1;
     }
 
-    // GOW-Port: the last value set for each uniform of `program` (only draw() sets them, and a program keeps its uniform values
-    // across UseProgram): a call that would set the value it already has is skipped. Mesa validates every glUniform call and
-    // re-uploads the constants, which on the Switch (nouveau) costs CPU time on the GL thread for ~27 calls per batch.
-    struct UniformSlot
+    // GOW-Port: draw uniforms are recorded (u1i/u4i/u1f/u2f) and sent by useDrawProgram right before each draw, to the
+    // program variant they select. Each variant remembers what it was sent and only gets the values that changed: Mesa
+    // validates every glUniform call and re-uploads the constants, which on the Switch (nouveau) costs GL-thread time.
+    enum class UniformType : uint8_t { None, Int1, Int4, Float1, Float2 };
+    struct UniformValue
     {
         uint32_t v[4] = {};
-        bool valid = false;
+        UniformType type = UniformType::None;
+        bool operator==(const UniformValue &) const = default;
     };
-    std::vector<UniformSlot> uniformCache;
-    bool uniformUnchanged(GLint loc, uint32_t a, uint32_t b = 0u, uint32_t c = 0u, uint32_t d = 0u)
-    {
-        if (loc < 0)
-            return true; // not in the shader: GL ignores it too
-        if (static_cast<size_t>(loc) >= uniformCache.size())
-            uniformCache.resize(static_cast<size_t>(loc) + 1u);
-        UniformSlot &u = uniformCache[static_cast<size_t>(loc)];
-        if (u.valid && u.v[0] == a && u.v[1] == b && u.v[2] == c && u.v[3] == d)
-            return true;
-        u.v[0] = a; u.v[1] = b; u.v[2] = c; u.v[3] = d;
-        u.valid = true;
-        return false;
-    }
+    UniformValue drawUniforms[kDrawUniforms];
     static uint32_t fbits(float f)
     {
         uint32_t u;
         std::memcpy(&u, &f, sizeof(u));
         return u;
     }
-    void u1i(GLint loc, GLint x)
+    void record(DrawUniform id, UniformType type, uint32_t a, uint32_t b = 0u, uint32_t c = 0u, uint32_t d = 0u)
     {
-        if (!uniformUnchanged(loc, static_cast<uint32_t>(x)))
-            gl().Uniform1i(loc, x);
+        UniformValue &u = drawUniforms[id];
+        u.type = type;
+        u.v[0] = a; u.v[1] = b; u.v[2] = c; u.v[3] = d;
     }
-    void u4i(GLint loc, GLint x, GLint y, GLint z, GLint w)
+    void u1i(DrawUniform id, GLint x) { record(id, UniformType::Int1, static_cast<uint32_t>(x)); }
+    void u4i(DrawUniform id, GLint x, GLint y, GLint z, GLint w)
     {
-        if (!uniformUnchanged(loc, static_cast<uint32_t>(x), static_cast<uint32_t>(y), static_cast<uint32_t>(z), static_cast<uint32_t>(w)))
-            gl().Uniform4i(loc, x, y, z, w);
+        record(id, UniformType::Int4, static_cast<uint32_t>(x), static_cast<uint32_t>(y), static_cast<uint32_t>(z), static_cast<uint32_t>(w));
     }
-    void u1f(GLint loc, float x)
+    void u1f(DrawUniform id, float x) { record(id, UniformType::Float1, fbits(x)); }
+    void u2f(DrawUniform id, float x, float y) { record(id, UniformType::Float2, fbits(x), fbits(y)); }
+    int recordedInt(DrawUniform id) const { return static_cast<int>(drawUniforms[id].v[0]); }
+
+    // GOW-Port: draw program variants. The uber-shader branches on uniforms (texture path, blend in the shader, Z alias,
+    // destination alpha, alpha-test pass...); on the Switch's GPU every path pays for the registers of all the others.
+    // A variant is the same source with those uniforms #defined to the recorded values (the compiler folds the branches)
+    // and the dual-source output only when the blend reads it. Created on first use; GOW_GS_HW_UBER=1 keeps the uber
+    // program, which also serves when a variant fails to build.
+    struct DrawVariant
     {
-        if (!uniformUnchanged(loc, fbits(x)))
-            gl().Uniform1f(loc, x);
+        GLuint program = 0;
+        GLint loc[kDrawUniforms] = {};
+        UniformValue sent[kDrawUniforms] = {};
+    };
+    static constexpr uint32_t kUberVariant = 0xFFFFFFFFu;
+    std::unordered_map<uint32_t, DrawVariant> drawVariants;
+    GLuint drawVs = 0;
+    const bool specializeDraws = std::getenv("GOW_GS_HW_UBER") == nullptr;
+    uint32_t variantsBuilt = 0;
+    DrawVariant makeDrawVariant(GLuint prog)
+    {
+        static const char *const names[] = {
+#define GS_DRAW_UNIFORM_NAME(name) "u" #name,
+            GS_DRAW_UNIFORMS(GS_DRAW_UNIFORM_NAME)
+#undef GS_DRAW_UNIFORM_NAME
+        };
+        DrawVariant v;
+        v.program = prog;
+        for (int i = 0; i < kDrawUniforms; ++i)
+            v.loc[i] = gl().GetUniformLocation(prog, names[i]);
+        return v;
     }
-    void u2f(GLint loc, float x, float y)
+    // the variant key: every value the shader branches on, normalised where a branch makes another one irrelevant
+    uint32_t drawVariantKey(bool dualSource) const
     {
-        if (!uniformUnchanged(loc, fbits(x), fbits(y)))
-            gl().Uniform2f(loc, x, y);
+        const auto bit = [](bool b) { return b ? 1u : 0u; };
+        const bool tme = recordedInt(locTme) != 0;
+        uint32_t key = bit(tme);
+        if (tme)
+        {
+            const int ztex = recordedInt(locZTex);
+            key |= bit(recordedInt(locReinterp) != 0) << 1 | bit(recordedInt(locIndexed) != 0) << 2 |
+                   (ztex == 0 ? 0u : ztex == 16 ? 1u : 2u) << 3 | bit(recordedInt(locLinear) != 0) << 5 |
+                   (static_cast<uint32_t>(recordedInt(locRtTex24)) & 3u) << 6 | (static_cast<uint32_t>(recordedInt(locTfx)) & 3u) << 8 |
+                   bit(recordedInt(locTcc) != 0) << 10 | bit(recordedInt(locFst) != 0) << 11;
+        }
+        const int zalias = recordedInt(locZAlias);
+        key |= bit(recordedInt(locIip) != 0) << 12 | (static_cast<uint32_t>(recordedInt(locPass)) & 3u) << 13 |
+               bit(recordedInt(locSwBlend) != 0) << 15 | (static_cast<uint32_t>(zalias) & 7u) << 16 |
+               bit(zalias != 0 && recordedInt(locZAliasWrite) != 0) << 19 | bit(recordedInt(locDate) != 0) << 20 | bit(dualSource) << 21;
+        return key;
+    }
+    DrawVariant &drawVariantFor(uint32_t key)
+    {
+        if (const auto it = drawVariants.find(key); it != drawVariants.end())
+            return it->second;
+        const auto start = std::chrono::steady_clock::now();
+        const auto field = [&](int shift, uint32_t mask) { return static_cast<int>((key >> shift) & mask); };
+        std::string defines = "#define GS_SPECIALIZED 1\n";
+        const auto define = [&](const char *name, int value) { defines += std::string("#define ") + name + " " + std::to_string(value) + "\n"; };
+        define("uTme", field(0, 1));
+        define("uReinterp", field(1, 1));
+        define("uIndexed", field(2, 1));
+        define("uZTex", field(3, 3) == 0 ? 0 : field(3, 3) == 1 ? 16 : 32);
+        define("uLinear", field(5, 1));
+        define("uRtTex24", field(6, 3));
+        define("uTfx", field(8, 3));
+        define("uTcc", field(10, 1));
+        define("uFst", field(11, 1));
+        define("uIip", field(12, 1));
+        define("uPass", field(13, 3));
+        define("uSwBlend", field(15, 1));
+        define("uZAlias", field(16, 7));
+        define("uZAliasWrite", field(19, 1));
+        define("uDate", field(20, 1));
+        if (field(21, 1))
+            defines += "#define GS_DUAL_SOURCE 1\n";
+        // the defines go right after the #version line kFsSource starts with
+        const char *afterVersion = std::strchr(kFsSource, '\n') + 1;
+        const std::string head = std::string(kFsSource, afterVersion) + defines + afterVersion;
+        const Api &g = gl();
+        GLuint prog = 0;
+        if (const GLuint f = compile(GSGL::kFragmentShader, {head.c_str(), kReinterpretSource, kFsTail}))
+        {
+            prog = g.CreateProgram();
+            g.AttachShader(prog, drawVs);
+            g.AttachShader(prog, f);
+            g.LinkProgram(prog);
+            g.DeleteShader(f);
+            GLint ok = 0;
+            g.GetProgramiv(prog, kLinkStatus, &ok);
+            if (!ok)
+            {
+                char log[2048];
+                GLsizei n = 0;
+                g.GetProgramInfoLog(prog, sizeof(log), &n, log);
+                std::fprintf(stderr, "[gs-hw] variant %06x link error: %s\n", key, log);
+                g.DeleteProgram(prog);
+                prog = 0;
+            }
+        }
+        ++variantsBuilt;
+        if (statsEnabled && variantsBuilt <= 256u)
+            std::fprintf(stderr, "[gs-hw] draw variant #%u key=%06x %s in %.1f ms\n", variantsBuilt, key, prog ? "built" : "FAILED (uber)",
+                         std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count());
+        if (!prog)
+            return drawVariants[key] = drawVariants[kUberVariant];
+        return drawVariants[key] = makeDrawVariant(prog);
+    }
+    // binds the draw program for the recorded uniforms and sends it the values it lacks (before every draw call: the CLUT
+    // readback, the shuffle and the presentation bind their own programs in between)
+    void useDrawProgram(bool dualSource)
+    {
+        const Api &g = gl();
+        DrawVariant &v = drawVariantFor(specializeDraws ? drawVariantKey(dualSource) : kUberVariant);
+        g.UseProgram(v.program);
+        for (int i = 0; i < kDrawUniforms; ++i)
+        {
+            const UniformValue &u = drawUniforms[i];
+            if (u.type == UniformType::None || v.loc[i] < 0 || v.sent[i] == u)
+                continue;
+            v.sent[i] = u;
+            float f[2];
+            std::memcpy(f, u.v, sizeof(f));
+            switch (u.type)
+            {
+            case UniformType::Int1: g.Uniform1i(v.loc[i], static_cast<GLint>(u.v[0])); break;
+            case UniformType::Int4:
+                g.Uniform4i(v.loc[i], static_cast<GLint>(u.v[0]), static_cast<GLint>(u.v[1]), static_cast<GLint>(u.v[2]), static_cast<GLint>(u.v[3]));
+                break;
+            case UniformType::Float1: g.Uniform1f(v.loc[i], f[0]); break;
+            case UniformType::Float2: g.Uniform2f(v.loc[i], f[0], f[1]); break;
+            case UniformType::None: break;
+            }
+        }
     }
 
     void draw(const GSDrawState &s, const std::vector<HwVertex> &verts)
@@ -2332,8 +2492,9 @@ struct GSHwBackend::Impl
         }
         else
             g.Disable(kBlend);
+        // the blend reads the shader's second output (factor Cs alpha)
+        const bool dualSource = blend && (sf == kSrc1Alpha || sf == kOneMinusSrc1Alpha || df == kSrc1Alpha || df == kOneMinusSrc1Alpha);
 
-        g.UseProgram(program);
         {
             const bool date = ((c.test >> 14) & 1u) != 0u && c.frame.psm != GS_PSM_CT24;
             u1i(locDate, date ? 1 : 0);
@@ -2522,6 +2683,7 @@ struct GSHwBackend::Impl
                     }
                 if (meets)
                 {
+                    useDrawProgram(dualSource);
                     g.DrawArrays(kTriangles, first + static_cast<GLint>(runStart), static_cast<GLsizei>(i - runStart));
                     ++stats.glDraws;
                     g.TextureBarrier(), ++stats.barriers;
@@ -2532,12 +2694,13 @@ struct GSHwBackend::Impl
             }
             if (end > runStart)
             {
+                useDrawProgram(dualSource);
                 g.DrawArrays(kTriangles, first + static_cast<GLint>(runStart), static_cast<GLsizei>(end - runStart));
                 ++stats.glDraws;
             }
         }
         else
-            g.DrawArrays(kTriangles, first, static_cast<GLsizei>(verts.size())), ++stats.glDraws;
+            useDrawProgram(dualSource), g.DrawArrays(kTriangles, first, static_cast<GLsizei>(verts.size())), ++stats.glDraws;
         if (volBox[1] >= volBox[0] && volBox[3] >= volBox[2])
         {
             const int w = volBox[1] - volBox[0] + 1, h = volBox[3] - volBox[2] + 1;
@@ -2560,6 +2723,7 @@ struct GSHwBackend::Impl
             if (afail == 1u) { g.DepthMask(kFalse); }
             else if (afail == 2u) { g.ColorMask(kFalse, kFalse, kFalse, kFalse); }
             else { g.DepthMask(kFalse); g.ColorMask(mr, mg, mb, kFalse); }
+            useDrawProgram(dualSource);
             g.DrawArrays(kTriangles, first, static_cast<GLsizei>(verts.size()));
             ++stats.glDraws;
         }
