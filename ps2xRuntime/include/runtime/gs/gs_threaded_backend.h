@@ -28,6 +28,7 @@ public:
     void Reset() override;
 
     void Submit(const GSPrimitiveBatch &batch) override;
+    void SubmitRun(const GSDrawState &state, const GSPrimitiveVerts *prims, uint32_t count) override;
     void LoadClut(const GSTex0Reg &tex0, const GSTexClutReg &texclut) override;
 
     void BeginTransfer(const GSTransferCommand &command) override;
@@ -66,10 +67,13 @@ private:
         Present,
         DrawState,
         Vertices,
+        VerticesRun, // GSPrimitiveVerts[n] drawn with the current DrawState
         Call,
     };
 
     void Enqueue(Op op, const void *payload, uint32_t size);
+    void AppendLocked(Op op, const void *payload, uint32_t size);
+    void AppendDrawStateLocked(const GSDrawState &state, uint64_t serial);
     void PublishLocked();
     void Drain() const;
     void RunOnWorker(const std::function<void()> &function) const;

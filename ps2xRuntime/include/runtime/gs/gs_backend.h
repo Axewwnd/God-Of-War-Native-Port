@@ -14,6 +14,17 @@ public:
     virtual void Reset() = 0;
 
     virtual void Submit(const GSPrimitiveBatch &batch) = 0;
+    // GOW-Port: primitives that share one draw state, in order (the GS frontend collects the triangles of its strips).
+    virtual void SubmitRun(const GSDrawState &state, const GSPrimitiveVerts *prims, uint32_t count)
+    {
+        GSPrimitiveBatch batch;
+        batch.state = state;
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            static_cast<GSPrimitiveVerts &>(batch) = prims[i];
+            Submit(batch);
+        }
+    }
     virtual void LoadClut(const GSTex0Reg &tex0, const GSTexClutReg &texclut) = 0;
 
     virtual void BeginTransfer(const GSTransferCommand &command) = 0;

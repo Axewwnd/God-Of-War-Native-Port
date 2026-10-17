@@ -178,8 +178,17 @@ private:
 
     void processImageData(const uint8_t *data, uint32_t sizeBytes);
     bool tryProcessNativeImageUploadPacket(const uint8_t *data, uint32_t sizeBytes);
-    GSPrimitiveBatch buildDrawBatch(int vertexCount);
-    void updatePreferredDisplaySourceForDraw(const GSPrimitiveBatch &batch);
+    const GSDrawState &drawState();
+    void updatePreferredDisplaySourceForDraw(const GSDrawState &state, const GSPrimitiveVerts &prim);
+    // GOW-Port: hands the collected triangles to the backend in one SubmitRun. The run is empty whenever m_stateMutex
+    // is released (FlushRunAtExit in every entry point that can draw) and is flushed before anything that can change
+    // the draw state or reach the backend otherwise (register writes other than vertex data, image data).
+    void flushRun();
+    struct FlushRunAtExit
+    {
+        GS &gs;
+        ~FlushRunAtExit() { gs.flushRun(); }
+    };
     GSPresentationRequest buildPresentationRequestUnlocked() const;
 
 
@@ -217,10 +226,13 @@ private:
     uint8_t m_curFog = 0;
     uint8_t m_fogR = 0, m_fogG = 0, m_fogB = 0;
     // GOW-Port: all draw state comes from register writes other than vertex data (RGBAQ, ST, UV, FOG, XYZ*), which bump
-    // m_stateSerial; buildDrawBatch rebuilds m_builtState only when it changed (a strip keeps one state for every triangle).
+    // m_stateSerial; drawState() rebuilds m_builtState only when it changed (a strip keeps one state for every triangle).
     uint64_t m_stateSerial = 1;
     uint64_t m_builtStateSerial = 0;
     GSDrawState m_builtState{};
+    // triangles drawn since the last flushRun, all with m_runState (= the state at m_runState's serial)
+    std::vector<GSPrimitiveVerts> m_run;
+    GSDrawState m_runState{};
 
     bool m_prmodecont = true;
     bool m_pabe = false;

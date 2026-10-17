@@ -342,6 +342,7 @@ void GS::init(uint8_t *vram, uint32_t vramSize, GSRegisters *privRegs)
 void GS::reset()
 {
     std::lock_guard<std::recursive_mutex> lock(m_stateMutex);
+    flushRun();
     ++m_stateSerial;
     std::memset(m_ctx, 0, sizeof(m_ctx));
     m_gifInput = {}; // GOW-Port: reset tambien descarta etiquetas/registros incompletos.
@@ -917,6 +918,7 @@ void GS::processGIFPacket(const uint8_t *data, uint32_t sizeBytes, GifPathId pat
 {
     ps2_perf::Scope perf(ps2_perf::Bucket::Gs); // GOW-Port: incluye rasterizado y transferencias GIF.
     std::lock_guard<std::recursive_mutex> lock(m_stateMutex);
+    FlushRunAtExit flushAtExit{*this};
     const size_t pathIndex = static_cast<size_t>(path);
     if (!data || !sizeBytes || !m_backend || pathIndex == 0u || pathIndex >= m_gifInput.size())
         return;
@@ -1032,6 +1034,7 @@ void GS::processGIFPacket(const uint8_t *data, uint32_t sizeBytes, GifPathId pat
 bool GS::processNativePackedGIFPacket(const uint8_t *data, uint32_t sizeBytes, GifPathId path)
 {
     std::lock_guard<std::recursive_mutex> lock(m_stateMutex);
+    FlushRunAtExit flushAtExit{*this};
     if (!data || sizeBytes < 16u || !m_backend || hasPendingGIFPacket(path))
         return false;
 
@@ -1380,6 +1383,7 @@ void GS::writeRegisterPacked(uint8_t regDesc, uint64_t lo, uint64_t hi)
 void GS::writeRegister(uint8_t regAddr, uint64_t value)
 {
     std::lock_guard<std::recursive_mutex> lock(m_stateMutex);
+    FlushRunAtExit flushAtExit{*this};
     writeRegisterUnlocked(regAddr, value);
 }
 
@@ -1387,7 +1391,10 @@ void GS::writeRegisterUnlocked(uint8_t regAddr, uint64_t value)
 {
     if (regAddr != GS_REG_RGBAQ && regAddr != GS_REG_ST && regAddr != GS_REG_UV && regAddr != GS_REG_FOG &&
         regAddr != GS_REG_XYZ2 && regAddr != GS_REG_XYZ3 && regAddr != GS_REG_XYZF2 && regAddr != GS_REG_XYZF3)
-        ++m_stateSerial; // may change draw state (buildDrawBatch)
+    {
+        flushRun(); // the collected triangles keep the state they were drawn with
+        ++m_stateSerial; // may change draw state (drawState)
+    }
     const bool interestingReg =
         regAddr == GS_REG_PRIM ||
         regAddr == GS_REG_RGBAQ ||
@@ -1925,10 +1932,23 @@ void GS::vertexKick(bool drawing)
 
     if (drawing && m_backend)
     {
-        GSPrimitiveBatch batch = buildDrawBatch(needed);
-        updatePreferredDisplaySourceForDraw(batch);
-        gowFogDiagDraw(batch); // GOW-Port: PS2X_GS_FOG_DIAG.
-        m_backend->Submit(batch);
+        GSPrimitiveVerts prim;
+        prim.vertexCount = static_cast<uint8_t>(std::min(needed, 3));
+        for (int i = 0; i < prim.vertexCount; ++i)
+            prim.vertices[static_cast<size_t>(i)] = m_vtxQueue[i];
+        prim.stateSerial = m_stateSerial;
+        const GSDrawState &state = drawState();
+        updatePreferredDisplaySourceForDraw(state, prim);
+        if (gowFogDiagStart() >= 0) // GOW-Port: PS2X_GS_FOG_DIAG.
+        {
+            GSPrimitiveBatch batch;
+            static_cast<GSPrimitiveVerts &>(batch) = prim;
+            batch.state = state;
+            gowFogDiagDraw(batch);
+        }
+        if (m_run.empty())
+            m_runState = state; // every register write that can change it flushes the run first
+        m_run.push_back(prim);
         recordDrawDebugEventUnlocked(needed);
     }
 
@@ -1961,6 +1981,7 @@ void GS::vertexKick(bool drawing)
 
 void GS::processImageData(const uint8_t *data, uint32_t sizeBytes)
 {
+    flushRun();
     if (m_backend)
         m_backend->UploadImage(data, sizeBytes);
 }
@@ -2041,18 +2062,19 @@ void GS::WriteVram(uint32_t psm, uint32_t base, uint32_t bw, uint32_t x, uint32_
         m_backend->WriteVram(psm, base, bw, x, y, value);
 }
 
-GSPrimitiveBatch GS::buildDrawBatch(int vertexCount)
+void GS::flushRun()
 {
-    GSPrimitiveBatch batch{};
-    batch.vertexCount = static_cast<uint8_t>(std::min(vertexCount, 3));
-    for (int i = 0; i < batch.vertexCount; ++i)
-        batch.vertices[static_cast<size_t>(i)] = m_vtxQueue[i];
-    batch.stateSerial = m_stateSerial;
+    if (m_run.empty())
+        return;
+    m_backend->SubmitRun(m_runState, m_run.data(), static_cast<uint32_t>(m_run.size()));
+    m_run.clear();
+}
+
+const GSDrawState &GS::drawState()
+{
     if (m_builtStateSerial == m_stateSerial)
-    {
-        batch.state = m_builtState;
-        return batch;
-    }
+        return m_builtState;
+    GSPrimitiveBatch batch{}; // value-initialised: the padding bytes compared by memcmp are zero
     batch.state.context = m_ctx[m_prim.ctxt ? 1 : 0];
     batch.state.prim = m_prim;
     if (gowFogOff())
@@ -2075,20 +2097,19 @@ GSPrimitiveBatch GS::buildDrawBatch(int vertexCount)
     batch.state.linearFilter = mmag != 0u || mmin == 1u || (mmin & 0x4u) != 0u;
     m_builtState = batch.state;
     m_builtStateSerial = m_stateSerial;
-    return batch;
+    return m_builtState;
 }
 
-void GS::updatePreferredDisplaySourceForDraw(const GSPrimitiveBatch &batch)
+void GS::updatePreferredDisplaySourceForDraw(const GSDrawState &state, const GSPrimitiveVerts &prim)
 {
-    const GSDrawState &state = batch.state;
     const GSContext &ctx = state.context;
     if (m_hasPreferredDisplaySource && ctx.frame.fbp == m_preferredDisplayDestFbp)
         m_hasPreferredDisplaySource = false;
-    if (state.prim.type != GS_PRIM_SPRITE || batch.vertexCount < 2u)
+    if (state.prim.type != GS_PRIM_SPRITE || prim.vertexCount < 2u)
         return;
 
-    const GSVertex &v0 = batch.vertices[0];
-    const GSVertex &v1 = batch.vertices[1];
+    const GSVertex &v0 = prim.vertices[0];
+    const GSVertex &v1 = prim.vertices[1];
     int x0 = static_cast<int>(v0.x) - (ctx.xyoffset.ofx >> 4);
     int y0 = static_cast<int>(v0.y) - (ctx.xyoffset.ofy >> 4);
     int x1 = static_cast<int>(v1.x) - (ctx.xyoffset.ofx >> 4);

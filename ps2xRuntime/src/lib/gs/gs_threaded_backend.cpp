@@ -98,9 +98,9 @@ void GSThreadedBackend::SetEnabledByDefault(bool enabled)
 }
 
 
-void GSThreadedBackend::Enqueue(Op op, const void *payload, uint32_t size)
+// Appends one op to the open chunk (m_producerMutex held), preceded by the MXCSR when it changed.
+void GSThreadedBackend::AppendLocked(Op op, const void *payload, uint32_t size)
 {
-    std::lock_guard<std::mutex> lock(m_producerMutex);
     const uint32_t csr = _mm_getcsr();
     if (csr != m_lastMxcsr)
     {
@@ -111,30 +111,38 @@ void GSThreadedBackend::Enqueue(Op op, const void *payload, uint32_t size)
         m_open.insert(m_open.end(), reinterpret_cast<const uint8_t *>(&csrSize), reinterpret_cast<const uint8_t *>(&csrSize) + 4);
         m_open.insert(m_open.end(), reinterpret_cast<const uint8_t *>(&csr), reinterpret_cast<const uint8_t *>(&csr) + 4);
     }
-    const auto append = [&](Op kind, const void *bytes, uint32_t length)
+    uint8_t header[5];
+    header[0] = static_cast<uint8_t>(op);
+    std::memcpy(header + 1u, &size, sizeof(size));
+    m_open.insert(m_open.end(), header, header + sizeof(header));
+    if (size)
+        m_open.insert(m_open.end(), static_cast<const uint8_t *>(payload), static_cast<const uint8_t *>(payload) + size);
+}
+
+// A DrawState op only when the state differs from the last one sent (equal serial = equal state).
+void GSThreadedBackend::AppendDrawStateLocked(const GSDrawState &state, uint64_t serial)
+{
+    const bool sameSerial = m_drawStateValid && serial != 0u && serial == m_lastDrawSerial;
+    if (!sameSerial && (!m_drawStateValid || std::memcmp(&m_lastDrawState, &state, sizeof(state)) != 0))
     {
-        uint8_t header[5];
-        header[0] = static_cast<uint8_t>(kind);
-        std::memcpy(header + 1u, &length, sizeof(length));
-        m_open.insert(m_open.end(), header, header + sizeof(header));
-        if (length)
-            m_open.insert(m_open.end(), static_cast<const uint8_t *>(bytes), static_cast<const uint8_t *>(bytes) + length);
-    };
+        std::memcpy(&m_lastDrawState, &state, sizeof(state));
+        m_drawStateValid = true;
+        AppendLocked(Op::DrawState, &state, sizeof(state));
+    }
+    m_lastDrawSerial = serial;
+}
+
+void GSThreadedBackend::Enqueue(Op op, const void *payload, uint32_t size)
+{
+    std::lock_guard<std::mutex> lock(m_producerMutex);
     if (op == Op::Submit && m_compactQueue)
     {
         const auto &draw = *static_cast<const GSPrimitiveBatch *>(payload);
-        const bool sameSerial = m_drawStateValid && draw.stateSerial != 0u && draw.stateSerial == m_lastDrawSerial;
-        if (!sameSerial && (!m_drawStateValid || std::memcmp(&m_lastDrawState, &draw.state, sizeof(draw.state)) != 0))
-        {
-            std::memcpy(&m_lastDrawState, &draw.state, sizeof(draw.state));
-            m_drawStateValid = true;
-            append(Op::DrawState, &draw.state, sizeof(draw.state));
-        }
-        m_lastDrawSerial = draw.stateSerial;
-        append(Op::Vertices, &draw, static_cast<uint32_t>(offsetof(GSPrimitiveBatch, state)));
+        AppendDrawStateLocked(draw.state, draw.stateSerial);
+        AppendLocked(Op::Vertices, &draw, sizeof(GSPrimitiveVerts));
     }
     else
-        append(op, payload, size);
+        AppendLocked(op, payload, size);
     if (m_open.size() >= kPublishBytes)
         PublishLocked();
 }
@@ -265,10 +273,23 @@ void GSThreadedBackend::Execute(const std::vector<uint8_t> &chunk, GSPrimitiveBa
             std::memcpy(&draw.state, payload, sizeof(draw.state));
             break;
         case Op::Vertices:
-            std::memcpy(&draw, payload, offsetof(GSPrimitiveBatch, state));
+            std::memcpy(static_cast<GSPrimitiveVerts *>(&draw), payload, sizeof(GSPrimitiveVerts));
             if (!discardDraws())
                 m_inner->Submit(draw);
             break;
+        case Op::VerticesRun:
+        {
+            // the chunk is byte-packed: copy the run to aligned storage, then one SubmitRun with the current state
+            thread_local std::vector<GSPrimitiveVerts> run;
+            run.resize(length / sizeof(GSPrimitiveVerts));
+            std::memcpy(run.data(), payload, run.size() * sizeof(GSPrimitiveVerts));
+            if (!discardDraws() && !run.empty())
+            {
+                m_inner->SubmitRun(draw.state, run.data(), static_cast<uint32_t>(run.size()));
+                static_cast<GSPrimitiveVerts &>(draw) = run.back();
+            }
+            break;
+        }
         case Op::Present:
             m_inner->Present(readAt<GSPresentationRequest>(payload));
             break;
@@ -305,6 +326,22 @@ void GSThreadedBackend::Submit(const GSPrimitiveBatch &batch)
     if (GsInventory::get().enabled())
         GsInventory::get().draw(batch);
     Enqueue(Op::Submit, &batch, sizeof(batch));
+}
+
+void GSThreadedBackend::SubmitRun(const GSDrawState &state, const GSPrimitiveVerts *prims, uint32_t count)
+{
+    if (!count)
+        return;
+    if (!m_compactQueue || GsInventory::get().enabled())
+    {
+        GSRasterBackend::SubmitRun(state, prims, count); // one Submit per primitive
+        return;
+    }
+    std::lock_guard<std::mutex> lock(m_producerMutex);
+    AppendDrawStateLocked(state, prims[0].stateSerial);
+    AppendLocked(Op::VerticesRun, prims, static_cast<uint32_t>(count * sizeof(GSPrimitiveVerts)));
+    if (m_open.size() >= kPublishBytes)
+        PublishLocked();
 }
 
 void GSThreadedBackend::LoadClut(const GSTex0Reg &tex0, const GSTexClutReg &texclut)

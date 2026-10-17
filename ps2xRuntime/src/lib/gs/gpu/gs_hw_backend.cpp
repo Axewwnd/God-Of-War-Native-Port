@@ -1690,6 +1690,47 @@ struct GSHwBackend::Impl
         ++stats.draws;
     }
 
+    // GOW-Port: triangles sharing one state (GSRasterBackend::SubmitRun). The first one goes through submit(), which makes
+    // every state-dependent decision (primitive kind, target format, view conflicts, the pending batch); once one is
+    // accepted the others of the run get the same decisions, so they only add their vertices.
+    void submitRun(const GSDrawState &s, const GSPrimitiveVerts *prims, uint32_t count)
+    {
+        const GSPrimType type = s.prim.type;
+        const bool tri = type == GS_PRIM_TRIANGLE || type == GS_PRIM_TRISTRIP || type == GS_PRIM_TRIFAN;
+        GSPrimitiveBatch b;
+        b.state = s;
+        uint32_t i = 0;
+        for (; i < count; ++i)
+        {
+            if (prims[i].vertexCount == 0u)
+                continue;
+            static_cast<GSPrimitiveVerts &>(b) = prims[i];
+            const uint64_t accepted = stats.draws;
+            submit(b);
+            if (tri && stats.draws != accepted)
+            {
+                ++i;
+                break;
+            }
+        }
+        if (!tri)
+            return; // lines and sprites went through submit() one by one above
+        const float zmax = zMaxFor(s.context.zbuf.psm);
+        for (; i < count; ++i)
+        {
+            const GSPrimitiveVerts &p = prims[i];
+            if (p.vertexCount == 0u)
+                continue;
+            for (int v = 0; v < 3; ++v)
+            {
+                const float u = s.prim.fst ? static_cast<float>(p.vertices[v].u) / 16.0f : 0.0f;
+                const float t = s.prim.fst ? static_cast<float>(p.vertices[v].v) / 16.0f : 0.0f;
+                addVertex(s, p.vertices[v], u, t, zmax);
+            }
+            ++stats.draws;
+        }
+    }
+
     void flushPending()
     {
         ++batchSerial; // the next sprite starts a new batch: no seam with the previous one
@@ -2311,6 +2352,14 @@ void GSHwBackend::Submit(const GSPrimitiveBatch &batch)
     if (!d.ensure())
         return;
     d.submit(batch);
+}
+
+void GSHwBackend::SubmitRun(const GSDrawState &state, const GSPrimitiveVerts *prims, uint32_t count)
+{
+    Impl &d = *m_impl;
+    if (!d.ensure())
+        return;
+    d.submitRun(state, prims, count);
 }
 
 void GSHwBackend::LoadClut(const GSTex0Reg &tex0, const GSTexClutReg &texclut)

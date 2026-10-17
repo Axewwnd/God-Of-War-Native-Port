@@ -251,13 +251,18 @@ struct GSDrawState
     bool linearFilter = false;
 };
 
-struct GSPrimitiveBatch
+// GOW-Port: the per-primitive part of a draw; a run of them shares one GSDrawState (GSRasterBackend::SubmitRun).
+struct GSPrimitiveVerts
 {
     std::array<GSVertex, 3> vertices{};
     uint8_t vertexCount = 0;
-    // GOW-Port: GS::m_stateSerial when `state` was built (0: unknown). Equal non-zero serials mean the same state, so the
+    // GS::m_stateSerial when the draw state was built (0: unknown). Equal non-zero serials mean the same state, so the
     // queue and the backend skip comparing the whole state for every triangle.
     uint64_t stateSerial = 0;
+};
+
+struct GSPrimitiveBatch : GSPrimitiveVerts
+{
     GSDrawState state{};
 };
 
