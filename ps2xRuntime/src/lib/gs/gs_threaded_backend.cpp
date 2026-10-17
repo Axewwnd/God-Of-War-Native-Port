@@ -7,6 +7,7 @@
 #include "ThreadPriority.h"
 #include "ThreadNaming.h"
 #include "runtime/ps2_perf.h"
+#include "runtime/gs/gs_stage.h"
 
 #include <atomic>
 #include <algorithm>
@@ -22,6 +23,17 @@
 namespace
 {
     constexpr size_t kPublishBytes = 64u * 1024u;
+
+    // GOW-Port: the MXCSR of the producing thread, sent ahead of the ops it queues. The GS stage thread runs no guest
+    // or VU code and never changes it, so there it is read once (on ARM, sse2neon's _mm_getcsr is an FPCR read plus
+    // fegetround, and it ran for every queued op); other producers (the EE or the worker without the stage) read it
+    // every time.
+    uint32_t producerCsr()
+    {
+        thread_local const bool constantCsr = ps2_gs_stage::onStageThread();
+        thread_local const uint32_t firstCsr = _mm_getcsr();
+        return constantCsr ? firstCsr : _mm_getcsr();
+    }
     constexpr size_t kMaxPendingChunks = 256u;
     std::atomic<bool> s_enabledByDefault{false};
 
@@ -98,10 +110,12 @@ void GSThreadedBackend::SetEnabledByDefault(bool enabled)
 }
 
 
-// Appends one op to the open chunk (m_producerMutex held), preceded by the MXCSR when it changed.
-void GSThreadedBackend::AppendLocked(Op op, const void *payload, uint32_t size)
+// Appends one op to the open chunk (m_producerMutex held), preceded by the MXCSR when it changed. align > 1: the
+// payload starts at a multiple of it within the chunk (a Pad op in front), so the GL thread can read it in place
+// (chunk storage comes from operator new, aligned for any type).
+void GSThreadedBackend::AppendLocked(Op op, const void *payload, uint32_t size, uint32_t align)
 {
-    const uint32_t csr = _mm_getcsr();
+    const uint32_t csr = producerCsr();
     if (csr != m_lastMxcsr)
     {
         m_lastMxcsr = csr;
@@ -112,6 +126,14 @@ void GSThreadedBackend::AppendLocked(Op op, const void *payload, uint32_t size)
         m_open.insert(m_open.end(), reinterpret_cast<const uint8_t *>(&csr), reinterpret_cast<const uint8_t *>(&csr) + 4);
     }
     uint8_t header[5];
+    if (align > 1u && (m_open.size() + sizeof(header)) % align != 0u)
+    {
+        const uint32_t padBytes = static_cast<uint32_t>((align - (m_open.size() + 2u * sizeof(header)) % align) % align);
+        header[0] = static_cast<uint8_t>(Op::Pad);
+        std::memcpy(header + 1u, &padBytes, sizeof(padBytes));
+        m_open.insert(m_open.end(), header, header + sizeof(header));
+        m_open.insert(m_open.end(), padBytes, uint8_t{0});
+    }
     header[0] = static_cast<uint8_t>(op);
     std::memcpy(header + 1u, &size, sizeof(size));
     m_open.insert(m_open.end(), header, header + sizeof(header));
@@ -279,17 +301,25 @@ void GSThreadedBackend::Execute(const std::vector<uint8_t> &chunk, GSPrimitiveBa
             break;
         case Op::VerticesRun:
         {
-            // the chunk is byte-packed: copy the run to aligned storage, then one SubmitRun with the current state
-            thread_local std::vector<GSPrimitiveVerts> run;
-            run.resize(length / sizeof(GSPrimitiveVerts));
-            std::memcpy(run.data(), payload, run.size() * sizeof(GSPrimitiveVerts));
-            if (!discardDraws() && !run.empty())
+            // one SubmitRun with the current state, read in place (SubmitRun aligns the payload; copied if it is not)
+            const uint32_t count = length / static_cast<uint32_t>(sizeof(GSPrimitiveVerts));
+            const GSPrimitiveVerts *run = reinterpret_cast<const GSPrimitiveVerts *>(payload);
+            thread_local std::vector<GSPrimitiveVerts> copy;
+            if (reinterpret_cast<uintptr_t>(payload) % alignof(GSPrimitiveVerts) != 0u)
             {
-                m_inner->SubmitRun(draw.state, run.data(), static_cast<uint32_t>(run.size()));
-                static_cast<GSPrimitiveVerts &>(draw) = run.back();
+                copy.resize(count);
+                std::memcpy(copy.data(), payload, count * sizeof(GSPrimitiveVerts));
+                run = copy.data();
+            }
+            if (!discardDraws() && count)
+            {
+                m_inner->SubmitRun(draw.state, run, count);
+                static_cast<GSPrimitiveVerts &>(draw) = run[count - 1u];
             }
             break;
         }
+        case Op::Pad:
+            break;
         case Op::Present:
             m_inner->Present(readAt<GSPresentationRequest>(payload));
             break;
@@ -339,7 +369,7 @@ void GSThreadedBackend::SubmitRun(const GSDrawState &state, const GSPrimitiveVer
     }
     std::lock_guard<std::mutex> lock(m_producerMutex);
     AppendDrawStateLocked(state, prims[0].stateSerial);
-    AppendLocked(Op::VerticesRun, prims, static_cast<uint32_t>(count * sizeof(GSPrimitiveVerts)));
+    AppendLocked(Op::VerticesRun, prims, static_cast<uint32_t>(count * sizeof(GSPrimitiveVerts)), alignof(GSPrimitiveVerts));
     if (m_open.size() >= kPublishBytes)
         PublishLocked();
 }
