@@ -18,6 +18,9 @@ namespace
     // Bound on queued bytes: enough for several XGKICK packets of a batch, small enough that the worker never
     // runs a whole frame ahead of the GS frontend.
     constexpr size_t kMaxQueuedBytes = 4u << 20;
+    // A sleeping stage is woken once this much is queued, or by flush() / waitIdle(): one wake for a run of XGKICK packets
+    // instead of one per packet (each wake is a system call on the worker, and the stage spins before it sleeps again).
+    constexpr size_t kWakeBytes = 64u << 10;
 
     struct Stage
     {
@@ -29,6 +32,7 @@ namespace
         std::vector<std::vector<uint8_t>> spare; // recycled buffers (avoid an allocation per packet)
         size_t queuedBytes = 0;
         bool busy = false;
+        bool waiting = false; // the stage sleeps on `work`
         bool stop = false;
         std::thread thread;
         std::thread::id threadId;
@@ -60,7 +64,9 @@ namespace
                 s.busy = false;
                 if (s.queue.empty())
                     s.idle.notify_all();
+                s.waiting = true;
                 s.work.wait(lock, [&s] { return s.stop || !s.queue.empty(); });
+                s.waiting = false;
                 if (s.queue.empty())
                     return;
                 batch.swap(s.queue);
@@ -130,10 +136,20 @@ namespace ps2_gs_stage
         }
         p.data.assign(data, data + size);
         s.queuedBytes += size;
-        const bool wasEmpty = s.queue.empty();
         s.queue.push_back(std::move(p));
+        const bool wake = s.waiting && s.queuedBytes >= kWakeBytes;
         lock.unlock();
-        if (wasEmpty)
+        if (wake)
+            s.work.notify_one();
+    }
+
+    void flush()
+    {
+        Stage &s = stage();
+        std::unique_lock<std::mutex> lock(s.mutex);
+        const bool wake = s.waiting && !s.queue.empty();
+        lock.unlock();
+        if (wake)
             s.work.notify_one();
     }
 
@@ -143,6 +159,8 @@ namespace ps2_gs_stage
             return;
         Stage &s = stage();
         std::unique_lock<std::mutex> lock(s.mutex);
+        if (s.waiting && !s.queue.empty())
+            s.work.notify_one();
         s.idle.wait(lock, [&s] { return s.queue.empty() && !s.busy; });
     }
 }

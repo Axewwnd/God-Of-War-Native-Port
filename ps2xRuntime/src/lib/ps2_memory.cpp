@@ -2043,6 +2043,7 @@ void PS2Memory::gsWorkerLoop()
         {
             std::fprintf(stderr, "[gs-worker] job failed: %s\n", e.what());
         }
+        ps2_gs_stage::flush(); // the job's GIF packets: a sleeping stage is only woken for every kWakeBytes of them
         if (m_gsWorkerWake && (gs_regs.csr.load(std::memory_order_acquire) & 0x3u) != 0u)
             m_gsWorkerWake();
         for (GsWorkerItem &item : job.items)

@@ -22,8 +22,10 @@ namespace ps2_gs_stage
     bool running();
     bool onStageThread();
 
-    // Queues a copy of the packet (blocks while too much is queued, so the worker cannot run far ahead).
+    // Queues a copy of the packet (blocks while too much is queued, so the worker cannot run far ahead). A sleeping
+    // stage is woken once enough is queued; flush() wakes it for whatever is queued (the worker calls it after each job).
     void push(GifPathId path, const uint8_t *data, uint32_t size);
+    void flush();
 
     // Returns when every queued packet has been processed. No-op on the stage thread itself.
     void waitIdle();
