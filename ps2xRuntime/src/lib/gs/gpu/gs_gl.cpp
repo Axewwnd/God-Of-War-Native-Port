@@ -29,45 +29,15 @@ namespace
 
     using CreateContextAttribs = HGLRC(WINAPI *)(HDC, HGLRC, const int *);
 
-    struct SharedSlot
-    {
-        GSSharedPresent::Frame frame;
-        GSGL::GLsync produced = nullptr;
-        GSGL::GLsync consumed = nullptr;
-        GSGL::GLuint hashBuffer = 0;
-        GSGL::GLuint hashDeviceBuffer = 0;
-        const uint32_t *hash = nullptr;
-        bool reading = false;
-    };
-
-    std::mutex s_sharedMutex;
-    std::array<SharedSlot, 8> s_sharedSlots;
-    GSGL::Api s_hostApi;
     HGLRC s_hostContext = nullptr;
     HDC s_hostDc = nullptr;
     PIXELFORMATDESCRIPTOR s_hostFormat{};
     int s_hostFormatIndex = 0;
-    int s_readingSlot = -1;
-    uint64_t s_sharedSequence = 0;
-    std::atomic<bool> s_sharedActive{false};
 
-    bool completed(const GSGL::Api &gl, GSGL::GLsync fence)
+    void forgetHostContext()
     {
-        if (!fence)
-            return true;
-        const auto status = gl.ClientWaitSync(fence, 0u, 0u);
-        return status == GSGL::kAlreadySignaled || status == GSGL::kConditionSatisfied;
-    }
-
-    void releaseReading()
-    {
-        if (s_readingSlot < 0)
-            return;
-        SharedSlot &slot = s_sharedSlots[s_readingSlot];
-        slot.consumed = s_hostApi.FenceSync(GSGL::kSyncGpuCommandsComplete, 0u);
-        s_hostApi.Flush();
-        slot.reading = false;
-        s_readingSlot = -1;
+        s_hostContext = nullptr;
+        s_hostDc = nullptr;
     }
 
     HMODULE openGlModule()
@@ -108,6 +78,17 @@ namespace
 
 namespace
 {
+    // GOW-Port: the host window's EGL context (raylib/SDL, main thread), captured so the GS renderer's context shares
+    // its objects (the presented frame's texture).
+    EGLDisplay s_hostEglDisplay = EGL_NO_DISPLAY;
+    EGLContext s_hostEglContext = EGL_NO_CONTEXT;
+
+    void forgetHostContext()
+    {
+        s_hostEglDisplay = EGL_NO_DISPLAY;
+        s_hostEglContext = EGL_NO_CONTEXT;
+    }
+
     void *loadProc(const char *name)
     {
         return reinterpret_cast<void *>(eglGetProcAddress(name));
@@ -244,47 +225,53 @@ namespace
 }
 #endif
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__SWITCH__)
+// GOW-Port: shared-texture presentation, the same on both platforms: the GS renderer's context shares objects with the
+// host window's context; Present copies the composed frame into one of these slots (a texture of the shared namespace)
+// and fences it, the host takes the newest finished slot and draws it, then fences its use before the slot is reused.
+// The contexts' platform part (WGL / EGL) is below.
+namespace
+{
+    struct SharedSlot
+    {
+        GSSharedPresent::Frame frame;
+        GSGL::GLsync produced = nullptr;
+        GSGL::GLsync consumed = nullptr;
+        GSGL::GLuint hashBuffer = 0;
+        GSGL::GLuint hashDeviceBuffer = 0;
+        const uint32_t *hash = nullptr;
+        bool reading = false;
+    };
+
+    std::mutex s_sharedMutex;
+    std::array<SharedSlot, 8> s_sharedSlots;
+    GSGL::Api s_hostApi; // the host window context's fence entry points
+    int s_readingSlot = -1;
+    uint64_t s_sharedSequence = 0;
+    std::atomic<bool> s_sharedActive{false};
+
+    bool completed(const GSGL::Api &gl, GSGL::GLsync fence)
+    {
+        if (!fence)
+            return true;
+        const auto status = gl.ClientWaitSync(fence, 0u, 0u);
+        return status == GSGL::kAlreadySignaled || status == GSGL::kConditionSatisfied;
+    }
+
+    void releaseReading()
+    {
+        if (s_readingSlot < 0)
+            return;
+        SharedSlot &slot = s_sharedSlots[s_readingSlot];
+        slot.consumed = s_hostApi.FenceSync(GSGL::kSyncGpuCommandsComplete, 0u);
+        s_hostApi.Flush();
+        slot.reading = false;
+        s_readingSlot = -1;
+    }
+}
 
 namespace GSSharedPresent
 {
-    void CaptureHostContext()
-    {
-        // GOW-Port: on by default; PS2X_GS_DIRECT_PRESENT=0 keeps the RAM (readback + upload) presentation.
-        const char *value = std::getenv("PS2X_GS_DIRECT_PRESENT");
-        if (value && *value == '0')
-            return;
-        const HDC dc = wglGetCurrentDC();
-        const HGLRC context = wglGetCurrentContext();
-        if (!dc || !context)
-            return;
-        std::string missing;
-        GSGL::Api api;
-        load(api.FenceSync, "glFenceSync", missing);
-        load(api.ClientWaitSync, "glClientWaitSync", missing);
-        load(api.DeleteSync, "glDeleteSync", missing);
-        load(api.Flush, "glFlush", missing);
-        if (!missing.empty())
-        {
-            std::fprintf(stderr, "[gs-present] shared presentation unavailable: %s\n", missing.c_str());
-            return;
-        }
-        std::lock_guard<std::mutex> lock(s_sharedMutex);
-        s_hostFormatIndex = GetPixelFormat(dc);
-        if (!DescribePixelFormat(dc, s_hostFormatIndex, sizeof(s_hostFormat), &s_hostFormat))
-            return;
-        s_hostApi = api;
-        s_hostContext = context;
-        s_hostDc = dc;
-        wglMakeCurrent(nullptr, nullptr);
-    }
-
-    void RestoreHostContext()
-    {
-        if (s_hostDc && s_hostContext)
-            wglMakeCurrent(s_hostDc, s_hostContext);
-    }
-
     bool Active()
     {
         return s_sharedActive.load(std::memory_order_acquire);
@@ -328,8 +315,7 @@ namespace GSSharedPresent
         std::lock_guard<std::mutex> lock(s_sharedMutex);
         releaseReading();
         s_sharedActive.store(false, std::memory_order_release);
-        s_hostContext = nullptr;
-        s_hostDc = nullptr;
+        forgetHostContext();
     }
 }
 
@@ -519,7 +505,53 @@ namespace GSGL
         }
         s_readingSlot = -1;
     }
+}
+#endif
 
+#if defined(_WIN32)
+
+namespace GSSharedPresent
+{
+    void CaptureHostContext()
+    {
+        // GOW-Port: on by default; PS2X_GS_DIRECT_PRESENT=0 keeps the RAM (readback + upload) presentation.
+        const char *value = std::getenv("PS2X_GS_DIRECT_PRESENT");
+        if (value && *value == '0')
+            return;
+        const HDC dc = wglGetCurrentDC();
+        const HGLRC context = wglGetCurrentContext();
+        if (!dc || !context)
+            return;
+        std::string missing;
+        GSGL::Api api;
+        load(api.FenceSync, "glFenceSync", missing);
+        load(api.ClientWaitSync, "glClientWaitSync", missing);
+        load(api.DeleteSync, "glDeleteSync", missing);
+        load(api.Flush, "glFlush", missing);
+        if (!missing.empty())
+        {
+            std::fprintf(stderr, "[gs-present] shared presentation unavailable: %s\n", missing.c_str());
+            return;
+        }
+        std::lock_guard<std::mutex> lock(s_sharedMutex);
+        s_hostFormatIndex = GetPixelFormat(dc);
+        if (!DescribePixelFormat(dc, s_hostFormatIndex, sizeof(s_hostFormat), &s_hostFormat))
+            return;
+        s_hostApi = api;
+        s_hostContext = context;
+        s_hostDc = dc;
+        wglMakeCurrent(nullptr, nullptr);
+    }
+
+    void RestoreHostContext()
+    {
+        if (s_hostDc && s_hostContext)
+            wglMakeCurrent(s_hostDc, s_hostContext);
+    }
+}
+
+namespace GSGL
+{
     Context::~Context()
     {
         Destroy();
@@ -657,8 +689,9 @@ namespace GSGL
 }
 #elif defined(__SWITCH__)
 // GOW-Port: Switch (switch-mesa): the GS renderer's own GL core context through EGL, surfaceless when the driver allows
-// it (the renderer only draws into its own framebuffers), else on a small pbuffer. No shared presentation: frames go
-// through the RAM path (readback + upload to raylib's texture). m_dc = EGLDisplay, m_window = EGLSurface (or none),
+// it (the renderer only draws into its own framebuffers), else on a small pbuffer. It shares objects with the host
+// window's context (captured by CaptureHostContext) for the shared-texture presentation above; without sharing, frames
+// go through the RAM path (readback + upload to raylib's texture). m_dc = EGLDisplay, m_window = EGLSurface (or none),
 // m_context = EGLContext; the config is s_eglConfig.
 namespace
 {
@@ -685,14 +718,44 @@ namespace
     }
 }
 
+namespace GSSharedPresent
+{
+    void CaptureHostContext()
+    {
+        // GOW-Port: on by default; PS2X_GS_DIRECT_PRESENT=0 keeps the RAM (readback + upload) presentation. EGL lets
+        // a context share with one that is current on another thread, so the host context stays current here.
+        const char *value = std::getenv("PS2X_GS_DIRECT_PRESENT");
+        if (value && *value == '0')
+            return;
+        const EGLDisplay display = eglGetCurrentDisplay();
+        const EGLContext context = eglGetCurrentContext();
+        if (display == EGL_NO_DISPLAY || context == EGL_NO_CONTEXT)
+        {
+            std::fprintf(stderr, "[gs-present] no current EGL context on the host thread; RAM presentation\n");
+            return;
+        }
+        std::string missing;
+        GSGL::Api api;
+        load(api.FenceSync, "glFenceSync", missing);
+        load(api.ClientWaitSync, "glClientWaitSync", missing);
+        load(api.DeleteSync, "glDeleteSync", missing);
+        load(api.Flush, "glFlush", missing);
+        if (!missing.empty())
+        {
+            std::fprintf(stderr, "[gs-present] shared presentation unavailable: %s\n", missing.c_str());
+            return;
+        }
+        std::lock_guard<std::mutex> lock(s_sharedMutex);
+        s_hostApi = api;
+        s_hostEglDisplay = display;
+        s_hostEglContext = context;
+    }
+
+    void RestoreHostContext() {}
+}
+
 namespace GSGL
 {
-    bool PublishShared(const Api &, GLuint, uint32_t, uint32_t, uint64_t,
-                       uint32_t, uint32_t, bool, bool, uint64_t, GLuint, GLint) { return false; }
-    bool SharedAvailable(const Api &) { return false; }
-    bool PublishSharedTexture(const Api &, GLuint, uint32_t, uint32_t, uint64_t, uint32_t, uint32_t, uint64_t) { return false; }
-    void DestroyShared(const Api &) {}
-
     Context::~Context()
     {
         Destroy();
@@ -701,7 +764,8 @@ namespace GSGL
     bool Context::Create(std::string &error)
     {
         Destroy();
-        const EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        // the host window's display when its context is shared (EGL shares only within one display)
+        const EGLDisplay display = s_hostEglDisplay != EGL_NO_DISPLAY ? s_hostEglDisplay : eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (display == EGL_NO_DISPLAY || !eglInitialize(display, nullptr, nullptr))
         {
             error = "eglInitialize failed";
@@ -722,7 +786,16 @@ namespace GSGL
             return false;
         }
         int major = 0, minor = 0;
-        const EGLContext context = createCore(display, EGL_NO_CONTEXT, major, minor);
+        EGLContext context = EGL_NO_CONTEXT;
+        if (s_hostEglContext != EGL_NO_CONTEXT)
+        {
+            context = createCore(display, s_hostEglContext, major, minor);
+            m_shared = context != EGL_NO_CONTEXT;
+            if (!m_shared)
+                std::fprintf(stderr, "[gs-present] EGL sharing failed (0x%x); using RAM presentation\n", eglGetError());
+        }
+        if (context == EGL_NO_CONTEXT)
+            context = createCore(display, EGL_NO_CONTEXT, major, minor);
         if (context == EGL_NO_CONTEXT)
         {
             error = "OpenGL 4.3+ core context unavailable (EGL error " + std::to_string(eglGetError()) + ")";
@@ -756,9 +829,14 @@ namespace GSGL
             Destroy();
             return false;
         }
-        std::fprintf(stderr, "[gs-gl] EGL OpenGL %d.%d core context (%s)%s\n", major, minor,
+        std::fprintf(stderr, "[gs-gl] EGL OpenGL %d.%d core context (%s)%s%s\n", major, minor,
                      m_api.GetString ? reinterpret_cast<const char *>(m_api.GetString(kRenderer)) : "?",
-                     s_surfaceless ? ", surfaceless" : ", pbuffer");
+                     s_surfaceless ? ", surfaceless" : ", pbuffer", m_shared ? ", shared with the host window" : "");
+        if (m_shared)
+        {
+            s_sharedActive.store(true, std::memory_order_release);
+            std::fprintf(stderr, "[gs-present] shared GPU textures active\n");
+        }
         return true;
     }
 
@@ -804,14 +882,6 @@ namespace GSGL
         m_api = {};
         m_shared = false;
     }
-}
-namespace GSSharedPresent
-{
-    void CaptureHostContext() {}
-    void RestoreHostContext() {}
-    bool Active() { return false; }
-    bool Acquire(Frame &) { return false; }
-    void ShutdownHost() {}
 }
 #else
 namespace GSGL
