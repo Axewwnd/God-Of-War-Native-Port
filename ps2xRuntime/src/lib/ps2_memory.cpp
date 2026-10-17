@@ -2043,6 +2043,7 @@ void PS2Memory::gsWorkerLoop()
         {
             std::fprintf(stderr, "[gs-worker] job failed: %s\n", e.what());
         }
+        ps2_gs_stage::publish(); // GOW-Port: hand the job's GIF packets to a sleeping GS stage (gs_stage.h)
         if (m_gsWorkerWake && (gs_regs.csr.load(std::memory_order_acquire) & 0x3u) != 0u)
             m_gsWorkerWake();
         for (GsWorkerItem &item : job.items)

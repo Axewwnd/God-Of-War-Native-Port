@@ -962,6 +962,19 @@ void GS::processGIFPacket(const uint8_t *data, uint32_t sizeBytes, GifPathId pat
             offset += bytes;
             continue;
         }
+        if (input.registersLeft && input.format == GIF_FMT_PACKED && !input.partialBytes && sizeBytes - offset >= 16u)
+        {
+            // GOW-Port: the PACKED registers of a tag in one tight loop (the general path below does the same per unit
+            // after deciding again what the unit is); a tag's registers are neither image data nor padding.
+            for (uint32_t units = std::min<uint32_t>(input.registersLeft, (sizeBytes - offset) / 16u); units; --units)
+            {
+                writeRegisterPacked(input.regs[input.regIndex], loadLE64(data + offset), loadLE64(data + offset + 8u));
+                offset += 16u;
+                if (++input.regIndex == input.nreg) input.regIndex = 0u;
+                --input.registersLeft;
+            }
+            continue;
+        }
         if (!input.registersLeft && input.paddingBytes)
         {
             const uint32_t bytes = std::min(input.paddingBytes, sizeBytes - offset);
@@ -1857,7 +1870,11 @@ void GS::writeRegisterUnlocked(uint8_t regAddr, uint64_t value)
 
 void GS::vertexKick(bool drawing)
 {
+    // GOW-Port: the diagnostics below are read once (every vertex of every frame comes through here).
+    static const bool traceKicks = std::getenv("PS2X_GS_TRACE_TBP") != nullptr;
+    static const bool fogDiag = gowFogDiagStart() >= 0;
     // GOW-Port: PS2X_GS_TRACE_TBP=<tbp0> registra los vertices que llegan con esa textura activa (-2: abanicos sin textura, -3: abanicos con textura).
+    if (traceKicks)
     {
         static const long traceTbp = []
         {
@@ -1939,7 +1956,7 @@ void GS::vertexKick(bool drawing)
         prim.stateSerial = m_stateSerial;
         const GSDrawState &state = drawState();
         updatePreferredDisplaySourceForDraw(state, prim);
-        if (gowFogDiagStart() >= 0) // GOW-Port: PS2X_GS_FOG_DIAG.
+        if (fogDiag) // GOW-Port: PS2X_GS_FOG_DIAG.
         {
             GSPrimitiveBatch batch;
             static_cast<GSPrimitiveVerts &>(batch) = prim;

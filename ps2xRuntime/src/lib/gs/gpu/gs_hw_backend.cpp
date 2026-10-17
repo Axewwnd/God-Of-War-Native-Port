@@ -498,6 +498,31 @@ struct GSHwBackend::Impl
     RenderTarget *shuffleDst = nullptr, *shuffleSrc = nullptr;
     bool shuffleSrcZ = false;
     std::array<std::vector<uint16_t>, 64> ownerInverse; // psm (6 bits) -> in-page word index -> y * 64 + x
+    // GOW-Port: tryShuffle's 8x8 unit mapping is a pure function of the view/owner layouts and the sprite rectangle, and
+    // the game draws the same shuffle sprites every frame: the result (owner quads, or the check that rejected the
+    // sprite) is kept per input instead of being recomputed with four address swizzles per unit.
+    struct ShuffleMapKey
+    {
+        std::array<uint32_t, 23> v{};
+        bool operator==(const ShuffleMapKey &o) const { return v == o.v; }
+    };
+    struct ShuffleMapHash
+    {
+        size_t operator()(const ShuffleMapKey &k) const
+        {
+            uint64_t h = 1469598103934665603ull;
+            for (uint32_t x : k.v)
+                h = (h ^ x) * 1099511628211ull;
+            return static_cast<size_t>(h);
+        }
+    };
+    struct ShuffleMap
+    {
+        int why = 0; // 0: mapped; otherwise the shuffleWhy of the rejecting check
+        std::vector<ShuffleVertex> quads[4];
+        uint32_t maxX = 0, maxY = 0;
+    };
+    std::unordered_map<ShuffleMapKey, ShuffleMap, ShuffleMapHash> shuffleMaps;
     std::unordered_map<const uint16_t *, uint32_t> tableOffset;
     std::unordered_map<uint32_t, uint32_t> inverseOffset; // psm -> offset of the inverse page table
     std::vector<HwVertex> pending;
@@ -902,6 +927,20 @@ struct GSHwBackend::Impl
                     const GSSwizzle::Location at = GSSwizzle::Combine(f, row, GSSwizzle::ColumnPart(f, x));
                     line[x] = GSSwizzle::LoadAt(f, vram + at.byte, at.shift);
                 }
+            }
+            // GOW-Port: applyTexa passes CT32 through and gives CT24 a fixed alpha; those two are done without the
+            // per-texel format switch (same results), everything else goes through applyTexa.
+            if (t.psm == GS_PSM_CT32)
+                continue;
+            if (t.psm == GS_PSM_CT24)
+            {
+                const uint32_t ta0 = static_cast<uint32_t>(s.texa.ta0) << 24, aem = s.texa.aem ? 1u : 0u;
+                for (uint32_t x = 0; x < w; ++x)
+                {
+                    const uint32_t rgb = line[x] & 0x00FFFFFFu;
+                    line[x] = rgb | ((aem != 0u && rgb == 0u) ? 0u : ta0);
+                }
+                continue;
             }
             for (uint32_t x = 0; x < w; ++x)
                 line[x] = GSCpuInternal::applyTexa(s.texa, t.psm, sixteen ? GSCpuInternal::Rgba5551ToRgba8888(static_cast<uint16_t>(line[x])) : line[x]);
@@ -1334,6 +1373,32 @@ struct GSHwBackend::Impl
                viewToOwner(viewPsm, base, bw, x + 7u, y + 7u, ownerPsm, fbp, fbw, ex, ey, eh) && eh == half && ex == ox + 7u && ey == oy + 7u;
     }
 
+    // tryShuffle's per-unit mapping (cached in shuffleMaps)
+    ShuffleMap mapShuffle(const GSContext &c, uint8_t tpsm, const RenderTarget &dst, const RenderTarget &src, bool srcDepth,
+                          uint32_t srcOwnerPsm, uint32_t srcFbp, int x0, int x1, int y0, int y1, int du, int dv)
+    {
+        ShuffleMap m;
+        for (int y = y0; y < y1; y += 8)
+            for (int x = x0; x < x1; x += 8)
+            {
+                uint32_t dx, dy, hd, sx, sy, hs;
+                if (!unitToOwner(c.frame.psm, c.frame.fbp * 32u, c.frame.fbw, x, y, 0x00u, dst.fbp, dst.fbw, dx, dy, hd) ||
+                    !unitToOwner(tpsm, c.tex0.tbp0, c.tex0.tbw, x + du, y + dv, srcOwnerPsm, srcFbp, src.fbw, sx, sy, hs))
+                    { m.why = 12; return m; }
+                if (dx + 8u > dst.pxW || dy + 8u > dst.pxH || sx + 8u > src.pxW || sy + 8u > src.pxH)
+                    { m.why = 13; return m; }
+                if (&src == &dst && !srcDepth && (sx != dx || sy != dy))
+                    { m.why = 14; return m; } // would read texels that other quads of the pass write
+                const float ox = static_cast<float>(sx) - static_cast<float>(dx), oy = static_cast<float>(sy) - static_cast<float>(dy);
+                const float X0 = static_cast<float>(dx), Y0 = static_cast<float>(dy), X1 = X0 + 8.0f, Y1 = Y0 + 8.0f;
+                std::vector<ShuffleVertex> &q = m.quads[hs * 2u + hd];
+                q.insert(q.end(), {{X0, Y0, ox, oy}, {X1, Y0, ox, oy}, {X0, Y1, ox, oy}, {X1, Y0, ox, oy}, {X1, Y1, ox, oy}, {X0, Y1, ox, oy}});
+                m.maxX = std::max(m.maxX, dx + 8u);
+                m.maxY = std::max(m.maxY, dy + 8u);
+            }
+        return m;
+    }
+
     static uint32_t fbmsk16(uint32_t m)
     {
         return ((m >> 3) & 0x1Fu) | ((m >> 6) & 0x3E0u) | ((m >> 9) & 0x7C00u) | ((m >> 16) & 0x8000u);
@@ -1416,26 +1481,22 @@ struct GSHwBackend::Impl
         }
         // map every 8x8 unit; the whole sprite is rejected if any unit does not land on one owner block
         const uint32_t srcOwnerPsm = srcDepth ? 0x30u : 0x00u, srcFbp = srcDepth ? src->zbp : src->fbp;
-        std::vector<ShuffleVertex> quads[4];
-        uint32_t maxX = 0, maxY = 0;
-        for (int y = y0; y < y1; y += 8)
-            for (int x = x0; x < x1; x += 8)
-            {
-                uint32_t dx, dy, hd, sx, sy, hs;
-                if (!unitToOwner(c.frame.psm, c.frame.fbp * 32u, c.frame.fbw, x, y, 0x00u, dst->fbp, dst->fbw, dx, dy, hd) ||
-                    !unitToOwner(tpsm, c.tex0.tbp0, c.tex0.tbw, x + du, y + dv, srcOwnerPsm, srcFbp, src->fbw, sx, sy, hs))
-                    { shuffleWhy = 12; return false; }
-                if (dx + 8u > dst->pxW || dy + 8u > dst->pxH || sx + 8u > src->pxW || sy + 8u > src->pxH)
-                    { shuffleWhy = 13; return false; }
-                if (src == dst && !srcDepth && (sx != dx || sy != dy))
-                    { shuffleWhy = 14; return false; } // would read texels that other quads of the pass write
-                const float ox = static_cast<float>(sx) - static_cast<float>(dx), oy = static_cast<float>(sy) - static_cast<float>(dy);
-                const float X0 = static_cast<float>(dx), Y0 = static_cast<float>(dy), X1 = X0 + 8.0f, Y1 = Y0 + 8.0f;
-                std::vector<ShuffleVertex> &q = quads[hs * 2u + hd];
-                q.insert(q.end(), {{X0, Y0, ox, oy}, {X1, Y0, ox, oy}, {X0, Y1, ox, oy}, {X1, Y0, ox, oy}, {X1, Y1, ox, oy}, {X0, Y1, ox, oy}});
-                maxX = std::max(maxX, dx + 8u);
-                maxY = std::max(maxY, dy + 8u);
-            }
+        const ShuffleMapKey key{{c.frame.psm, c.frame.fbp, c.frame.fbw, dst->fbp, dst->fbw, dst->pxW, dst->pxH, tpsm,
+                                 c.tex0.tbp0, c.tex0.tbw, srcOwnerPsm, srcFbp, src->fbw, src->pxW, src->pxH,
+                                 (src == dst ? 1u : 0u) | (srcDepth ? 2u : 0u), static_cast<uint32_t>(x0),
+                                 static_cast<uint32_t>(x1), static_cast<uint32_t>(y0), static_cast<uint32_t>(y1),
+                                 static_cast<uint32_t>(du), static_cast<uint32_t>(dv), 0u}};
+        auto found = shuffleMaps.find(key);
+        if (found == shuffleMaps.end())
+        {
+            if (shuffleMaps.size() >= 8192u)
+                shuffleMaps.clear();
+            found = shuffleMaps.emplace(key, mapShuffle(c, tpsm, *dst, *src, srcDepth, srcOwnerPsm, srcFbp, x0, x1, y0, y1, du, dv)).first;
+        }
+        const ShuffleMap &map = found->second;
+        if (map.why != 0)
+            { shuffleWhy = map.why; return false; }
+        const uint32_t maxX = map.maxX, maxY = map.maxY;
         // queue: one GL pass per state run
         if (havePending)
             flushPending();
@@ -1450,7 +1511,7 @@ struct GSHwBackend::Impl
             shuffleSrcZ = srcDepth;
         }
         for (int i = 0; i < 4; ++i)
-            shuffleQuads[i].insert(shuffleQuads[i].end(), quads[i].begin(), quads[i].end());
+            shuffleQuads[i].insert(shuffleQuads[i].end(), map.quads[i].begin(), map.quads[i].end());
         dst->usedW = std::max(dst->usedW, std::min(maxX, dst->pxW));
         dst->usedH = std::max(dst->usedH, std::min(maxY, dst->pxH));
         ++stats.shuffles;

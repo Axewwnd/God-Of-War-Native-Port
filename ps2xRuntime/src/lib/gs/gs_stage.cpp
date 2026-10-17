@@ -18,6 +18,10 @@ namespace
     // Bound on queued bytes: enough for several XGKICK packets of a batch, small enough that the worker never
     // runs a whole frame ahead of the GS frontend.
     constexpr size_t kMaxQueuedBytes = 4u << 20;
+    // GOW-Port: a sleeping stage is woken once this much is queued, at the end of each worker job (publish) or when
+    // someone waits for it (waitIdle), not for every packet: the worker sends a few hundred packets per frame and
+    // waking the stage for each one cost more CPU in thread switches (both threads) than the packets' GS work.
+    constexpr size_t kWakeBytes = 64u << 10;
 
     struct Stage
     {
@@ -29,6 +33,7 @@ namespace
         std::vector<std::vector<uint8_t>> spare; // recycled buffers (avoid an allocation per packet)
         size_t queuedBytes = 0;
         bool busy = false;
+        bool sleeping = false; // the stage waits on `work` (only then does a producer need to notify it)
         bool stop = false;
         std::thread thread;
         std::thread::id threadId;
@@ -60,7 +65,9 @@ namespace
                 s.busy = false;
                 if (s.queue.empty())
                     s.idle.notify_all();
+                s.sleeping = true;
                 s.work.wait(lock, [&s] { return s.stop || !s.queue.empty(); });
+                s.sleeping = false;
                 if (s.queue.empty())
                     return;
                 batch.swap(s.queue);
@@ -69,9 +76,11 @@ namespace
             }
             s.space.notify_all();
             for (const Packet &p : batch)
+            {
                 s.process(p.path, p.data.data(), static_cast<uint32_t>(p.data.size()));
-            if (s.afterBatch)
-                s.afterBatch();
+                if (s.afterBatch)
+                    s.afterBatch(); // per packet: a GS interrupt reaches the EE as soon as its packet is done
+            }
         }
     }
 }
@@ -130,10 +139,22 @@ namespace ps2_gs_stage
         }
         p.data.assign(data, data + size);
         s.queuedBytes += size;
-        const bool wasEmpty = s.queue.empty();
         s.queue.push_back(std::move(p));
+        const bool wake = s.sleeping && s.queuedBytes >= kWakeBytes;
         lock.unlock();
-        if (wasEmpty)
+        if (wake)
+            s.work.notify_one();
+    }
+
+    void publish()
+    {
+        if (!running())
+            return;
+        Stage &s = stage();
+        std::unique_lock<std::mutex> lock(s.mutex);
+        const bool wake = s.sleeping && !s.queue.empty();
+        lock.unlock();
+        if (wake)
             s.work.notify_one();
     }
 
@@ -143,6 +164,8 @@ namespace ps2_gs_stage
             return;
         Stage &s = stage();
         std::unique_lock<std::mutex> lock(s.mutex);
+        if (s.sleeping && !s.queue.empty())
+            s.work.notify_one();
         s.idle.wait(lock, [&s] { return s.queue.empty() && !s.busy; });
     }
 }
