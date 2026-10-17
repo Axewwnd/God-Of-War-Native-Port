@@ -85,6 +85,7 @@ private:
     uint32_t m_lastMxcsr = UINT32_MAX;
     GSDrawState m_lastDrawState{};
     bool m_drawStateValid = false;
+    uint64_t m_lastDrawSerial = 0; // GSPrimitiveBatch::stateSerial of m_lastDrawState
     bool m_compactQueue = true;
     size_t m_queueChunkLimit = 8u;
 

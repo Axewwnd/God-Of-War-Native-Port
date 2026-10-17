@@ -178,7 +178,7 @@ private:
 
     void processImageData(const uint8_t *data, uint32_t sizeBytes);
     bool tryProcessNativeImageUploadPacket(const uint8_t *data, uint32_t sizeBytes);
-    GSPrimitiveBatch buildDrawBatch(int vertexCount) const;
+    GSPrimitiveBatch buildDrawBatch(int vertexCount);
     void updatePreferredDisplaySourceForDraw(const GSPrimitiveBatch &batch);
     GSPresentationRequest buildPresentationRequestUnlocked() const;
 
@@ -216,6 +216,11 @@ private:
     uint16_t m_curU = 0, m_curV = 0;
     uint8_t m_curFog = 0;
     uint8_t m_fogR = 0, m_fogG = 0, m_fogB = 0;
+    // GOW-Port: all draw state comes from register writes other than vertex data (RGBAQ, ST, UV, FOG, XYZ*), which bump
+    // m_stateSerial; buildDrawBatch rebuilds m_builtState only when it changed (a strip keeps one state for every triangle).
+    uint64_t m_stateSerial = 1;
+    uint64_t m_builtStateSerial = 0;
+    GSDrawState m_builtState{};
 
     bool m_prmodecont = true;
     bool m_pabe = false;

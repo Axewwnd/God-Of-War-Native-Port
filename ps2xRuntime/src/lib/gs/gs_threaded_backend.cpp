@@ -123,12 +123,14 @@ void GSThreadedBackend::Enqueue(Op op, const void *payload, uint32_t size)
     if (op == Op::Submit && m_compactQueue)
     {
         const auto &draw = *static_cast<const GSPrimitiveBatch *>(payload);
-        if (!m_drawStateValid || std::memcmp(&m_lastDrawState, &draw.state, sizeof(draw.state)) != 0)
+        const bool sameSerial = m_drawStateValid && draw.stateSerial != 0u && draw.stateSerial == m_lastDrawSerial;
+        if (!sameSerial && (!m_drawStateValid || std::memcmp(&m_lastDrawState, &draw.state, sizeof(draw.state)) != 0))
         {
             std::memcpy(&m_lastDrawState, &draw.state, sizeof(draw.state));
             m_drawStateValid = true;
             append(Op::DrawState, &draw.state, sizeof(draw.state));
         }
+        m_lastDrawSerial = draw.stateSerial;
         append(Op::Vertices, &draw, static_cast<uint32_t>(offsetof(GSPrimitiveBatch, state)));
     }
     else

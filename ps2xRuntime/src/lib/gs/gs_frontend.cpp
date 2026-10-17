@@ -342,6 +342,7 @@ void GS::init(uint8_t *vram, uint32_t vramSize, GSRegisters *privRegs)
 void GS::reset()
 {
     std::lock_guard<std::recursive_mutex> lock(m_stateMutex);
+    ++m_stateSerial;
     std::memset(m_ctx, 0, sizeof(m_ctx));
     m_gifInput = {}; // GOW-Port: reset tambien descarta etiquetas/registros incompletos.
     m_prim = {};
@@ -1384,6 +1385,9 @@ void GS::writeRegister(uint8_t regAddr, uint64_t value)
 
 void GS::writeRegisterUnlocked(uint8_t regAddr, uint64_t value)
 {
+    if (regAddr != GS_REG_RGBAQ && regAddr != GS_REG_ST && regAddr != GS_REG_UV && regAddr != GS_REG_FOG &&
+        regAddr != GS_REG_XYZ2 && regAddr != GS_REG_XYZ3 && regAddr != GS_REG_XYZF2 && regAddr != GS_REG_XYZF3)
+        ++m_stateSerial; // may change draw state (buildDrawBatch)
     const bool interestingReg =
         regAddr == GS_REG_PRIM ||
         regAddr == GS_REG_RGBAQ ||
@@ -2037,12 +2041,18 @@ void GS::WriteVram(uint32_t psm, uint32_t base, uint32_t bw, uint32_t x, uint32_
         m_backend->WriteVram(psm, base, bw, x, y, value);
 }
 
-GSPrimitiveBatch GS::buildDrawBatch(int vertexCount) const
+GSPrimitiveBatch GS::buildDrawBatch(int vertexCount)
 {
     GSPrimitiveBatch batch{};
     batch.vertexCount = static_cast<uint8_t>(std::min(vertexCount, 3));
     for (int i = 0; i < batch.vertexCount; ++i)
         batch.vertices[static_cast<size_t>(i)] = m_vtxQueue[i];
+    batch.stateSerial = m_stateSerial;
+    if (m_builtStateSerial == m_stateSerial)
+    {
+        batch.state = m_builtState;
+        return batch;
+    }
     batch.state.context = m_ctx[m_prim.ctxt ? 1 : 0];
     batch.state.prim = m_prim;
     if (gowFogOff())
@@ -2063,6 +2073,8 @@ GSPrimitiveBatch GS::buildDrawBatch(int vertexCount) const
     const uint8_t mmag = static_cast<uint8_t>((tex1 >> 5u) & 0x1u);
     const uint8_t mmin = static_cast<uint8_t>((tex1 >> 6u) & 0x7u);
     batch.state.linearFilter = mmag != 0u || mmin == 1u || (mmin & 0x4u) != 0u;
+    m_builtState = batch.state;
+    m_builtStateSerial = m_stateSerial;
     return batch;
 }
 

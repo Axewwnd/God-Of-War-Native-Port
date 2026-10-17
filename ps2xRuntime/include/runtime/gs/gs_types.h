@@ -255,6 +255,9 @@ struct GSPrimitiveBatch
 {
     std::array<GSVertex, 3> vertices{};
     uint8_t vertexCount = 0;
+    // GOW-Port: GS::m_stateSerial when `state` was built (0: unknown). Equal non-zero serials mean the same state, so the
+    // queue and the backend skip comparing the whole state for every triangle.
+    uint64_t stateSerial = 0;
     GSDrawState state{};
 };
 

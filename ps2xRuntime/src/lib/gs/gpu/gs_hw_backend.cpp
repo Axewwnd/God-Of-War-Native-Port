@@ -497,7 +497,7 @@ struct GSHwBackend::Impl
     int shuffleWhy = 0; // debug: which tryShuffle check rejected the last sprite
     RenderTarget *shuffleDst = nullptr, *shuffleSrc = nullptr;
     bool shuffleSrcZ = false;
-    std::unordered_map<uint32_t, std::vector<uint16_t>> ownerInverse; // psm -> in-page word index -> y * 64 + x
+    std::array<std::vector<uint16_t>, 64> ownerInverse; // psm (6 bits) -> in-page word index -> y * 64 + x
     std::unordered_map<const uint16_t *, uint32_t> tableOffset;
     std::unordered_map<uint32_t, uint32_t> inverseOffset; // psm -> offset of the inverse page table
     std::vector<HwVertex> pending;
@@ -554,6 +554,7 @@ struct GSHwBackend::Impl
     }
     GSDrawState pendingState{};
     bool havePending = false;
+    uint64_t pendingSerial = 0; // GSPrimitiveBatch::stateSerial of pendingState (0: compare the state)
     double firstRawZ = 0.0;
 
     std::unordered_map<uint64_t, Texture> textures;
@@ -1298,7 +1299,7 @@ struct GSHwBackend::Impl
     // ---- channel shuffles (see kShuffleFs) -------------------------------------------------------------------------
     const std::vector<uint16_t> &inverseFor(uint32_t ownerPsm)
     {
-        std::vector<uint16_t> &inv = ownerInverse[ownerPsm];
+        std::vector<uint16_t> &inv = ownerInverse[ownerPsm & 63u];
         if (inv.empty())
         {
             const GSSwizzle::Format &f = GSSwizzle::GetFormat(ownerPsm);
@@ -1562,13 +1563,15 @@ struct GSHwBackend::Impl
                 dumpSkipped(s, b, "view");
                 return;
             }
-        if (havePending && !sameState(pendingState, s))
+        const bool sameSerial = b.stateSerial != 0u && b.stateSerial == pendingSerial;
+        if (havePending && !sameSerial && !sameState(pendingState, s))
             flushPending();
         if (!havePending)
         {
             pendingState = s;
             havePending = true;
         }
+        pendingSerial = b.stateSerial; // pendingState holds this state now
         const float zmax = zMaxFor(s.context.zbuf.psm);
         const float texW = static_cast<float>(std::max<uint16_t>(s.textureWidth, 1)), texH = static_cast<float>(std::max<uint16_t>(s.textureHeight, 1));
         const auto texelUV = [&](const GSVertex &v, float &u, float &t)
