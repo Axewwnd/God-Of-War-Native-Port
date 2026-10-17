@@ -602,6 +602,147 @@ struct GSHwBackend::Impl
 
     const Api &gl() const { return context.gl(); }
 
+    // GOW-Port: GPU time per kind of GPU work (GOW_GS_GPU_TIME=1, on by default on the Switch): a GL_TIME_ELAPSED query
+    // around each draw batch, shuffle flush, CLUT readback, clear and present, read back without waiting and printed
+    // every 5 s as [gs-gpu]. A draw's kind is its shader path (letters in gpuKindName), with the host pixels its
+    // primitives' bounding box covers, so the line says which path (and how much fill) uses the GPU. Queries do not
+    // nest: work started inside an open span counts for the outer one.
+    enum GpuKind : uint32_t
+    {
+        GpuDraw = 0u << 16, GpuShuffle = 1u << 16, GpuClut = 2u << 16, GpuClear = 3u << 16, GpuPresent = 4u << 16,
+        GpuTex = 1u << 0, GpuIndexed = 1u << 1, GpuRtSrc = 1u << 2, GpuReinterp = 1u << 3, GpuZSrc = 1u << 4,
+        GpuDate = 1u << 5, GpuSwBlend = 1u << 6, GpuZAlias = 1u << 7, GpuBarrierRun = 1u << 8, GpuFailPass = 1u << 9,
+        GpuLinear = 1u << 10,
+    };
+    struct GpuTimer
+    {
+        bool enabled = [] { const char *v = std::getenv("GOW_GS_GPU_TIME"); return v && *v == '1'; }();
+        bool open = false;
+        GLuint query = 0u;
+        uint32_t kind = 0u;
+        uint64_t area = 0u;
+        struct Pending { GLuint query; uint32_t kind; uint64_t area; };
+        std::vector<Pending> pending; // oldest first, from head
+        size_t head = 0u;
+        std::vector<GLuint> spare;
+        struct Total { uint64_t nanos = 0u, count = 0u, area = 0u; };
+        std::map<uint32_t, Total> totals;
+        uint64_t dropped = 0u;
+    } gpuTimer;
+    void gpuBegin(uint32_t kind)
+    {
+        GpuTimer &t = gpuTimer;
+        if (!t.enabled || t.open)
+            return;
+        const Api &g = gl();
+        if (t.spare.empty())
+        {
+            GLuint q = 0u;
+            g.GenQueries(1, &q);
+            t.spare.push_back(q);
+        }
+        t.query = t.spare.back();
+        t.spare.pop_back();
+        t.kind = kind;
+        t.area = 0u;
+        t.open = true;
+        g.BeginQuery(kTimeElapsed, t.query);
+    }
+    void gpuTag(uint32_t bits) { gpuTimer.kind |= bits; }
+    void gpuEnd()
+    {
+        GpuTimer &t = gpuTimer;
+        if (!t.open)
+            return;
+        gl().EndQuery(kTimeElapsed);
+        t.open = false;
+        if (t.pending.size() - t.head >= 16384u) // results stopped arriving: stop growing
+        {
+            t.spare.push_back(t.query);
+            ++t.dropped;
+            return;
+        }
+        t.pending.push_back({t.query, t.kind, t.area});
+    }
+    struct GpuSpan
+    {
+        Impl &d;
+        GpuSpan(Impl &impl, uint32_t kind) : d(impl) { d.gpuBegin(kind); }
+        ~GpuSpan() { d.gpuEnd(); }
+        GpuSpan(const GpuSpan &) = delete;
+        GpuSpan &operator=(const GpuSpan &) = delete;
+    };
+    void gpuCollect()
+    {
+        GpuTimer &t = gpuTimer;
+        const Api &g = gl();
+        while (t.head < t.pending.size())
+        {
+            const GpuTimer::Pending &p = t.pending[t.head];
+            GLuint64 available = 0u;
+            g.GetQueryObjectui64v(p.query, kQueryResultAvailable, &available);
+            if (!available)
+                break;
+            GLuint64 nanos = 0u;
+            g.GetQueryObjectui64v(p.query, kQueryResult, &nanos);
+            GpuTimer::Total &total = t.totals[p.kind];
+            total.nanos += nanos;
+            ++total.count;
+            total.area += p.area;
+            t.spare.push_back(p.query);
+            ++t.head;
+        }
+        if (t.head > 4096u)
+        {
+            t.pending.erase(t.pending.begin(), t.pending.begin() + static_cast<std::ptrdiff_t>(t.head));
+            t.head = 0u;
+        }
+    }
+    static std::string gpuKindName(uint32_t kind)
+    {
+        static const char *const what[] = {"draw", "shuffle", "clut", "clear", "present"};
+        std::string name = (kind >> 16) < 5u ? what[kind >> 16] : "?";
+        // texture, indexed, render-target source, reinterpret, z source, date, sw blend, z alias, barrier run, fail pass, linear
+        static const char letters[] = "TIRXZDBAVFL";
+        if (kind & 0xFFFFu)
+        {
+            name += ':';
+            for (int i = 0; i < 11; ++i)
+                if (kind & (1u << i))
+                    name += letters[i];
+        }
+        return name;
+    }
+    void reportGpu()
+    {
+        GpuTimer &t = gpuTimer;
+        if (!t.enabled)
+            return;
+        gpuCollect();
+        static auto last = std::chrono::steady_clock::now();
+        const auto now = std::chrono::steady_clock::now();
+        if (now - last < std::chrono::seconds(5))
+            return;
+        const double window = std::chrono::duration<double>(now - last).count();
+        last = now;
+        std::vector<std::pair<uint32_t, GpuTimer::Total>> rows(t.totals.begin(), t.totals.end());
+        std::sort(rows.begin(), rows.end(), [](const auto &a, const auto &b) { return a.second.nanos > b.second.nanos; });
+        uint64_t all = 0u;
+        for (const auto &r : rows)
+            all += r.second.nanos;
+        std::string line;
+        for (size_t i = 0; i < rows.size() && i < 14u; ++i)
+        {
+            char item[128];
+            std::snprintf(item, sizeof(item), " %s=%.1fms/%llu/%lluKpx", gpuKindName(rows[i].first).c_str(), rows[i].second.nanos * 1e-6,
+                          static_cast<unsigned long long>(rows[i].second.count), static_cast<unsigned long long>(rows[i].second.area >> 10));
+            line += item;
+        }
+        std::fprintf(stderr, "[gs-gpu] window=%.2f gpu_ms=%.1f pending=%zu dropped=%llu%s\n", window, all * 1e-6,
+                     t.pending.size() - t.head, static_cast<unsigned long long>(t.dropped), line.c_str());
+        t.totals.clear();
+    }
+
     // GOW-Port: vertex data streamed into one buffer per VAO. Each batch is written after the previous one with
     // BufferSubData and drawn from its first vertex; the storage is only re-specified (orphaned) when it is full. A
     // BufferData per batch makes the driver allocate new storage for every batch (Mesa: new buffer storage each time,
@@ -1276,6 +1417,7 @@ struct GSHwBackend::Impl
             return true;
         }
         const Api &g = gl();
+        GpuSpan gpuSpan(*this, GpuClut);
         const GSSwizzle::Format &tf = GSSwizzle::GetFormat(tex0.cpsm);
         const GSSwizzle::Format &rf = GSSwizzle::GetFormat(rt->psm);
         const auto table = tableOffset.find(tf.table);
@@ -1555,6 +1697,7 @@ struct GSHwBackend::Impl
         if (!haveShuffle)
             return;
         haveShuffle = false;
+        GpuSpan gpuSpan(*this, GpuShuffle);
         if (!shuffleProgram)
         {
             for (auto &q : shuffleQuads)
@@ -1975,6 +2118,15 @@ struct GSHwBackend::Impl
         if (onlyLo >= 0 && (frameBatch < onlyLo || frameBatch > onlyHi) && s.context.frame.fbp == 0 && s.context.frame.fbw == 8 && !(s.prim.tme && s.context.tex0.tbp0 == 0))
             return;
         const GSContext &c = s.context;
+        GpuSpan gpuSpan(*this, GpuDraw);
+        if (gpuTimer.open && !verts.empty())
+        {
+            float bx0 = 1e30f, by0 = 1e30f, bx1 = -1e30f, by1 = -1e30f;
+            for (const HwVertex &v : verts)
+                bx0 = std::min(bx0, v.x), by0 = std::min(by0, v.y), bx1 = std::max(bx1, v.x), by1 = std::max(by1, v.y);
+            // the box in PS2 pixels, the target in host pixels
+            gpuTimer.area = static_cast<uint64_t>(std::max(0.0f, bx1 - bx0) * std::max(0.0f, by1 - by0) * scale * scale);
+        }
         // GOW_GS_HW_SKIPTBP=<hex>: debug, skip draws textured from that block (bisecting post passes)
         static const long skipTbp = std::getenv("GOW_GS_HW_SKIPTBP") ? std::strtol(std::getenv("GOW_GS_HW_SKIPTBP"), nullptr, 16) : -1;
         if (skipTbp >= 0 && s.prim.tme && static_cast<long>(c.tex0.tbp0) == skipTbp)
@@ -2136,6 +2288,7 @@ struct GSHwBackend::Impl
         {
             const bool date = ((c.test >> 14) & 1u) != 0u && c.frame.psm != GS_PSM_CT24;
             u1i(locDate, date ? 1 : 0);
+            gpuTag((date ? GpuDate : 0u) | (softBlend && !zAliasWrite ? GpuSwBlend : 0u) | (zAlias ? GpuZAlias : 0u));
             u1i(locDatm, ((c.test >> 15) & 1u) != 0u ? 1 : 0);
             const uint64_t al = c.alpha;
             u1i(locSwBlend, softBlend && !zAliasWrite ? 1 : 0);
@@ -2191,6 +2344,8 @@ struct GSHwBackend::Impl
             Texture &tex = (src || rsrc || zsrc) ? dummy : indexed ? indexTextureFor(s) : textureFor(s);
             u1i(locIndexed, indexed ? 1 : 0);
             u1i(locLinear, s.linearFilter ? 1 : 0);
+            gpuTag(GpuTex | (indexed ? GpuIndexed : 0u) | (src ? GpuRtSrc : 0u) | (rsrc ? GpuReinterp : 0u) | (zsrc ? GpuZSrc : 0u) |
+                   (s.linearFilter ? GpuLinear : 0u));
             if (indexed)
             {
                 g.ActiveTexture(kTexture0 + 5);
@@ -2292,6 +2447,7 @@ struct GSHwBackend::Impl
         g.DepthMask(zwrite ? kTrue : kFalse);
         if (softBlend && !zAliasWrite && (s.colclamp & 1u) == 0u)
         {
+            gpuTag(GpuBarrierRun);
             // wrapping blend (COLCLAMP=0, only the shadow-volume passes): the shader reads the destination, so a triangle
             // that can touch a pixel an earlier triangle of the batch wrote is drawn after a barrier; overlapping triangles
             // then see each other's results like on the GS (the volumes count overlaps this way). GOW-Port: triangles whose
@@ -2348,6 +2504,7 @@ struct GSHwBackend::Impl
         {
             // failing fragments: 1 FB_ONLY (colour+alpha, no Z), 2 ZB_ONLY (Z only), 3 RGB_ONLY (colour, no alpha, no Z)
             u1i(locPass, 2);
+            gpuTag(GpuFailPass);
             static const bool failTint = std::getenv("GOW_GS_HW_FAILTINT") != nullptr;
             u1i(locFailTint, (failTint && afail == 3u && s.prim.tme && c.frame.fbp == 0u) ? 1 : 0);
             if (afail == 1u) { g.DepthMask(kFalse); }
@@ -2626,6 +2783,7 @@ bool GSHwBackend::ClearFramebuffer(const GSContext &context, uint32_t rgba)
     if (!d.ensure() || context.frame.fbw == 0u)
         return false;
     d.flushPending();
+    Impl::GpuSpan gpuSpan(d, Impl::GpuClear);
     const Api &g = d.gl();
     RenderTarget &rt = d.target(context.frame.fbp, context.frame.fbw);
     g.BindFramebuffer(kFramebuffer, rt.fbo);
@@ -2674,6 +2832,8 @@ PresentationFrame GSHwBackend::Present(const GSPresentationRequest &request)
     if (!d.ensure())
         return frame;
     d.flushPending();
+    d.reportGpu();
+    Impl::GpuSpan gpuSpan(d, Impl::GpuPresent);
     d.reportGlError("present");
     ++d.presentCount;
     d.dumpAfterSkip = false;
