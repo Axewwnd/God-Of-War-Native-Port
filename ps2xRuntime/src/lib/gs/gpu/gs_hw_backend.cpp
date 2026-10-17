@@ -418,7 +418,9 @@ void main()
     struct HwVertex
     {
         float x, y, z;
-        float r, g, b, a;
+        // GOW-Port: the GS vertex colour (0..255) as bytes; the shader still reads it as floats 0..255 (non-normalised
+        // byte attribute), exactly the values the four floats carried, with 12 bytes less per vertex to upload
+        uint8_t r, g, b, a;
         float s, t, q;
         float u, v;
         float cu0 = -1e30f, cv0 = -1e30f, cu1 = 1e30f, cv1 = 1e30f; // texel range the GS samples (sprites)
@@ -593,11 +595,41 @@ struct GSHwBackend::Impl
     {
         uint64_t shuffles = 0;
         uint64_t draws = 0, batches = 0, skippedPsm = 0, unsupportedBlend = 0, texDecodes = 0, texHits = 0, skippedPrim = 0;
+        uint64_t glDraws = 0, barriers = 0, uploadBytes = 0, orphans = 0; // GL calls the driver sees (GOW_GS_HW_STATS)
         std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
     } stats;
     bool statsEnabled = std::getenv("GOW_GS_HW_STATS") != nullptr;
 
     const Api &gl() const { return context.gl(); }
+
+    // GOW-Port: vertex data streamed into one buffer per VAO. Each batch is written after the previous one with
+    // BufferSubData and drawn from its first vertex; the storage is only re-specified (orphaned) when it is full. A
+    // BufferData per batch makes the driver allocate new storage for every batch (Mesa: new buffer storage each time,
+    // ~700 per frame), while a write to a range not written since the last orphan needs no synchronisation.
+    struct StreamBuffer
+    {
+        GLsizeiptr size = 0, used = 0;
+    };
+    StreamBuffer drawStream, shuffleStream;
+    static constexpr GLsizeiptr kStreamBytes = GLsizeiptr(8) << 20;
+    // the buffer must be bound to GL_ARRAY_BUFFER; returns the index of the first vertex written
+    GLint streamVertices(StreamBuffer &sb, const void *data, size_t bytes, size_t stride)
+    {
+        const Api &g = gl();
+        const GLsizeiptr step = static_cast<GLsizeiptr>(stride), length = static_cast<GLsizeiptr>(bytes);
+        GLsizeiptr at = (sb.used + step - 1) / step * step;
+        if (at + length > sb.size)
+        {
+            sb.size = std::max<GLsizeiptr>(kStreamBytes, length);
+            g.BufferData(kArrayBuffer, sb.size, nullptr, kStreamDraw);
+            at = 0;
+            ++stats.orphans;
+        }
+        g.BufferSubData(kArrayBuffer, at, length, data);
+        sb.used = at + length;
+        stats.uploadBytes += bytes;
+        return static_cast<GLint>(at / step);
+    }
 
     GLuint compile(GLenum type, const char *src) { return compile(type, {src}); }
     GLuint compile(GLenum type, std::initializer_list<const char *> parts)
@@ -674,7 +706,7 @@ struct GSHwBackend::Impl
         const GLsizei stride = sizeof(HwVertex);
         g.VertexAttribPointer(0, 2, kFloat, kFalse, stride, reinterpret_cast<const void *>(offsetof(HwVertex, x)));
         g.VertexAttribPointer(1, 1, kFloat, kFalse, stride, reinterpret_cast<const void *>(offsetof(HwVertex, z)));
-        g.VertexAttribPointer(2, 4, kFloat, kFalse, stride, reinterpret_cast<const void *>(offsetof(HwVertex, r)));
+        g.VertexAttribPointer(2, 4, kUnsignedByte, kFalse, stride, reinterpret_cast<const void *>(offsetof(HwVertex, r)));
         g.VertexAttribPointer(3, 3, kFloat, kFalse, stride, reinterpret_cast<const void *>(offsetof(HwVertex, s)));
         g.VertexAttribPointer(4, 2, kFloat, kFalse, stride, reinterpret_cast<const void *>(offsetof(HwVertex, u)));
         g.VertexAttribPointer(5, 4, kFloat, kFalse, stride, reinterpret_cast<const void *>(offsetof(HwVertex, cu0)));
@@ -1552,7 +1584,7 @@ struct GSHwBackend::Impl
         g.Uniform4i(locShTexa, shuffleState.texa.ta0 >> 7, shuffleState.texa.ta1 >> 7, shuffleState.texa.aem ? 1 : 0, 0);
         g.Uniform2f(locShInvSize, 1.0f / dst.pxW, 1.0f / dst.pxH);
         if (&src == &dst)
-            g.TextureBarrier();
+            g.TextureBarrier(), ++stats.barriers;
         g.BindVertexArray(shuffleVao);
         g.BindBuffer(kArrayBuffer, shuffleVbo);
         for (uint32_t i = 0; i < 4; ++i)
@@ -1564,8 +1596,9 @@ struct GSHwBackend::Impl
             g.Uniform1i(locShHs, static_cast<GLint>(hs));
             g.Uniform1i(locShHd, static_cast<GLint>(hd));
             g.ColorMask(hd == 0u ? lo : kFalse, hd == 0u ? hi : kFalse, hd == 1u ? lo : kFalse, hd == 1u ? hi : kFalse);
-            g.BufferData(kArrayBuffer, static_cast<GLsizeiptr>(q.size() * sizeof(ShuffleVertex)), q.data(), kStreamDraw);
-            g.DrawArrays(kTriangles, 0, static_cast<GLsizei>(q.size()));
+            const GLint first = streamVertices(shuffleStream, q.data(), q.size() * sizeof(ShuffleVertex), sizeof(ShuffleVertex));
+            g.DrawArrays(kTriangles, first, static_cast<GLsizei>(q.size()));
+            ++stats.glDraws;
             q.clear();
         }
         g.ColorMask(kTrue, kTrue, kTrue, kTrue);
@@ -1961,7 +1994,7 @@ struct GSHwBackend::Impl
             for (const HwVertex &v : verts)
             {
                 bx0 = std::min(bx0, v.x), by0 = std::min(by0, v.y), bx1 = std::max(bx1, v.x), by1 = std::max(by1, v.y);
-                cmax = std::max({cmax, v.r, v.g, v.b}), amax = std::max(amax, v.a), zlo = std::min(zlo, v.z), zhi = std::max(zhi, v.z);
+                cmax = std::max({cmax, float(v.r), float(v.g), float(v.b)}), amax = std::max(amax, float(v.a)), zlo = std::min(zlo, v.z), zhi = std::max(zhi, v.z);
             }
             const float zscale = zMaxFor(c.zbuf.psm) < 4294967295.0f ? zMaxFor(c.zbuf.psm) : 16777215.0f;
             std::fprintf(stderr, "[gs-hw-dump-bb] #%d %.0f-%.0f,%.0f-%.0f ta0=%x ta1=%x aem=%d fge=%d tfx=%u tcc=%u iip=%d cmax=%.0f amax=%.0f prim=%u z=%x-%x\n",
@@ -1972,7 +2005,7 @@ struct GSHwBackend::Impl
                          "[gs-hw-dump] #%d fb=%d verts=%zu fbp=%u fbw=%u fpsm=%u zbp=%x zpsm=%x zmsk=%d tme=%d tbp=%x tbw=%u tpsm=%u %ux%u cbp=%x test=%llx alpha=%llx abe=%d fbmsk=%x rawz=%.0f v0=(%.1f,%.1f z=%.3f col=%.0f,%.0f,%.0f,%.0f uv=%.1f,%.1f) scis=%u-%u,%u-%u\n",
                          dumped, frameBatch, verts.size(), c.frame.fbp, c.frame.fbw, c.frame.psm, c.zbuf.zbp, c.zbuf.psm, c.zbuf.zmask ? 1 : 0, s.prim.tme ? 1 : 0,
                          c.tex0.tbp0, c.tex0.tbw, c.tex0.psm, s.textureWidth, s.textureHeight, c.tex0.cbp, (unsigned long long)c.test,
-                         (unsigned long long)c.alpha, s.prim.abe ? 1 : 0, c.frame.fbmsk, firstRawZ, v0.x, v0.y, v0.z, v0.r, v0.g, v0.b, v0.a, v0.u, v0.v,
+                         (unsigned long long)c.alpha, s.prim.abe ? 1 : 0, c.frame.fbmsk, firstRawZ, v0.x, v0.y, v0.z, float(v0.r), float(v0.g), float(v0.b), float(v0.a), v0.u, v0.v,
                          c.scissor.x0, c.scissor.x1, c.scissor.y0, c.scissor.y1);
         }
         RenderTarget &rt = target(c.frame.fbp, c.frame.fbw);
@@ -2057,7 +2090,7 @@ struct GSHwBackend::Impl
             const uint32_t a = al & 3u, b = (al >> 2) & 3u, cc = (al >> 4) & 3u, d = (al >> 6) & 3u, fix = static_cast<uint32_t>((al >> 32) & 0xFFu);
             if (a == 0u && b == 2u && cc == 2u && d == 1u)
             {
-                const float col[3] = {verts[0].r, verts[0].g, verts[0].b};
+                const float col[3] = {float(verts[0].r), float(verts[0].g), float(verts[0].b)};
                 const GLboolean written[3] = {mr, mg, mb};
                 bool flat = true;
                 for (const HwVertex &v : verts)
@@ -2118,7 +2151,7 @@ struct GSHwBackend::Impl
                 g.BindTexture(kTexture2D, rt.color);
                 u1i(locDest, 4);
                 g.ActiveTexture(kTexture0);
-                g.TextureBarrier();
+                g.TextureBarrier(), ++stats.barriers;
             }
         }
         u2f(locInvSize, 1.0f / rt.pxW, 1.0f / rt.pxH);
@@ -2139,7 +2172,7 @@ struct GSHwBackend::Impl
                         !overwrittenByDepth(*candidate))
                         src = candidate;
             if (src == &rt)
-                g.TextureBarrier();
+                g.TextureBarrier(), ++stats.barriers;
             Texture dummy;
             RenderTarget *zsrc = nullptr;
             const bool zFormat = c.tex0.psm == 0x30 || c.tex0.psm == 0x31 || c.tex0.psm == 0x32 || c.tex0.psm == 0x3A;
@@ -2153,7 +2186,7 @@ struct GSHwBackend::Impl
             if (!src && !zsrc)
                 rsrc = findReinterpretSource(c.tex0.tbp0, c.tex0.psm);
             if (rsrc == &rt)
-                g.TextureBarrier();
+                g.TextureBarrier(), ++stats.barriers;
             const bool indexed = !(src || rsrc || zsrc) && isIndexed(c.tex0.psm) && vram != nullptr;
             Texture &tex = (src || rsrc || zsrc) ? dummy : indexed ? indexTextureFor(s) : textureFor(s);
             u1i(locIndexed, indexed ? 1 : 0);
@@ -2199,7 +2232,7 @@ struct GSHwBackend::Impl
         }
         g.BindVertexArray(vao);
         g.BindBuffer(kArrayBuffer, vbo);
-        g.BufferData(kArrayBuffer, static_cast<GLsizeiptr>(dverts.size() * sizeof(HwVertex)), dverts.data(), kStreamDraw);
+        const GLint first = streamVertices(drawStream, dverts.data(), dverts.size() * sizeof(HwVertex), sizeof(HwVertex));
 
         const bool ate = (c.test & 1u) != 0u;
         const uint32_t atst = static_cast<uint32_t>((c.test >> 1) & 7u), aref = static_cast<uint32_t>((c.test >> 4) & 0xFFu);
@@ -2259,18 +2292,46 @@ struct GSHwBackend::Impl
         g.DepthMask(zwrite ? kTrue : kFalse);
         if (softBlend && !zAliasWrite && (s.colclamp & 1u) == 0u)
         {
-            // wrapping blend (COLCLAMP=0, only the shadow-volume passes): the shader reads the destination, so draw one
-            // triangle at a time with a barrier in between; overlapping triangles of one draw then see each other's results
-            // like on the GS (the volumes count overlaps this way)
-            for (size_t i = 0; i + 3 <= verts.size(); i += 3)
+            // wrapping blend (COLCLAMP=0, only the shadow-volume passes): the shader reads the destination, so a triangle
+            // that can touch a pixel an earlier triangle of the batch wrote is drawn after a barrier; overlapping triangles
+            // then see each other's results like on the GS (the volumes count overlaps this way). GOW-Port: triangles whose
+            // bounding boxes are disjoint cover no common pixel centre, so a run of them is one draw that reads and writes
+            // each pixel at most once (defined after a barrier, ARB_texture_barrier) with the same result as one draw each;
+            // a barrier (a GPU serialisation) is only issued before a triangle whose box meets one of the current run.
+            struct Box { float x0, y0, x1, y1; };
+            thread_local std::vector<Box> run;
+            run.clear();
+            size_t runStart = 0;
+            const size_t end = verts.size() / 3u * 3u;
+            for (size_t i = 0; i < end; i += 3)
             {
-                if (i != 0)
-                    g.TextureBarrier();
-                g.DrawArrays(kTriangles, static_cast<GLint>(i), 3);
+                const HwVertex &a = verts[i], &b = verts[i + 1], &d = verts[i + 2];
+                const Box box{std::min({a.x, b.x, d.x}), std::min({a.y, b.y, d.y}), std::max({a.x, b.x, d.x}), std::max({a.y, b.y, d.y})};
+                bool meets = false;
+                for (const Box &o : run)
+                    if (box.x0 <= o.x1 && o.x0 <= box.x1 && box.y0 <= o.y1 && o.y0 <= box.y1)
+                    {
+                        meets = true;
+                        break;
+                    }
+                if (meets)
+                {
+                    g.DrawArrays(kTriangles, first + static_cast<GLint>(runStart), static_cast<GLsizei>(i - runStart));
+                    ++stats.glDraws;
+                    g.TextureBarrier(), ++stats.barriers;
+                    runStart = i;
+                    run.clear();
+                }
+                run.push_back(box);
+            }
+            if (end > runStart)
+            {
+                g.DrawArrays(kTriangles, first + static_cast<GLint>(runStart), static_cast<GLsizei>(end - runStart));
+                ++stats.glDraws;
             }
         }
         else
-            g.DrawArrays(kTriangles, 0, static_cast<GLsizei>(verts.size()));
+            g.DrawArrays(kTriangles, first, static_cast<GLsizei>(verts.size())), ++stats.glDraws;
         if (volBox[1] >= volBox[0] && volBox[3] >= volBox[2])
         {
             const int w = volBox[1] - volBox[0] + 1, h = volBox[3] - volBox[2] + 1;
@@ -2292,7 +2353,8 @@ struct GSHwBackend::Impl
             if (afail == 1u) { g.DepthMask(kFalse); }
             else if (afail == 2u) { g.ColorMask(kFalse, kFalse, kFalse, kFalse); }
             else { g.DepthMask(kFalse); g.ColorMask(mr, mg, mb, kFalse); }
-            g.DrawArrays(kTriangles, 0, static_cast<GLsizei>(verts.size()));
+            g.DrawArrays(kTriangles, first, static_cast<GLsizei>(verts.size()));
+            ++stats.glDraws;
         }
         ++stats.batches;
         g.Disable(kScissorTest);
@@ -2414,11 +2476,13 @@ struct GSHwBackend::Impl
         if (now - stats.last < std::chrono::seconds(5))
             return;
         stats.last = now;
-        std::fprintf(stderr, "[gs-hw] shuffles=%llu draws=%llu batches=%llu texDecodes=%llu texHits=%llu skippedPsm=%llu skippedPrim=%llu unsupportedBlend=%llu textures=%zu\n",
+        std::fprintf(stderr, "[gs-hw] shuffles=%llu draws=%llu batches=%llu texDecodes=%llu texHits=%llu skippedPsm=%llu skippedPrim=%llu unsupportedBlend=%llu textures=%zu glDraws=%llu barriers=%llu uploadKB=%llu orphans=%llu\n",
                      (unsigned long long)stats.shuffles, (unsigned long long)stats.draws, (unsigned long long)stats.batches, (unsigned long long)stats.texDecodes,
                      (unsigned long long)stats.texHits, (unsigned long long)stats.skippedPsm, (unsigned long long)stats.skippedPrim,
-                     (unsigned long long)stats.unsupportedBlend, textures.size());
+                     (unsigned long long)stats.unsupportedBlend, textures.size(), (unsigned long long)stats.glDraws, (unsigned long long)stats.barriers,
+                     (unsigned long long)(stats.uploadBytes >> 10), (unsigned long long)stats.orphans);
         stats.shuffles = stats.draws = stats.batches = stats.texDecodes = stats.texHits = stats.skippedPsm = stats.skippedPrim = stats.unsupportedBlend = 0;
+        stats.glDraws = stats.barriers = stats.uploadBytes = stats.orphans = 0;
     }
 
     RenderTarget *findTarget(uint32_t fbp)
