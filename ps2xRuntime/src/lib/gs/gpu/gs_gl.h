@@ -25,6 +25,7 @@ namespace GSGL
     constexpr GLenum kVertexShader = 0x8B31;
     constexpr GLenum kFragmentShader = 0x8B30;
     constexpr GLenum kFramebuffer = 0x8D40;
+    constexpr GLenum kFramebufferBinding = 0x8CA6;
     constexpr GLenum kFramebufferDefaultWidth = 0x9310;
     constexpr GLenum kFramebufferDefaultHeight = 0x9311;
     constexpr GLenum kTriangles = 0x0004;
@@ -127,6 +128,7 @@ namespace GSGL
         void (*Finish)() = nullptr;
         void (*Flush)() = nullptr;
         GLenum (*GetError)() = nullptr;
+        void (*GetIntegerv)(GLenum, GLint *) = nullptr;
         const unsigned char *(*GetString)(GLenum) = nullptr;
         void (*GenTextures)(GLsizei, GLuint *) = nullptr;
         void (*DeleteTextures)(GLsizei, const GLuint *) = nullptr;

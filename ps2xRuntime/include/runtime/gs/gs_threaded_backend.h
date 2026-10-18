@@ -38,7 +38,7 @@ public:
     void TextureFlush() override;
     void Sync(GSSyncReason reason) override;
     PresentationFrame Present(const GSPresentationRequest &request) override;
-    bool UsesSharedPresentation() const override { return m_sharedPresentation.load(std::memory_order_acquire); }
+    bool UsesSharedPresentation() const override;
 
     bool ClearFramebuffer(const GSContext &context, uint32_t rgba) override;
     uint32_t ConsumeLocalToHostBytes(uint8_t *dst, uint32_t maxBytes) override;

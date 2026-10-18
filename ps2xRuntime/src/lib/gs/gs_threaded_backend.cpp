@@ -393,6 +393,12 @@ void GSThreadedBackend::RunOnWorker(const std::function<void()> &function) const
     Drain();
 }
 
+// live: the host's sharing self-check can turn sharing off during the run (gs_gl.cpp checkProbe)
+bool GSThreadedBackend::UsesSharedPresentation() const
+{
+    return m_sharedPresentation.load(std::memory_order_acquire) && GSSharedPresent::Active();
+}
+
 void GSThreadedBackend::Initialize(uint8_t *vram, uint32_t vramSize)
 {
     RunOnWorker([&] {

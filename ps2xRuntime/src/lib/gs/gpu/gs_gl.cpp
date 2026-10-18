@@ -5,8 +5,10 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <mutex>
 #include <string_view>
 
@@ -259,6 +261,90 @@ namespace
         return status == GSGL::kAlreadySignaled || status == GSGL::kConditionSatisfied;
     }
 
+    // GOW-Port: sharing self-check. On the first console run with shared textures the window showed only the magenta
+    // placeholder for the whole run: the host never got a frame it could show, though both contexts reported success.
+    // So the GS context makes a 1x1 probe texture by the same GPU copy the frames use (CopyImageSubData) and the host
+    // context reads it back once before trusting any slot; a wrong value, or no slot ever completing within 3 s of the
+    // first publish (fences not visible across the contexts), turns sharing off and both sides go back to RAM frames.
+    constexpr uint8_t kProbe[4] = {0x5A, 0xC3, 0x3C, 0xA5};
+    GSGL::GLuint s_probeTexture = 0;
+    bool s_probeChecked = false;
+    bool s_everAcquired = false;
+    std::chrono::steady_clock::time_point s_firstPublish{};
+    GSGL::Api s_hostProbeApi; // the host context's framebuffer/readback entry points (empty: no probe)
+
+    void createProbe(const GSGL::Api &gl)
+    {
+        using namespace GSGL;
+        if (!gl.CopyImageSubData)
+            return;
+        GLuint textures[2] = {0u, 0u};
+        gl.GenTextures(2, textures);
+        for (int i = 0; i < 2; ++i)
+        {
+            gl.BindTexture(kTexture2D, textures[i]);
+            gl.TexImage2D(kTexture2D, 0, kRgba8, 1, 1, 0, kRgba, kUnsignedByte, i == 0 ? kProbe : nullptr);
+            gl.TexParameteri(kTexture2D, kTextureMinFilter, kNearest);
+            gl.TexParameteri(kTexture2D, kTextureMagFilter, kNearest);
+        }
+        gl.BindTexture(kTexture2D, 0u);
+        gl.CopyImageSubData(textures[0], kTexture2D, 0, 0, 0, 0, textures[1], kTexture2D, 0, 0, 0, 0, 1, 1, 1);
+        gl.DeleteTextures(1, &textures[0]);
+        gl.Finish();
+        s_probeTexture = textures[1];
+    }
+
+    void disableShared(const char *why)
+    {
+        std::fprintf(stderr, "[gs-present] shared textures do not work here (%s); RAM presentation\n", why);
+        std::fflush(stderr);
+        s_sharedActive.store(false, std::memory_order_release);
+    }
+
+    // host thread, s_sharedMutex held: false when the probe read back wrong (sharing then disabled)
+    bool checkProbe()
+    {
+        using namespace GSGL;
+        if (s_probeChecked)
+            return true;
+        s_probeChecked = true;
+        const Api &h = s_hostProbeApi;
+        if (!s_probeTexture || !h.GenFramebuffers || !h.ReadPixels)
+        {
+            std::fprintf(stderr, "[gs-present] shared probe skipped\n");
+            return true;
+        }
+        GLint previous = 0;
+        h.GetIntegerv(kFramebufferBinding, &previous);
+        GLuint fbo = 0u;
+        h.GenFramebuffers(1, &fbo);
+        h.BindFramebuffer(kFramebuffer, fbo);
+        h.FramebufferTexture2D(kFramebuffer, 0x8CE0 /* COLOR_ATTACHMENT0 */, kTexture2D, s_probeTexture, 0);
+        uint8_t pixel[4] = {0u, 0u, 0u, 0u};
+        h.ReadPixels(0, 0, 1, 1, kRgba, kUnsignedByte, pixel);
+        h.BindFramebuffer(kFramebuffer, static_cast<GLuint>(previous));
+        h.DeleteFramebuffers(1, &fbo);
+        const bool ok = std::memcmp(pixel, kProbe, 4) == 0;
+        std::fprintf(stderr, "[gs-present] shared probe %s (read %02x%02x%02x%02x)\n", ok ? "ok" : "FAILED", pixel[0], pixel[1],
+                     pixel[2], pixel[3]);
+        if (!ok)
+            disableShared("probe texture read back wrong");
+        return ok;
+    }
+
+    void loadHostProbeApi()
+    {
+        std::string missing;
+        GSGL::Api api;
+        load(api.GetIntegerv, "glGetIntegerv", missing);
+        load(api.GenFramebuffers, "glGenFramebuffers", missing);
+        load(api.DeleteFramebuffers, "glDeleteFramebuffers", missing);
+        load(api.BindFramebuffer, "glBindFramebuffer", missing);
+        load(api.FramebufferTexture2D, "glFramebufferTexture2D", missing);
+        load(api.ReadPixels, "glReadPixels", missing);
+        s_hostProbeApi = missing.empty() ? api : GSGL::Api{};
+    }
+
     void releaseReading()
     {
         if (s_readingSlot < 0)
@@ -288,6 +374,8 @@ namespace GSSharedPresent
         if (!Active())
             return false;
         std::lock_guard<std::mutex> lock(s_sharedMutex);
+        if (!checkProbe())
+            return false;
         int newest = -1;
         uint64_t sequence = s_readingSlot >= 0 ? s_sharedSlots[s_readingSlot].frame.sequence : 0u;
         for (int i = 0; i < static_cast<int>(s_sharedSlots.size()); ++i)
@@ -309,6 +397,13 @@ namespace GSSharedPresent
                 slot.frame.contentHash = static_cast<uint64_t>(slot.hash[0]) | (static_cast<uint64_t>(slot.hash[1]) << 32u);
             slot.reading = true;
             s_readingSlot = newest;
+            s_everAcquired = true;
+        }
+        else if (!s_everAcquired && s_sharedSequence != 0u &&
+                 std::chrono::steady_clock::now() - s_firstPublish > std::chrono::seconds(3))
+        {
+            disableShared("no published frame completed for the host in 3 s");
+            return false;
         }
         if (s_readingSlot < 0)
             return false;
@@ -424,6 +519,8 @@ namespace GSGL
         gl.BindTexture(kTexture2D, 0u);
         slot.frame.width = width;
         slot.frame.height = height;
+        if (s_sharedSequence == 0u)
+            s_firstPublish = std::chrono::steady_clock::now();
         slot.frame.sequence = ++s_sharedSequence;
         s_publishedSequence.store(s_sharedSequence, std::memory_order_release);
         slot.frame.renderSequence = renderSequence;
@@ -480,6 +577,8 @@ namespace GSGL
             gl.CopyImageSubData(source, kTexture2D, 0, 0, 0, 0, slot.frame.texture, kTexture2D, 0, 0, 0, 0,
                                 static_cast<GLsizei>(width), static_cast<GLsizei>(height), 1);
         }
+        if (s_sharedSequence == 0u)
+            s_firstPublish = std::chrono::steady_clock::now();
         slot.frame.sequence = ++s_sharedSequence;
         s_publishedSequence.store(s_sharedSequence, std::memory_order_release);
         slot.frame.renderSequence = renderSequence;
@@ -541,6 +640,7 @@ namespace GSSharedPresent
             std::fprintf(stderr, "[gs-present] shared presentation unavailable: %s\n", missing.c_str());
             return;
         }
+        loadHostProbeApi();
         std::lock_guard<std::mutex> lock(s_sharedMutex);
         s_hostFormatIndex = GetPixelFormat(dc);
         if (!DescribePixelFormat(dc, s_hostFormatIndex, sizeof(s_hostFormat), &s_hostFormat))
@@ -647,6 +747,7 @@ namespace GSGL
         }
         if (m_shared)
         {
+            createProbe(m_api);
             s_sharedActive.store(true, std::memory_order_release);
             std::fprintf(stderr, "[gs-present] shared GPU textures active\n");
         }
@@ -753,6 +854,7 @@ namespace GSSharedPresent
             std::fprintf(stderr, "[gs-present] shared presentation unavailable: %s\n", missing.c_str());
             return;
         }
+        loadHostProbeApi();
         std::lock_guard<std::mutex> lock(s_sharedMutex);
         s_hostApi = api;
         s_hostEglDisplay = display;
@@ -842,6 +944,7 @@ namespace GSGL
                      s_surfaceless ? ", surfaceless" : ", pbuffer", m_shared ? ", shared with the host window" : "");
         if (m_shared)
         {
+            createProbe(m_api);
             s_sharedActive.store(true, std::memory_order_release);
             std::fprintf(stderr, "[gs-present] shared GPU textures active\n");
         }
