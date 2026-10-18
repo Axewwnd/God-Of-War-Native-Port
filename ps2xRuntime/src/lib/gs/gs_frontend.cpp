@@ -782,7 +782,7 @@ void GS::latchHostPresentationFrame()
             // GOW-Port: Present compartido encola y procesa los draws previos en FIFO.
             // Flush aqui anularia la asincronia; las lecturas y FINISH conservan su barrera.
             shared = m_backend->UsesSharedPresentation();
-            if (!shared)
+            if (!m_backend->QueuesPresentation())
             {
                 m_backend->Flush();
                 m_backend->Sync(GSSyncReason::Presentation);

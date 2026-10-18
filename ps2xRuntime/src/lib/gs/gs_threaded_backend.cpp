@@ -107,6 +107,8 @@ GSThreadedBackend::GSThreadedBackend(std::unique_ptr<GSRasterBackend> inner)
 {
     const char *compact = std::getenv("PS2X_GS_COMPACT_QUEUE");
     m_compactQueue = !compact || *compact != '0';
+    const char *asyncReadback = std::getenv("GOW_GS_ASYNC_READBACK");
+    m_asyncReadback = !asyncReadback || *asyncReadback != '0';
     if (const char *limit = std::getenv("PS2X_GS_QUEUE_CHUNKS"))
         m_queueChunkLimit = static_cast<size_t>(std::clamp(std::atoi(limit), 1, static_cast<int>(kMaxPendingChunks)));
     m_open.reserve(kPublishBytes + 4096u);
@@ -376,8 +378,16 @@ void GSThreadedBackend::Execute(const std::vector<uint8_t> &chunk, GSPrimitiveBa
         case Op::Pad:
             break;
         case Op::Present:
-            m_inner->Present(readAt<GSPresentationRequest>(payload));
+        {
+            // shared mode returns no pixels; an asynchronous RAM frame lands here once its readback has completed
+            PresentationFrame frame = m_inner->Present(readAt<GSPresentationRequest>(payload));
+            if (frame)
+            {
+                std::lock_guard<std::mutex> lock(m_frameMutex);
+                m_lastFrame = std::move(frame);
+            }
             break;
+        }
         case Op::Call:
             (*readAt<const std::function<void()> *>(payload))();
             break;
@@ -397,6 +407,11 @@ void GSThreadedBackend::RunOnWorker(const std::function<void()> &function) const
 bool GSThreadedBackend::UsesSharedPresentation() const
 {
     return m_sharedPresentation.load(std::memory_order_acquire) && GSSharedPresent::Active();
+}
+
+bool GSThreadedBackend::QueuesPresentation() const
+{
+    return m_asyncReadback || UsesSharedPresentation();
 }
 
 void GSThreadedBackend::Initialize(uint8_t *vram, uint32_t vramSize)
@@ -482,7 +497,7 @@ void GSThreadedBackend::Sync(GSSyncReason reason)
         Enqueue(Op::Sync, &reason, sizeof(reason));
         return;
     }
-    if (reason == GSSyncReason::Presentation && UsesSharedPresentation())
+    if (reason == GSSyncReason::Presentation && QueuesPresentation())
         return;
     // GOW-Port: FINISH solo se publica cuando terminaron los comandos anteriores.
     RunOnWorker([&] { m_inner->Sync(reason); });
@@ -498,6 +513,18 @@ PresentationFrame GSThreadedBackend::Present(const GSPresentationRequest &reques
         std::lock_guard<std::mutex> lock(m_producerMutex);
         PublishLocked();
         return {};
+    }
+    if (m_asyncReadback && !request.forceReadback)
+    {
+        GSPresentationRequest queued = request;
+        queued.asyncReadback = true;
+        Enqueue(Op::Present, &queued, sizeof(queued));
+        {
+            std::lock_guard<std::mutex> lock(m_producerMutex);
+            PublishLocked();
+        }
+        std::lock_guard<std::mutex> lock(m_frameMutex);
+        return m_lastFrame;
     }
     PresentationFrame frame;
     RunOnWorker([&] { frame = m_inner->Present(request); });

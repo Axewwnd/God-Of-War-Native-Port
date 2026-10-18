@@ -39,6 +39,7 @@ public:
     void Sync(GSSyncReason reason) override;
     PresentationFrame Present(const GSPresentationRequest &request) override;
     bool UsesSharedPresentation() const override;
+    bool QueuesPresentation() const override;
 
     bool ClearFramebuffer(const GSContext &context, uint32_t rgba) override;
     uint32_t ConsumeLocalToHostBytes(uint8_t *dst, uint32_t maxBytes) override;
@@ -84,6 +85,11 @@ private:
     std::unique_ptr<GSRasterBackend> m_inner;
     // GOW-Port: publicado por el worker tras Initialize, sin consultar GL desde el host.
     std::atomic<bool> m_sharedPresentation{false};
+    // GOW-Port: RAM frames without a barrier (GOW_GS_ASYNC_READBACK, default on): Present queues the frame and returns
+    // the newest one the GL thread has finished reading back (m_lastFrame), one or two presents old.
+    bool m_asyncReadback = true;
+    std::mutex m_frameMutex;
+    PresentationFrame m_lastFrame;
 
     mutable std::mutex m_producerMutex;
     std::vector<uint8_t> m_open;

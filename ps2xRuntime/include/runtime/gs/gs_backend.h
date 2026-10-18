@@ -37,6 +37,9 @@ public:
 
     // GOW-Port: capacidad efectiva por instancia; consultar no necesita un contexto GL.
     virtual bool UsesSharedPresentation() const { return false; }
+    // GOW-Port: Present only queues the frame behind the earlier commands (shared textures, or the threaded backend's
+    // asynchronous RAM frames), so the frontend adds no Flush/Sync barrier in front of it.
+    virtual bool QueuesPresentation() const { return UsesSharedPresentation(); }
 
     virtual bool ClearFramebuffer(const GSContext &context, uint32_t rgba) = 0;
     virtual uint32_t ConsumeLocalToHostBytes(uint8_t *dst, uint32_t maxBytes) = 0;

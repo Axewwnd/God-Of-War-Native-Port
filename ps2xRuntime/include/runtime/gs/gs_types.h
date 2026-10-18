@@ -312,6 +312,10 @@ struct GSPresentationRequest
     bool hasPreferredSource = false;
     // GOW-Port: solo las capturas explicitas descargan pixeles en modo compartido.
     bool forceReadback = false;
+    // GOW-Port: RAM frames read back asynchronously (pixel pack buffer + fence): Present returns the newest earlier
+    // frame whose copy has finished, or an empty frame when none has. Set by the threaded backend, which keeps the
+    // last frame for the frontend (GSThreadedBackend::Present).
+    bool asyncReadback = false;
 };
 
 struct PresentationFrame

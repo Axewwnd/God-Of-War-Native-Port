@@ -5,6 +5,7 @@
 #include "gs_gl.h"
 #include "../gs_gpu_helpers.h"
 #include "runtime/gs/gs_shared_present.h"
+#include "runtime/ps2_perf.h"
 
 #include <map>
 #include <algorithm>
@@ -541,6 +542,127 @@ struct GSHwBackend::Impl
     GLuint presentProgram = 0, presentVao = 0, presentFbo = 0, presentTex = 0;
     GLint locPresentSrc = -1, locPresentOffset = -1, locPresentEdge = -1;
     uint32_t presentW = 0, presentH = 0;
+    // GOW-Port: asynchronous RAM-frame readback (request.asyncReadback). A synchronous glReadPixels made the GL thread
+    // wait for the GPU to finish the whole frame before it could submit the next one, so CPU submission and GPU work
+    // never overlapped (Switch v14: ~7 ms per present on the GL thread). Each present now copies into a pixel pack
+    // buffer behind a fence and returns the newest earlier copy that has completed.
+    struct Readback
+    {
+        GLuint pbo = 0;
+        GLsync fence = nullptr;
+        size_t bytes = 0;
+        uint64_t serial = 0;
+        PresentationFrame meta; // size and source of the frame in the buffer, no pixels
+    };
+    Readback readbacks[3];
+    uint64_t readbackSerial = 0;
+    // a present with the same display registers and unchanged displayed targets (RenderTarget::version, bumped by
+    // every draw and shuffle into them; clears and uploads replace the target) only collects: the host asks for a
+    // frame at every vsync, the game flips a new one every 2-5 of them and draws into the other buffer meanwhile
+    uint64_t readbackKey[9] = {};
+    uint64_t readPixelsNanos = 0;
+    // switch-mesa (nouveau) runs glReadPixels into a pixel pack buffer on the CPU (~16 ms per 640x448 frame on the
+    // console), so the composed frame is copied into the buffer by a compute shader instead: plain GPU work behind the
+    // fence. Same bytes and row order as glReadPixels (row 0 = bottom, RGBA8).
+    GLuint packProgram = 0;
+    GLint locPackSize = -1;
+    bool packTried = false;
+    bool ensurePackProgram()
+    {
+        if (packTried)
+            return packProgram != 0u;
+        packTried = true;
+        const Api &g = gl();
+        if (!g.DispatchCompute || !g.MemBarrier || !g.BindBufferBase)
+            return false;
+        static const char *const kPackCs = R"(#version 430 core
+layout(local_size_x = 16, local_size_y = 16) in;
+layout(binding = 0) uniform sampler2D uSrc;
+layout(std430, binding = 0) writeonly buffer Pixels { uint px[]; };
+uniform ivec4 uSize;
+void main()
+{
+    ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+    if (p.x >= uSize.x || p.y >= uSize.y)
+        return;
+    px[p.y * uSize.x + p.x] = packUnorm4x8(texelFetch(uSrc, p, 0));
+}
+)";
+        const GLuint cs = compile(kComputeShader, kPackCs);
+        if (!cs)
+            return false;
+        const GLuint program = g.CreateProgram();
+        g.AttachShader(program, cs);
+        g.LinkProgram(program);
+        g.DeleteShader(cs);
+        GLint linked = 0;
+        g.GetProgramiv(program, kLinkStatus, &linked);
+        if (!linked)
+        {
+            g.DeleteProgram(program);
+            std::fprintf(stderr, "[gs-hw] frame pack shader did not link; glReadPixels readback\n");
+            return false;
+        }
+        packProgram = program;
+        locPackSize = g.GetUniformLocation(program, "uSize");
+        return true;
+    }
+    uint64_t readbackCopyNanos = 0, readbackCopies = 0;
+    // [gs-hw-present] every 5 s (GOW_PERF_DIAG): presents that only collected vs. full ones, and where a present's GL
+    // thread time goes (pending draws flushed first, the rest)
+    struct PresentTiming
+    {
+        uint64_t flushNanos = 0, restNanos = 0, collectOnly = 0, full = 0;
+        std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
+    } presentTiming;
+
+    // the newest completed copy older than `skip` (nullptr: any), padded to the frontend's 640 pixel row stride;
+    // empty when none has completed
+    PresentationFrame collectReadback(const Readback *skip)
+    {
+        const Api &g = gl();
+        Readback *ready = nullptr;
+        for (Readback &r : readbacks)
+            if (&r != skip && r.fence && (!ready || r.serial > ready->serial))
+            {
+                const GLenum status = g.ClientWaitSync(r.fence, 0u, 0u);
+                if (status == kAlreadySignaled || status == kConditionSatisfied)
+                    ready = &r;
+            }
+        if (!ready)
+            return {};
+        for (Readback &r : readbacks)
+            if (&r != skip && r.fence && r.serial < ready->serial)
+                g.DeleteSync(r.fence), r.fence = nullptr;
+        g.DeleteSync(ready->fence);
+        ready->fence = nullptr;
+        const auto start = std::chrono::steady_clock::now();
+        PresentationFrame frame = ready->meta;
+        const uint32_t stride = std::max(frame.width, 640u);
+        frame.pixels.resize(static_cast<size_t>(stride) * frame.height * 4u);
+        g.BindBuffer(kPixelPackBuffer, ready->pbo);
+        if (const uint8_t *mapped = static_cast<const uint8_t *>(
+                g.MapBufferRange(kPixelPackBuffer, 0, static_cast<GLsizeiptr>(ready->bytes), kMapReadBit)))
+        {
+            if (stride == frame.width)
+                std::memcpy(frame.pixels.data(), mapped, ready->bytes);
+            else
+                for (uint32_t y = 0; y < frame.height; ++y)
+                    std::memcpy(frame.pixels.data() + static_cast<size_t>(y) * stride * 4u,
+                                mapped + static_cast<size_t>(y) * frame.width * 4u, static_cast<size_t>(frame.width) * 4u);
+            g.UnmapBuffer(kPixelPackBuffer);
+        }
+        g.BindBuffer(kPixelPackBuffer, 0u);
+        readbackCopyNanos += static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count());
+        static const bool timed = ps2_perf::countFrames();
+        if (++readbackCopies % 256u == 0u && timed)
+        {
+            std::fprintf(stderr, "[gs-hw] readback map+copy %.2f ms per frame (256 frames)\n", readbackCopyNanos * 1e-6 / 256.0);
+            readbackCopyNanos = 0u;
+        }
+        return frame;
+    }
     GLuint shuffleProgram = 0, shuffleVao = 0, shuffleVbo = 0;
     GLint locShTexa = -1;
     GLint locShInvSize = -1, locShSrc = -1, locShSrcZ = -1, locShZMax = -1, locShHs = -1, locShHd = -1, locShScale = -1;
@@ -650,7 +772,7 @@ struct GSHwBackend::Impl
         uint64_t glDraws = 0, barriers = 0, uploadBytes = 0, orphans = 0; // GL calls the driver sees (GOW_GS_HW_STATS)
         std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
     } stats;
-    bool statsEnabled = std::getenv("GOW_GS_HW_STATS") != nullptr;
+    bool statsEnabled = [] { const char *v = std::getenv("GOW_GS_HW_STATS"); return v && *v && *v != '0'; }();
 
     const Api &gl() const { return context.gl(); }
 
@@ -2999,6 +3121,7 @@ bool GSHwBackend::ClearFramebuffer(const GSContext &context, uint32_t rgba)
     Impl::GpuSpan gpuSpan(d, Impl::GpuClear);
     const Api &g = d.gl();
     RenderTarget &rt = d.target(context.frame.fbp, context.frame.fbw);
+    ++rt.version; // the CLUT cache and the RAM-frame readback key on it
     g.BindFramebuffer(kFramebuffer, rt.fbo);
     g.Enable(kScissorTest);
     const int sx0 = context.scissor.x0, sy0 = context.scissor.y0;
@@ -3044,7 +3167,37 @@ PresentationFrame GSHwBackend::Present(const GSPresentationRequest &request)
     PresentationFrame frame;
     if (!d.ensure())
         return frame;
+    static const bool timed = ps2_perf::countFrames();
+    const auto t0 = timed ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     d.flushPending();
+    struct PresentTimer
+    {
+        Impl &d;
+        bool on;
+        std::chrono::steady_clock::time_point flushed;
+        bool full = true;
+        ~PresentTimer()
+        {
+            if (!on)
+                return;
+            const auto now = std::chrono::steady_clock::now();
+            Impl::PresentTiming &t = d.presentTiming;
+            t.restNanos += static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - flushed).count());
+            ++(full ? t.full : t.collectOnly);
+            if (now - t.last >= std::chrono::seconds(5))
+            {
+                std::fprintf(stderr, "[gs-hw-present] full=%llu collect_only=%llu flush_pending_ms=%.1f rest_ms=%.1f readpixels_ms=%.1f\n",
+                             static_cast<unsigned long long>(t.full), static_cast<unsigned long long>(t.collectOnly),
+                             t.flushNanos * 1e-6, t.restNanos * 1e-6, d.readPixelsNanos * 1e-6);
+                d.readPixelsNanos = 0u;
+                t = Impl::PresentTiming{};
+                t.last = now;
+            }
+        }
+    } presentTimer{d, timed, timed ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{}};
+    if (timed)
+        d.presentTiming.flushNanos += static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(presentTimer.flushed - t0).count());
     d.updateBisect();
     d.reportGpu();
     Impl::GpuSpan gpuSpan(d, Impl::GpuPresent);
@@ -3053,6 +3206,22 @@ PresentationFrame GSHwBackend::Present(const GSPresentationRequest &request)
     d.dumpAfterSkip = false;
     d.frameBatch = 0;
     d.reportStats();
+    if (request.asyncReadback)
+    {
+        const auto shown = [&d](uint64_t dispfb) -> uint64_t
+        {
+            const RenderTarget *rt = d.findTarget(static_cast<uint32_t>(dispfb & 0x1FFu));
+            return rt ? (rt->version << 1 | 1u) ^ reinterpret_cast<uintptr_t>(rt) : 0u;
+        };
+        const uint64_t key[9] = {request.pmode, request.smode2, request.dispfb1, request.display1, request.dispfb2,
+                                 request.display2, request.bgcolor, shown(request.dispfb1), shown(request.dispfb2)};
+        if (std::memcmp(key, d.readbackKey, sizeof(key)) == 0)
+        {
+            presentTimer.full = false;
+            return d.collectReadback(nullptr);
+        }
+        std::memcpy(d.readbackKey, key, sizeof(key));
+    }
     const bool enable1 = (request.pmode & 1ull) != 0ull, enable2 = (request.pmode & 2ull) != 0ull;
     const auto decode = [&](bool enabled, uint64_t dispfb, uint64_t display, uint32_t &fbp, uint32_t &fbw, uint32_t &dbx, uint32_t &dby,
                             uint32_t &w, uint32_t &h)
@@ -3136,7 +3305,7 @@ PresentationFrame GSHwBackend::Present(const GSPresentationRequest &request)
     const uint32_t outW = static_cast<uint32_t>(std::ceil(w * d.scale)), outH = static_cast<uint32_t>(std::ceil(h * d.scale));
     frame.width = outW;
     frame.height = outH;
-    if (!shared)
+    if (!shared && !request.asyncReadback)
         frame.pixels.assign(static_cast<size_t>(outW) * outH * 4u, 0u);
     const Api &g = d.gl();
     g.PixelStorei(kPackAlignment, 1);
@@ -3273,6 +3442,60 @@ PresentationFrame GSHwBackend::Present(const GSPresentationRequest &request)
         // GOW-Port: zero-copy presentation: GPU copy into a texture shared with the host window, no pixels returned.
         GSGL::PublishSharedTexture(g, d.presentTex, outW, outH, d.presentCount, fbp, fbp, request.vsyncTick);
         return PresentationFrame{};
+    }
+    if (request.asyncReadback && g.MapBufferRange && g.FenceSync)
+    {
+        // queue this frame's copy in the oldest slot (an uncollected older copy there is dropped)
+        Impl::Readback *slot = &d.readbacks[0];
+        for (Impl::Readback &r : d.readbacks)
+            if (r.serial < slot->serial)
+                slot = &r;
+        if (slot->fence)
+            g.DeleteSync(slot->fence);
+        slot->fence = nullptr;
+        const size_t bytes = static_cast<size_t>(outW) * outH * 4u;
+        if (slot->pbo && slot->bytes != bytes)
+            g.DeleteBuffers(1, &slot->pbo), slot->pbo = 0u;
+        if (!slot->pbo)
+        {
+            g.GenBuffers(1, &slot->pbo);
+            g.BindBuffer(kPixelPackBuffer, slot->pbo);
+            // client storage: CPU-cached system memory, so the copy out of the mapping is not an uncached read
+            if (g.BufferStorage)
+                g.BufferStorage(kPixelPackBuffer, static_cast<GLsizeiptr>(bytes), nullptr, kMapReadBit | kClientStorageBit);
+            else
+                g.BufferData(kPixelPackBuffer, static_cast<GLsizeiptr>(bytes), nullptr, kStreamRead);
+            slot->bytes = bytes;
+        }
+        g.BindBuffer(kPixelPackBuffer, slot->pbo);
+        const auto readStart = std::chrono::steady_clock::now();
+        g.BindBuffer(kPixelPackBuffer, 0u);
+        const bool read = d.bisect.mode != Impl::BisectNoReadback;
+        if (read && d.ensurePackProgram())
+        {
+            g.UseProgram(d.packProgram);
+            g.ActiveTexture(kTexture0);
+            g.BindTexture(kTexture2D, d.presentTex);
+            g.Uniform4i(d.locPackSize, static_cast<GLint>(outW), static_cast<GLint>(outH), 0, 0);
+            g.BindBufferBase(kShaderStorageBuffer, 0u, slot->pbo);
+            g.DispatchCompute((outW + 15u) / 16u, (outH + 15u) / 16u, 1u);
+            g.MemBarrier(kBufferUpdateBarrierBit);
+            g.BindBufferBase(kShaderStorageBuffer, 0u, 0u);
+        }
+        else if (read)
+        {
+            g.BindBuffer(kPixelPackBuffer, slot->pbo);
+            g.ReadPixels(0, 0, outW, outH, kRgba, kUnsignedByte, nullptr);
+            g.BindBuffer(kPixelPackBuffer, 0u);
+        }
+        d.readPixelsNanos += static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - readStart).count());
+        slot->fence = g.FenceSync(kSyncGpuCommandsComplete, 0u);
+        g.Flush();
+        slot->serial = ++d.readbackSerial;
+        slot->meta = std::move(frame);
+        slot->meta.pixels.clear();
+        return d.collectReadback(slot);
     }
     if (d.bisect.mode != Impl::BisectNoReadback)
         g.ReadPixels(0, 0, outW, outH, kRgba, kUnsignedByte, frame.pixels.data());

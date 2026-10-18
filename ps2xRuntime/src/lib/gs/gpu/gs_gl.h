@@ -71,6 +71,7 @@ namespace GSGL
     constexpr GLenum kRgba = 0x1908;
     constexpr GLenum kUnsignedByte = 0x1401;
     constexpr GLenum kPixelUnpackBuffer = 0x88EC;
+    constexpr GLenum kPixelPackBuffer = 0x88EB;
     constexpr GLenum kTextureMinFilter = 0x2801;
     constexpr GLenum kTextureMagFilter = 0x2800;
     constexpr GLenum kTextureWrapS = 0x2802;
