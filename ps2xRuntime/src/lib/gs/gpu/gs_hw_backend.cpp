@@ -180,24 +180,19 @@ vec4 reinterpretTexel(ivec2 p)
 )";
 
     const char *kFsTail = R"(
-// Paletted textures (T8/T4 and their H variants): uTex holds the indices (R8, cached per VRAM upload), the colour comes
-// from uIdxPalette (256x1, cached per CLUT); filtering is done on the looked-up colours like the GS.
+// Paletted textures (T8/T4 and their H variants): uTex holds the indices (R8, cached per VRAM upload, uTexDim texels,
+// nearest, wrap REPEAT / CLAMP_TO_EDGE by CLAMP), the colour comes from uIdxPalette (256x1, cached per CLUT); filtering
+// is done on the looked-up colours like the GS. GOW-Port: the sampler wraps the index reads and one textureGather
+// fetches the 2x2 footprint: per texel wrap arithmetic (signed integer modulo) and four dependent index -> palette
+// fetch chains made this path 62% of the console's GPU time.
 #ifndef uIndexed
 uniform int uIndexed;
 #endif
 #ifndef uLinear
 uniform int uLinear;
 #endif
-uniform ivec4 uWrap; // per axis (x, y): 0 repeat, 1 clamp
 uniform sampler2D uIdxPalette;
-vec4 indexedTexel(ivec2 p)
-{
-    ivec2 size = max(ivec2(uTexDim), ivec2(1));
-    p.x = (uWrap.x == 0) ? ((p.x % size.x) + size.x) % size.x : clamp(p.x, 0, size.x - 1);
-    p.y = (uWrap.y == 0) ? ((p.y % size.y) + size.y) % size.y : clamp(p.y, 0, size.y - 1);
-    int idx = int(texelFetch(uTex, p, 0).r * 255.0 + 0.5);
-    return texelFetch(uIdxPalette, ivec2(idx, 0), 0);
-}
+vec4 paletteColor(float index) { return texelFetch(uIdxPalette, ivec2(int(index * 255.0 + 0.5), 0), 0); }
 #ifndef uTme
 uniform int uTme;
 #endif
@@ -289,13 +284,17 @@ void main()
             if (uLinear != 0)
             {
                 vec2 f = uv - 0.5;
-                ivec2 i0 = ivec2(floor(f));
-                vec2 w = f - floor(f);
-                t = mix(mix(indexedTexel(i0), indexedTexel(i0 + ivec2(1, 0)), w.x),
-                        mix(indexedTexel(i0 + ivec2(0, 1)), indexedTexel(i0 + ivec2(1, 1)), w.x), w.y) * 255.0;
+                vec2 i0 = floor(f);
+                vec2 w = f - i0;
+                // the footprint whose top-left texel is i0: a point just inside the corner shared by the four texels
+                // (the gather's own sub-texel rounding cannot move it across), returned as x (i0.x, i0.y + 1),
+                // y (i0.x + 1, i0.y + 1), z (i0.x + 1, i0.y), w (i0.x, i0.y)
+                vec4 idx = textureGather(uTex, (i0 + (1.0 - 1.0 / 64.0)) / uTexDim, 0);
+                t = mix(mix(paletteColor(idx.w), paletteColor(idx.z), w.x),
+                        mix(paletteColor(idx.x), paletteColor(idx.y), w.x), w.y) * 255.0;
             }
             else
-                t = indexedTexel(ivec2(floor(uv))) * 255.0;
+                t = paletteColor(texture(uTex, (floor(uv) + 0.5) / uTexDim).r) * 255.0;
         }
         else if (uZTex != 0)
         {
@@ -528,7 +527,7 @@ struct GSHwBackend::Impl
     // draw, useDrawProgram picks the program variant for them and sends that program the values it does not have yet.
 #define GS_DRAW_UNIFORMS(X) X(InvSize) X(Tex) X(TexSize) X(TexDim) X(Tme) X(Fst) X(Tfx) X(Tcc) X(Iip) X(Ate) X(FailTint) X(Atst) \
     X(Aref) X(Pass) X(BlendScale) X(RtTex24) X(Ta0) X(Ta1) X(Reinterp) X(Date) X(Datm) X(Dest) X(ZTex) X(ZMax) X(Tables) \
-    X(RtColor) X(Palette) X(TexFmt) X(TexFmt2) X(RtFmt) X(RtFmt2) X(Tex0) X(RtPx) X(Aem) X(Indexed) X(Linear) X(Wrap) \
+    X(RtColor) X(Palette) X(TexFmt) X(TexFmt2) X(RtFmt) X(RtFmt2) X(Tex0) X(RtPx) X(Aem) X(Indexed) X(Linear) \
     X(IdxPalette) X(SwBlend) X(ColClamp) X(Abcd) X(Fix) X(ZAlias) X(ZAliasWrite) X(ZAliasMax)
     enum DrawUniform : int
     {
@@ -703,8 +702,9 @@ struct GSHwBackend::Impl
     }
     void gpuTag(uint32_t bits) { gpuTimer.kind |= bits; }
 
-    // GOW-Port: GOW_GPU_BISECT=1 (on by default on the Switch, for the GPU hunt): from 30 s after start the renderer runs
-    // 12 s phases, the baseline and one GPU feature switched off in turns (the picture is wrong in the "off" phases).
+    // GOW-Port: GOW_GPU_BISECT=1 (on by default on the Switch, for the GPU hunt): from 20 s after start the renderer runs
+    // 8 s phases, the baseline and one GPU feature switched off in turns (the picture is wrong in the "off" phases); a
+    // full cycle is ~2 min (the first console run ended before 12 s phases got that far).
     // At each phase end it prints [gpu-bisect] with presents per second and GPU ms per second ([gs-gpu] queries), so
     // one console run says what each feature costs: compare an "off" phase with the baseline phases around it.
     enum BisectMode : int
@@ -731,7 +731,7 @@ struct GSHwBackend::Impl
                                                        "no-shuffle", "no-draw", "no-readback"};
         const auto now = std::chrono::steady_clock::now();
         const double t = std::chrono::duration<double>(now - b.start).count();
-        const long phase = t < 30.0 ? -1 : static_cast<long>((t - 30.0) / 12.0);
+        const long phase = t < 20.0 ? -1 : static_cast<long>((t - 20.0) / 8.0);
         if (phase == b.phase)
             return;
         gpuCollect();
@@ -2562,7 +2562,6 @@ struct GSHwBackend::Impl
                 g.ActiveTexture(kTexture0 + 5);
                 g.BindTexture(kTexture2D, paletteFor(s));
                 u1i(locIdxPalette, 5);
-                u4i(locWrap, (c.clamp & 3u) == 0u ? 0 : 1, ((c.clamp >> 2) & 3u) == 0u ? 0 : 1, 0, 0);
             }
             g.ActiveTexture(kTexture0);
             g.BindTexture(kTexture2D, zsrc ? zsrc->depth : src ? src->color : rsrc ? rsrc->color : tex.id);
