@@ -173,6 +173,7 @@ namespace
     struct HostTiming
     {
         uint64_t latchNanos = 0, copyNanos = 0, lockNanos = 0, passes = 0, latches = 0, unchanged = 0, uploads = 0;
+        uint64_t uploadNanos = 0, drawNanos = 0; // held under the GL driver lock: texture upload, draw + swap
         std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
         static uint64_t since(std::chrono::steady_clock::time_point start)
         {
@@ -184,9 +185,10 @@ namespace
             const auto now = std::chrono::steady_clock::now();
             if (now - last < std::chrono::seconds(5))
                 return;
-            std::fprintf(stderr, "[gs-host] passes=%llu latches=%llu unchanged=%llu uploads=%llu latch_ms=%.1f copy_ms=%.1f lock_ms=%.1f\n",
+            std::fprintf(stderr, "[gs-host] passes=%llu latches=%llu unchanged=%llu uploads=%llu latch_ms=%.1f copy_ms=%.1f lock_ms=%.1f upload_ms=%.1f draw_swap_ms=%.1f\n",
                          (unsigned long long)passes, (unsigned long long)latches, (unsigned long long)unchanged,
-                         (unsigned long long)uploads, latchNanos * 1e-6, copyNanos * 1e-6, lockNanos * 1e-6);
+                         (unsigned long long)uploads, latchNanos * 1e-6, copyNanos * 1e-6, lockNanos * 1e-6,
+                         uploadNanos * 1e-6, drawNanos * 1e-6);
             *this = HostTiming{};
             last = now;
         }
@@ -269,7 +271,10 @@ GSHostPresentation::View GSHostPresentation::prepare(GS &gs, uint64_t vsyncTick)
     if (!needsLatch && uploaded)
     {
 #if defined(__SWITCH__)
-        driverLock = lockDriver();
+        // no new vsync since the last pass: nothing new to show (redrawing the same picture held the GL driver lock
+        // ~7 ms per pass, ~45 times a second, while the GS GL thread waited for it)
+        ++s_hostTiming.unchanged;
+        frameUnchanged = true;
 #endif
         return current;
     }
@@ -338,7 +343,13 @@ GSHostPresentation::View GSHostPresentation::prepare(GS &gs, uint64_t vsyncTick)
             UnloadImage(bigBlank);
             SetTextureFilter(fallback, TEXTURE_FILTER_POINT);
         }
+#if defined(__SWITCH__)
+        const auto uploadStart = std::chrono::steady_clock::now();
+#endif
         UpdateTextureRec(fallback, Rectangle{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)}, scratch.data());
+#if defined(__SWITCH__)
+        s_hostTiming.uploadNanos += HostTiming::since(uploadStart);
+#endif
         uploaded = true;
         uploadedBlank = false;
         current.texture = fallback;
@@ -362,7 +373,13 @@ GSHostPresentation::View GSHostPresentation::prepare(GS &gs, uint64_t vsyncTick)
             break;
         std::memcpy(upload.data() + destinationOffset, scratch.data() + sourceOffset, copyRow);
     }
+#if defined(__SWITCH__)
+    const auto uploadStart = std::chrono::steady_clock::now();
+#endif
     UpdateTexture(fallback, upload.data());
+#if defined(__SWITCH__)
+    s_hostTiming.uploadNanos += HostTiming::since(uploadStart);
+#endif
     uploaded = true;
     uploadedBlank = false;
     current.texture = fallback;
@@ -417,6 +434,9 @@ GSHostPresentation::View GSHostPresentation::renderFrame(GS &gs, uint64_t vsyncT
         selected.presented = false;
         return selected;
     }
+#endif
+#if defined(__SWITCH__)
+    const auto drawStart = std::chrono::steady_clock::now();
 #endif
     BeginDrawing();
     ClearBackground(BLACK);
@@ -474,6 +494,7 @@ GSHostPresentation::View GSHostPresentation::renderFrame(GS &gs, uint64_t vsyncT
         EndDrawing();
     }
 #if defined(__SWITCH__)
+    s_hostTiming.drawNanos += HostTiming::since(drawStart);
     driverLock = {};
     // 60 Hz pacing outside the driver lock (the window has no vertical-sync swap interval, ps2_runtime.cpp)
     {
