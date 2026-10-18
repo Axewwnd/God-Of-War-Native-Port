@@ -306,7 +306,9 @@ GSHostPresentation::View GSHostPresentation::renderFrame(GS &gs, uint64_t vsyncT
     const uint64_t latest = GSSharedPresent::LatestSequence();
     const auto now = std::chrono::steady_clock::now();
     const bool retryDue = latest != triedSequence || now - triedAt >= std::chrono::milliseconds(8);
-    if (sharedMode && current.texture.id != 0u && (latest == lastSharedSequence || !retryDue))
+    // (only while sharing is on: when the host's sharing check turned it off before any frame was published, latest
+    // and lastSharedSequence both stay 0 and this branch held the magenta placeholder for the whole run)
+    if (sharedMode && GSSharedPresent::Active() && current.texture.id != 0u && (latest == lastSharedSequence || !retryDue))
     {
         if (vsyncTick != lastTick)
         {
