@@ -212,9 +212,9 @@ extern "C"
         setenv("GOW_PERF_DIAG", "1", 0);
         setenv("GOW_PERF_FRAME_PC", "0x001837B8", 0);
         setenv("GOW_DELTA_DIAG", "1", 0);
-        setenv("GOW_GS_HW_STATS", "1", 0);
-        setenv("GOW_GS_GPU_TIME", "1", 0);
-        setenv("GOW_GPU_BISECT", "1", 0); // [gpu-bisect]: GPU features off in turns (diagnostic NSP; env.txt GOW_GPU_BISECT=0) // [gs-gpu]: GPU time per draw path (on the console the GPU is the limit)
+        // GPU diagnostics are opt-in again (env.txt GOW_GS_HW_STATS=1 / GOW_GS_GPU_TIME=1 / GOW_GPU_BISECT=1): the bisect
+        // phases draw wrong pictures on purpose, and a timer query per draw plus glGetError per batch cost the GL thread
+        // time; the [gow-perf]/[gs-gl]/[gs-hw-cpu] lines above say where the time goes without them
         startCpuClock();
     }
 

@@ -58,6 +58,9 @@ private:
     uint64_t triedSequence = 0u; // the published sequence the last drawn pass looked for, and when (renderFrame)
     std::chrono::steady_clock::time_point triedAt{};
     std::chrono::steady_clock::time_point nextPresent{}; // 60 Hz window pacing (renderFrame)
+    std::vector<uint8_t> shownPixels; // RAM frames: the frame last uploaded, to skip one that did not change
+    uint32_t shownWidth = 0u, shownHeight = 0u;
+    bool frameUnchanged = false; // set by prepare(): renderFrame then neither draws nor swaps
 #endif
     bool uploaded = false;
     bool uploadedBlank = false;

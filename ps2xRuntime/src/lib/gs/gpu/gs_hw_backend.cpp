@@ -478,6 +478,15 @@ void main()
         uint32_t blockLo = 0, blockHi = 0;
         bool valid = false;
         uint64_t lastUse = 0;
+        uint64_t contentHash = 0; // GS memory [blockLo, blockHi) when last decoded (0: none)
+        // earlier decodes of this texture with other contents (animated textures upload a few frames in turn to the same
+        // place), newest first; same size and range as the texture
+        struct Earlier
+        {
+            uint64_t contentHash = 0;
+            GLuint id = 0;
+        };
+        Earlier earlier[3];
     };
 
     struct RenderTarget
@@ -974,8 +983,51 @@ void main()
     StreamBuffer drawStream, shuffleStream;
     static constexpr GLsizeiptr kStreamBytes = GLsizeiptr(8) << 20;
     // the buffer must be bound to GL_ARRAY_BUFFER; returns the index of the first vertex written
+    // GOW-Port: [gs-hw-cpu] every 5 s (GOW_PERF_DIAG): GL thread time inside draw() (state, uploads, draw calls) and in
+    // the vertex uploads alone, vertices and draws issued; the rest of the [gs-gl] vrun time is vertex conversion
+    struct CpuTiming
+    {
+        uint64_t drawNanos = 0, streamNanos = 0, vertices = 0, draws = 0;
+        uint64_t parts[4] = {}; // draw(): before the target bind, fixed state, texture setup, after the upload
+        std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now(), mark{};
+    } cpuTiming;
+    void cpuMark(int part)
+    {
+        const auto now = std::chrono::steady_clock::now();
+        cpuTiming.parts[part] += static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - cpuTiming.mark).count());
+        cpuTiming.mark = now;
+    }
+    static uint64_t nanosSince(std::chrono::steady_clock::time_point start)
+    {
+        return static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count());
+    }
+    uint64_t decodes = 0;
+    void reportCpu()
+    {
+        static const bool timed = ps2_perf::countFrames();
+        const auto now = std::chrono::steady_clock::now();
+        if (!timed || now - cpuTiming.last < std::chrono::seconds(5))
+            return;
+        std::fprintf(stderr, "[gs-hw-cpu] draw_ms=%.1f stream_ms=%.1f vertices=%llu draw_calls=%llu pre_ms=%.1f state_ms=%.1f tex_ms=%.1f post_ms=%.1f tex_decodes=%llu tex_revalidated=%llu\n",
+                     cpuTiming.drawNanos * 1e-6, cpuTiming.streamNanos * 1e-6, (unsigned long long)cpuTiming.vertices,
+                     (unsigned long long)cpuTiming.draws, cpuTiming.parts[0] * 1e-6, cpuTiming.parts[1] * 1e-6,
+                     cpuTiming.parts[2] * 1e-6, cpuTiming.parts[3] * 1e-6, (unsigned long long)decodes,
+                     (unsigned long long)revalidated);
+        decodes = 0;
+        revalidated = 0;
+        cpuTiming = CpuTiming{};
+        cpuTiming.last = now;
+    }
     GLint streamVertices(StreamBuffer &sb, const void *data, size_t bytes, size_t stride)
     {
+        const auto streamStart = std::chrono::steady_clock::now();
+        struct StreamTimer
+        {
+            CpuTiming &t;
+            std::chrono::steady_clock::time_point start;
+            ~StreamTimer() { t.streamNanos += nanosSince(start); }
+        } streamTimer{cpuTiming, streamStart};
         const Api &g = gl();
         const GLsizeiptr step = static_cast<GLsizeiptr>(stride), length = static_cast<GLsizeiptr>(bytes);
         GLsizeiptr at = (sb.used + step - 1) / step * step;
@@ -1247,7 +1299,13 @@ void main()
             ++stats.texHits;
             return tex;
         }
+        {
+            const uint32_t h = std::max<uint32_t>(1u, s.textureHeight);
+            if (unchangedSinceDecode(tex, t.tbp0, t.tbp0 + spanBlocks(t.psm, t.tbw, h), std::max<uint32_t>(1u, s.textureWidth), h))
+                return tex;
+        }
         ++stats.texDecodes;
+        ++decodes;
         classifyTexture(s);
         const Api &g = gl();
         std::vector<uint32_t> pixels;
@@ -1279,6 +1337,7 @@ void main()
         g.PixelStorei(kUnpackAlignment, 4);
         g.TexImage2D(kTexture2D, 0, static_cast<GLint>(kRgba8), tex.width, tex.height, 0, kRgba, kUnsignedByte, pixels.data());
         tex.valid = true;
+        tex.contentHash = blockHash(tex.blockLo, tex.blockHi);
         if (textures.size() > 6000u)
             evictOld();
         return tex;
@@ -1364,7 +1423,13 @@ void main()
             ++stats.texHits;
             return tex;
         }
+        {
+            const uint32_t h = std::max<uint32_t>(1u, s.textureHeight);
+            if (unchangedSinceDecode(tex, t.tbp0, t.tbp0 + spanBlocks(t.psm, t.tbw, h), std::max<uint32_t>(1u, s.textureWidth), h))
+                return tex;
+        }
         ++stats.texDecodes;
+        ++decodes;
         classifyTexture(s);
         tex.width = std::max<uint32_t>(1u, s.textureWidth);
         tex.height = std::max<uint32_t>(1u, s.textureHeight);
@@ -1410,6 +1475,7 @@ void main()
         g.TexParameteri(kTexture2D, kTextureMinFilter, kNearest);
         g.TexParameteri(kTexture2D, kTextureMagFilter, kNearest);
         tex.valid = true;
+        tex.contentHash = blockHash(tex.blockLo, tex.blockHi);
         if (textures.size() > 6000u)
             evictOld();
         return tex;
@@ -1469,11 +1535,72 @@ void main()
             {
                 if (it->second.id)
                     g.DeleteTextures(1, &it->second.id);
+                for (Texture::Earlier &e : it->second.earlier)
+                    if (e.id)
+                        g.DeleteTextures(1, &e.id);
                 it = textures.erase(it);
             }
             else
                 ++it;
         }
+    }
+
+    // GOW-Port: the game uploads its textures into GS memory again every frame (the GS holds 4 MB), and each upload
+    // invalidates the decoded textures over that range. Most uploads write the same bytes again, so before decoding an
+    // invalidated texture its memory is hashed: unchanged bytes keep the GL texture (the decode and glTexImage2D cost
+    // ~3.5 ms each on the console, ~130 per second in the title menu; a hash of the range costs tens of microseconds).
+    uint64_t revalidated = 0;
+    uint64_t blockHash(uint32_t lo, uint32_t hi) const
+    {
+        const size_t begin = std::min<size_t>(static_cast<size_t>(lo) * 256u, vramSize);
+        const size_t end = std::min<size_t>(static_cast<size_t>(hi) * 256u, vramSize);
+        uint64_t h = 0x9E3779B97F4A7C15ull ^ (end - begin);
+        uint64_t word;
+        for (size_t at = begin; at + 8u <= end; at += 8u)
+        {
+            std::memcpy(&word, vram + at, 8u);
+            h = (h ^ word) * 0xFF51AFD7ED558CCDull;
+            h ^= h >> 29;
+        }
+        return h | 1u;
+    }
+    // true when an invalidated texture still matches GS memory, or matches one of its earlier contents (that GL texture
+    // is swapped in); the texture is valid again. Otherwise the current GL texture is kept as an earlier content and a
+    // fresh one is left for the decode.
+    bool unchangedSinceDecode(Texture &tex, uint32_t lo, uint32_t hi, uint32_t width, uint32_t height)
+    {
+        if (!tex.id || tex.contentHash == 0u || tex.blockLo != lo || tex.blockHi != hi || tex.width != width || tex.height != height)
+            return false;
+        const uint64_t hash = blockHash(lo, hi);
+        if (hash != tex.contentHash)
+        {
+            Texture::Earlier *match = nullptr;
+            for (Texture::Earlier &e : tex.earlier)
+                if (e.id && e.contentHash == hash)
+                    match = &e;
+            Texture::Earlier current{tex.contentHash, tex.id};
+            if (match)
+            {
+                tex.id = match->id;
+                tex.contentHash = hash;
+                *match = current;
+                tex.valid = true;
+                ++revalidated;
+                return true;
+            }
+            // keep the current content, newest first; the oldest one is dropped
+            if (tex.earlier[2].id)
+                gl().DeleteTextures(1, &tex.earlier[2].id);
+            tex.earlier[2] = tex.earlier[1];
+            tex.earlier[1] = tex.earlier[0];
+            tex.earlier[0] = current;
+            tex.id = 0u;
+            tex.contentHash = 0u;
+            return false;
+        }
+        tex.valid = true;
+        ++revalidated;
+        return true;
     }
 
     void invalidateBlocks(uint32_t lo, uint32_t hi)
@@ -2194,8 +2321,13 @@ void main()
             pending.clear();
             return;
         }
+        const auto drawStart = std::chrono::steady_clock::now();
+        cpuTiming.vertices += pending.size();
+        ++cpuTiming.draws;
         draw(pendingState, pending);
+        cpuTiming.drawNanos += nanosSince(drawStart);
         pending.clear();
+        reportCpu();
     }
 
     void blendState(const GSDrawState &s, bool &enabled, GLenum &sf, GLenum &df, float &fixScale, float &constant, GLenum &equation, bool &soft)
@@ -2442,6 +2574,12 @@ void main()
     {
         const Api &g = gl();
         ++frameBatch;
+        cpuTiming.mark = std::chrono::steady_clock::now();
+        struct PostMark
+        {
+            Impl &d;
+            ~PostMark() { d.cpuMark(3); }
+        } postMark{*this};
         if (onlyLo >= 0 && (frameBatch < onlyLo || frameBatch > onlyHi) && s.context.frame.fbp == 0 && s.context.frame.fbw == 8 && !(s.prim.tme && s.context.tex0.tbp0 == 0))
             return;
         const GSContext &c = s.context;
@@ -2507,6 +2645,7 @@ void main()
             rt.usedW = std::max<uint32_t>(rt.usedW, std::min<uint32_t>(bx, rt.pxW));
             rt.usedH = std::max<uint32_t>(rt.usedH, std::min<uint32_t>(by, rt.pxH));
         }
+        cpuMark(0);
         g.BindFramebuffer(kFramebuffer, rt.fbo);
         g.Viewport(0, 0, rt.glW, rt.glH);
         g.Enable(kScissorTest);
@@ -2646,6 +2785,7 @@ void main()
         u1i(locTfx, c.tex0.tfx);
         u1i(locTcc, c.tex0.tcc);
         u1f(locBlendScale, 1.0f / 128.0f);
+        cpuMark(1);
         if (s.prim.tme)
         {
             // a texture that lives in a render target of the same format is sampled straight from it
@@ -2717,9 +2857,11 @@ void main()
             else
                 u2f(locTexSize, static_cast<float>(tex.width), static_cast<float>(tex.height));
         }
+        cpuMark(2);
         g.BindVertexArray(vao);
         g.BindBuffer(kArrayBuffer, vbo);
         const GLint first = streamVertices(drawStream, dverts.data(), dverts.size() * sizeof(HwVertex), sizeof(HwVertex));
+        cpuTiming.mark = std::chrono::steady_clock::now(); // the upload itself is stream_ms
 
         const bool ate = (c.test & 1u) != 0u;
         const uint32_t atst = static_cast<uint32_t>((c.test >> 1) & 7u), aref = static_cast<uint32_t>((c.test >> 4) & 0xFFu);

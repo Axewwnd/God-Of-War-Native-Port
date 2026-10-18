@@ -166,9 +166,50 @@ void GSHostPresentation::blankFallback()
     uploaded = true;
 }
 
+#if defined(__SWITCH__)
+namespace
+{
+    // GOW-Port: [gs-host] every 5 s (GOW_PERF_DIAG): where the host thread's prepare() time goes in RAM-frame mode
+    struct HostTiming
+    {
+        uint64_t latchNanos = 0, copyNanos = 0, lockNanos = 0, passes = 0, latches = 0, unchanged = 0, uploads = 0;
+        std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
+        static uint64_t since(std::chrono::steady_clock::time_point start)
+        {
+            return static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count());
+        }
+        void report()
+        {
+            const auto now = std::chrono::steady_clock::now();
+            if (now - last < std::chrono::seconds(5))
+                return;
+            std::fprintf(stderr, "[gs-host] passes=%llu latches=%llu unchanged=%llu uploads=%llu latch_ms=%.1f copy_ms=%.1f lock_ms=%.1f\n",
+                         (unsigned long long)passes, (unsigned long long)latches, (unsigned long long)unchanged,
+                         (unsigned long long)uploads, latchNanos * 1e-6, copyNanos * 1e-6, lockNanos * 1e-6);
+            *this = HostTiming{};
+            last = now;
+        }
+    };
+    HostTiming s_hostTiming;
+
+    std::unique_lock<std::mutex> lockDriver()
+    {
+        const auto start = std::chrono::steady_clock::now();
+        std::unique_lock<std::mutex> lock(GSSharedPresent::DriverMutex());
+        s_hostTiming.lockNanos += HostTiming::since(start);
+        return lock;
+    }
+}
+#endif
+
 GSHostPresentation::View GSHostPresentation::prepare(GS &gs, uint64_t vsyncTick)
 {
     createFallback();
+#if defined(__SWITCH__)
+    ++s_hostTiming.passes;
+    s_hostTiming.report();
+#endif
     const bool shared = gs.usesSharedPresentation() && GSSharedPresent::Active();
     if (!modeKnown || shared != sharedMode)
     {
@@ -183,16 +224,23 @@ GSHostPresentation::View GSHostPresentation::prepare(GS &gs, uint64_t vsyncTick)
     const bool needsLatch = !hasLatched || vsyncTick != lastTick;
     if (needsLatch)
     {
+#if defined(__SWITCH__)
+        const auto latchStart = std::chrono::steady_clock::now();
+        gs.latchHostPresentationFrame();
+        s_hostTiming.latchNanos += HostTiming::since(latchStart);
+        ++s_hostTiming.latches;
+#else
         gs.latchHostPresentationFrame(); // waits for the GS thread: before taking the driver lock (renderFrame)
+#endif
         lastTick = vsyncTick;
         hasLatched = true;
     }
-#if defined(__SWITCH__)
-    driverLock = std::unique_lock<std::mutex>(GSSharedPresent::DriverMutex());
-#endif
     current.shared = shared;
     if (shared)
     {
+#if defined(__SWITCH__)
+        driverLock = lockDriver();
+#endif
         // GOW-Port: la llamada anterior ya terminó EndDrawing, incluido el batch.
         // Acquire puede conservar el slot previo; nunca descargar píxeles aquí.
         GSSharedPresent::Frame frame;
@@ -219,18 +267,50 @@ GSHostPresentation::View GSHostPresentation::prepare(GS &gs, uint64_t vsyncTick)
         return current;
     }
     if (!needsLatch && uploaded)
+    {
+#if defined(__SWITCH__)
+        driverLock = lockDriver();
+#endif
         return current;
+    }
 
     scratch.clear();
     uint32_t width = 0u, height = 0u, displayFbp = 0u, sourceFbp = 0u;
     bool preferred = false;
+#if defined(__SWITCH__)
+    const auto copyStart = std::chrono::steady_clock::now();
+    const bool copied = gs.copyLatchedHostPresentationFrame(scratch, width, height, &displayFbp, &sourceFbp, &preferred);
+    s_hostTiming.copyNanos += HostTiming::since(copyStart);
+    if (!copied)
+#else
     if (!gs.copyLatchedHostPresentationFrame(scratch, width, height, &displayFbp, &sourceFbp, &preferred))
+#endif
     {
+#if defined(__SWITCH__)
+        driverLock = lockDriver();
+#endif
         blankFallback();
         lastWidth = current.width;
         lastHeight = current.height;
         return current;
     }
+#if defined(__SWITCH__)
+    // GOW-Port: RAM frames are latched at every vsync but the game flips a new one every 2-5 of them. Uploading and
+    // redrawing the same picture cost this thread ~2.7 s of every 5 s on core 0, which it shares with the GS GL thread
+    // (and the GL driver lock); an unchanged frame is skipped like an unchanged shared frame (renderFrame).
+    if (uploaded && !uploadedBlank && width == shownWidth && height == shownHeight && scratch == shownPixels)
+    {
+        ++s_hostTiming.unchanged;
+        frameUnchanged = true;
+        return current;
+    }
+    ++s_hostTiming.uploads;
+    shownPixels = scratch;
+    shownWidth = width;
+    shownHeight = height;
+    // the GL driver lock only for the upload and the drawing (the copy and the check above need no GL)
+    driverLock = lockDriver();
+#endif
     PS2_IF_AGRESSIVE_LOGS({
         if (uploadDebugCount < 128u || displayFbp != lastDisplayFbp || sourceFbp != lastSourceFbp ||
             preferred != lastPreferred || width != lastWidth || height != lastHeight)
@@ -328,6 +408,16 @@ GSHostPresentation::View GSHostPresentation::renderFrame(GS &gs, uint64_t vsyncT
         ps2_perf::Scope perf(ps2_perf::Bucket::Upload);
         selected = prepare(gs, vsyncTick);
     }
+#if defined(__SWITCH__)
+    if (frameUnchanged)
+    {
+        frameUnchanged = false;
+        PollInputEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        selected.presented = false;
+        return selected;
+    }
+#endif
     BeginDrawing();
     ClearBackground(BLACK);
     const float sourceWidth = static_cast<float>(std::max<uint32_t>(1u, selected.width));
