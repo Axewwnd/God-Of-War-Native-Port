@@ -35,3 +35,17 @@ El run 40948077241 generó y validó las fuentes reales, pero falló antes de co
 Se configura `packages: platform-tools`; SDK/NDK/CMake siguen fijados en el paso siguiente.
 Prueba local: actionlint. La ejecución remota posterior determina si esta corrección supera el fallo.
 La APK publicada inicialmente se compiló localmente; no atribuirla a ese run fallido.
+
+## Dispositivo objetivo comunicado por el usuario
+
+Redmi Note 11 SPES, HyperOS 2 / Android 14, Adreno 610; Vulkan 1.1 según el usuario.
+Estas capacidades todavía no se han consultado desde la aplicación. No se ha medido rendimiento.
+La ruta inicial a evaluar es EGL/OpenGL ES por la arquitectura actual del renderer; Vulkan requeriría otro backend.
+
+Auditoría inicial del cargador GL: exige `glGetBufferSubData`, `glClearBufferData`, `glBufferStorage`,
+`glQueryCounter`, `glGetQueryObjectui64v`, `glClearDepth` y `glTextureBarrier`, entre otras funciones.
+Varias no pertenecen al núcleo ES o tienen variantes/extensiones. No exigir funciones de diagnóstico o
+presentación Windows innecesarias. En particular, el renderer llama `TextureBarrier` al menos en cinco puntos:
+si no existe una extensión equivalente, estudiar copias/alternancia de render targets preservando la semántica,
+no sustituir esas barreras por no-ops. Para profundidad, adaptar `ClearDepth` a la API ES adecuada.
+Definir los requisitos finales después de auditar shaders, uso real de recursos y extensiones del teléfono.
