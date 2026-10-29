@@ -1,0 +1,16 @@
+[0/2] Re-checking globbed directories...
+[1/46] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/R5900OpcodeImpl.cpp.o
+[2/46] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/eeref.cpp.o
+[3/46] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_watch.cpp.o
+[4/46] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/MMI.cpp.o
+FAILED: [code=1] ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/MMI.cpp.o 
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DAGRESSIVE_LOGS=1 -DGRAPHICS_API_OPENGL_ES2 -DPLATFORM_ANDROID -DPS2X_ENABLE_IOP_RPC_TRACE=1 -DPS2X_HAS_FFMPEG=0 -DPS2_FUNCTION_LOG_TRACKER=1 -DPS2_RUNTIME_LOGS=1 -DUSE_SSE2NEON -I/workspace/ares-build/android/_deps/sse2neon-src -I/workspace/God-Of-War-Native-Port/ps2xRuntime/include -I/workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/Kernel -I/workspace/ares-build/android/_deps/raylib-src/src -I/workspace/God-Of-War-Native-Port/ps2xRuntime/third_party/libmpeg2 -I/workspace/God-Of-War-Native-Port/ps2xIOP/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O2 -g -DNDEBUG -std=gnu++20 -fPIC -march=armv8-a+fp+simd -MD -MT ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/MMI.cpp.o -MF ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/MMI.cpp.o.d -o ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/MMI.cpp.o -c /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/ee_ref/MMI.cpp
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/ee_ref/MMI.cpp:5:
+/workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/ee_ref/common/BitUtils.h:3:10: fatal error: 'common/Pcsx2Defs.h' file not found
+    3 | #include "common/Pcsx2Defs.h"
+      |          ^~~~~~~~~~~~~~~~~~~~
+1 error generated.
+[5/46] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/R5900OpcodeTables.cpp.o
+[6/46] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ee_ref/FPU.cpp.o
+[7/46] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/vu/ps2_vu1_core.cpp.o
+ninja: build stopped: subcommand failed.

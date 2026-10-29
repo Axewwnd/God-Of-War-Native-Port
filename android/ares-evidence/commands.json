@@ -1,0 +1,9 @@
+{
+  "runtime_configure": "cmake -S . -B /workspace/ares-build/android -G Ninja -DCMAKE_TOOLCHAIN_FILE=/workspace/android-ndk-r28c/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-28 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPS2X_ENABLE_SCCACHE=OFF",
+  "diagnostic_reconfigure": "cmake -S . -B /workspace/ares-build/android -DPS2X_REQUIRE_GAME_SOURCES=OFF",
+  "runtime_build": "cmake --build /workspace/ares-build/android --target ps2_runtime -j 4",
+  "runner_diagnostic": "cmake --build /workspace/ares-build/android --target ps2EntryRunner -j 4",
+  "host_configure": "cmake -S . -B /workspace/ares-build/host -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPS2X_BUILD_RUNTIME=OFF -DPS2X_BUILD_ANALYZER=OFF -DPS2X_BUILD_STUDIO=OFF -DPS2X_BUILD_TEST=OFF -DCMAKE_CXX_FLAGS=-march=x86-64-v2",
+  "host_build": "cmake --build /workspace/ares-build/host --target ps2_recomp -j 4",
+  "gradle_assemble": "ANDROID_HOME=/workspace/android-sdk JAVA_OPTS='-Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080 -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080' android/gradlew -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080 -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -p android --no-daemon --stacktrace --info assembleRelease"
+}

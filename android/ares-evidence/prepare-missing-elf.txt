@@ -1,0 +1,5 @@
+usage: prepare_game_sources.py [-h] --elf ELF --recompiler RECOMPILER
+                               --main-checkout MAIN_CHECKOUT
+                               --reference-checkout REFERENCE_CHECKOUT
+                               --output OUTPUT
+prepare_game_sources.py: error: Required file not found: /workspace/missing-disc/SCUS_973.99

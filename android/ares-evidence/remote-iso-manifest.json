@@ -1,0 +1,118 @@
+{
+  "url": "https://archive.org/download/scus-973.99.-god-of-war-usa/SCUS_973.99.God%20of%20War%20%28USA%29.iso",
+  "layer1": 2080544,
+  "files": [
+    [
+      "SYSTEM.CNF",
+      281,
+      57
+    ],
+    [
+      "SCUS_973.99",
+      282,
+      1911580
+    ],
+    [
+      "IOPRP300.IMG",
+      1216,
+      278305
+    ],
+    [
+      "SIO2MAN.IRX",
+      1352,
+      6641
+    ],
+    [
+      "DBCMAN.IRX",
+      1356,
+      15653
+    ],
+    [
+      "SIO2D.IRX",
+      1364,
+      11289
+    ],
+    [
+      "MC2_S1.IRX",
+      1370,
+      20165
+    ],
+    [
+      "DS1O_S1.IRX",
+      1380,
+      9437
+    ],
+    [
+      "MC2_D.IRX",
+      1385,
+      20221
+    ],
+    [
+      "DS2U_D.IRX",
+      1395,
+      11725
+    ],
+    [
+      "LIBSD.IRX",
+      1401,
+      28573
+    ],
+    [
+      "989NOMID.IRX",
+      1415,
+      178884
+    ],
+    [
+      "SMPD_IOP.IRX",
+      1503,
+      47948
+    ],
+    [
+      "GODOFWAR.TOC",
+      1527,
+      40068
+    ],
+    [
+      "PART1.PAK",
+      1547,
+      4257794048
+    ],
+    [
+      "PART2.PAK",
+      2080811,
+      4261273600
+    ]
+  ],
+  "requests": [
+    {
+      "start": 32768,
+      "size": 2048,
+      "sha256": "f7badc71a5fde0fbe13afd6b69e3e796455d161dc0fd6cb3f1ca3262e074a466"
+    },
+    {
+      "start": 534528,
+      "size": 996,
+      "sha256": "16d33d7a7f6e61680b5fa638d10da14c5fe15eea140f0d6e9610b684e105a043"
+    },
+    {
+      "start": 4260986880,
+      "size": 2048,
+      "sha256": "5b8170396bb814f69029487ca60237d852dba464e099cead8af89b4e20277883"
+    },
+    {
+      "start": 4261488640,
+      "size": 154,
+      "sha256": "65c2c653145ebb78a13726100d55ce6e8637bb0f6b0f8ce7462674225736c423"
+    },
+    {
+      "start": 575488,
+      "size": 57,
+      "sha256": "37aad7cdb5fd9da3839be0bc34fecf4e96429b8e2dd8b7121f3db425287c057d"
+    },
+    {
+      "start": 577536,
+      "size": 1911580,
+      "sha256": "ec9397d252f14d4412daffaad6be1f1931769e56222b5dbb9b39a947fc8ad71c"
+    }
+  ]
+}

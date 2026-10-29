@@ -1,0 +1,2 @@
+Generated local source bundle: /workspace/ares-game-generated/ares-game-sources
+Install into a clean runtime checkout and run check_game_sources.py before compiling.

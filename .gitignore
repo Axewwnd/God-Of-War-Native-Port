@@ -15,6 +15,9 @@ build
 # Now we can place the dump code here and test while expand the Runtime
 ps2xRuntime/include/ps2_recompiled_functions.h
 ps2xRuntime/include/ps2_recompiled_stubs.h
+# Hand-written project headers installed from pinned upstream revisions.
+ps2xRuntime/include/gow_gs_replay.h
+ps2xRuntime/include/gow_pad2_packet.h
 ps2xRuntime/src/runner/ps2_recompiled_functions.cpp
 ps2xRuntime/src/runner/register_functions.cpp
 ps2xRuntime/output

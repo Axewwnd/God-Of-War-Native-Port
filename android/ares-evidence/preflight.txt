@@ -1,0 +1,52 @@
+UTC: 2026-10-29T13:18:28.158341+00:00
+
+CHECK: workspace
+COMMAND: ['ls', '-la', '/workspace']
+EXIT: 0
+total 24
+drwxr-xr-x 1 agent agent 4096 Oct 29 13:18 .
+drwxr-xr-x 1 root  root  4096 Oct 29 13:17 ..
+drwx------ 2 agent agent 4096 Oct 29 13:18 ares-diagnostics
+drwxr-xr-x 2 agent agent   27 Oct 19 05:48 library-files
+drwxr-xr-x 2 agent agent   27 Oct 19 05:48 scratch
+drwx------ 3 agent agent   48 Oct 19 22:42 shared
+
+
+
+CHECK: project-files
+COMMAND: ['find', '/workspace', '/home/agent', '/opt', '/mnt', '-maxdepth', '5', '(', '-name', '.git', '-o', '-name', 'AGENTS.md', '-o', '-name', 'CODEX-TASK.md', ')', '-print']
+EXIT: 1
+
+find: ‘/opt/containerd’: Permission denied
+
+
+CHECK: github-auth
+COMMAND: ['gh', 'auth', 'status']
+EXIT: 0
+github.com
+  X Failed to log in to github.com using token (GH_TOKEN)
+  - Active account: true
+  - The token in GH_TOKEN is invalid.
+
+
+
+CHECK: git
+COMMAND: ['git', '--version']
+EXIT: 0
+git version 2.52.0
+
+
+
+CHECK: cmake
+COMMAND: ['bash', '-c', 'command -v cmake']
+EXIT: 1
+
+
+
+CHECK: java
+COMMAND: ['java', '-version']
+EXIT: 0
+
+openjdk version "21.0.12.1" 2026-08-18
+OpenJDK Runtime Environment (build 21.0.12.1+1-1-deb13u1-Debian)
+OpenJDK 64-Bit Server VM (build 21.0.12.1+1-1-deb13u1-Debian, mixed mode, sharing)

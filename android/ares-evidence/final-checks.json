@@ -1,0 +1,46 @@
+[
+  {
+    "check": "source-guard-tests",
+    "command": [
+      "python3",
+      "tools/ares/test_source_guard.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "check": "actionlint",
+    "command": [
+      "/workspace/actionlint/actionlint",
+      ".github/workflows/ares-android.yml"
+    ],
+    "exit_code": 0
+  },
+  {
+    "check": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0
+  },
+  {
+    "check": "github-auth",
+    "command": [
+      "gh",
+      "auth",
+      "status"
+    ],
+    "exit_code": 0
+  },
+  {
+    "check": "authenticated-repository-access",
+    "command": [
+      "gh",
+      "api",
+      "repos/Waffle565/God-Of-War-Native-Port"
+    ],
+    "exit_code": 1,
+    "observed": "HTTP 401 Bad credentials"
+  }
+]

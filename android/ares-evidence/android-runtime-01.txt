@@ -1,0 +1,255 @@
+[0/2] Re-checking globbed directories...
+[1/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/ps2_path.cpp.o
+[2/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/iop_subsystem.cpp.o
+[3/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/iop_module_manager.cpp.o
+[4/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/core/iop_cpu.cpp.o
+[5/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/disc_source.cpp.o
+/workspace/God-Of-War-Native-Port/ps2xIOP/src/disc_source.cpp:186:80: warning: 'u8path<const char *, 0>' is deprecated [-Wdeprecated-declarations]
+  186 |                     const std::filesystem::path file = root / std::filesystem::u8path(overlay);
+      |                                                                                ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__filesystem/u8path.h:79:23: note: 'u8path<const char *, 0>' has been explicitly marked deprecated here
+   79 | _LIBCPP_HIDE_FROM_ABI _LIBCPP_DEPRECATED_WITH_CHAR8_T path u8path(const _Source& __s) {
+      |                       ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:1006:45: note: expanded from macro '_LIBCPP_DEPRECATED_WITH_CHAR8_T'
+ 1006 | #    define _LIBCPP_DEPRECATED_WITH_CHAR8_T _LIBCPP_DEPRECATED
+      |                                             ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:955:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  955 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+/workspace/God-Of-War-Native-Port/ps2xIOP/src/disc_source.cpp:306:76: warning: 'u8path<std::string, 0>' is deprecated [-Wdeprecated-declarations]
+  306 |                             const auto absolute = (base / std::filesystem::u8path(entry.path)).u8string();
+      |                                                                            ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__filesystem/u8path.h:79:23: note: 'u8path<std::string, 0>' has been explicitly marked deprecated here
+   79 | _LIBCPP_HIDE_FROM_ABI _LIBCPP_DEPRECATED_WITH_CHAR8_T path u8path(const _Source& __s) {
+      |                       ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:1006:45: note: expanded from macro '_LIBCPP_DEPRECATED_WITH_CHAR8_T'
+ 1006 | #    define _LIBCPP_DEPRECATED_WITH_CHAR8_T _LIBCPP_DEPRECATED
+      |                                             ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:955:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  955 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+/workspace/God-Of-War-Native-Port/ps2xIOP/src/disc_source.cpp:336:95: warning: 'u8path<std::string, 0>' is deprecated [-Wdeprecated-declarations]
+  336 |                     it = m_handles.emplace(entry.lsn, std::ifstream(m_root / std::filesystem::u8path(entry.path), std::ios::binary)).first;
+      |                                                                                               ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__filesystem/u8path.h:79:23: note: 'u8path<std::string, 0>' has been explicitly marked deprecated here
+   79 | _LIBCPP_HIDE_FROM_ABI _LIBCPP_DEPRECATED_WITH_CHAR8_T path u8path(const _Source& __s) {
+      |                       ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:1006:45: note: expanded from macro '_LIBCPP_DEPRECATED_WITH_CHAR8_T'
+ 1006 | #    define _LIBCPP_DEPRECATED_WITH_CHAR8_T _LIBCPP_DEPRECATED
+      |                                             ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:955:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  955 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+3 warnings generated.
+[6/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/core/iop_kernel.cpp.o
+[7/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/core/sound_engine.cpp.o
+[8/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/core/iop_memory.cpp.o
+[9/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/core/memory_card.cpp.o
+[10/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/services/iop_module_loader.cpp.o
+[11/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_heaplib.cpp.o
+[12/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/iop_emulator.cpp.o
+[13/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/services/iop_rpc.cpp.o
+[14/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_cdvd.cpp.o
+/workspace/God-Of-War-Native-Port/ps2xIOP/src/emulator/imports/iop_cdvd.cpp:422:63: warning: 'u8path<std::string, 0>' is deprecated [-Wdeprecated-declarations]
+  422 |                 disc = DiscSource::openImage(std::filesystem::u8path(imagePath));
+      |                                                               ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__filesystem/u8path.h:79:23: note: 'u8path<std::string, 0>' has been explicitly marked deprecated here
+   79 | _LIBCPP_HIDE_FROM_ABI _LIBCPP_DEPRECATED_WITH_CHAR8_T path u8path(const _Source& __s) {
+      |                       ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:1006:45: note: expanded from macro '_LIBCPP_DEPRECATED_WITH_CHAR8_T'
+ 1006 | #    define _LIBCPP_DEPRECATED_WITH_CHAR8_T _LIBCPP_DEPRECATED
+      |                                             ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:955:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  955 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+/workspace/God-Of-War-Native-Port/ps2xIOP/src/emulator/imports/iop_cdvd.cpp:424:67: warning: 'u8path<std::string, 0>' is deprecated [-Wdeprecated-declarations]
+  424 |                 disc = DiscSource::openExtracted(std::filesystem::u8path(rootPath));
+      |                                                                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__filesystem/u8path.h:79:23: note: 'u8path<std::string, 0>' has been explicitly marked deprecated here
+   79 | _LIBCPP_HIDE_FROM_ABI _LIBCPP_DEPRECATED_WITH_CHAR8_T path u8path(const _Source& __s) {
+      |                       ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:1006:45: note: expanded from macro '_LIBCPP_DEPRECATED_WITH_CHAR8_T'
+ 1006 | #    define _LIBCPP_DEPRECATED_WITH_CHAR8_T _LIBCPP_DEPRECATED
+      |                                             ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:955:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  955 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+2 warnings generated.
+[15/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_imports.cpp.o
+[16/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_intrman.cpp.o
+[17/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_ioman.cpp.o
+[18/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_stdio.cpp.o
+[19/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_loadcore.cpp.o
+[20/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_sysmem.cpp.o
+[21/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_timrman.cpp.o
+[22/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_sysclib.cpp.o
+[23/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/emulator/imports/iop_vblank.cpp.o
+[24/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/modules/libsd.cpp.o
+[25/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/native/iop_native_none.cpp.o
+[26/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/modules/dbcman.cpp.o
+[27/117] Building C object ps2xRuntime/CMakeFiles/libmpeg2.dir/third_party/libmpeg2/alloc.c.o
+[28/117] Building C object ps2xRuntime/CMakeFiles/libmpeg2.dir/third_party/libmpeg2/cpu_accel.c.o
+[29/117] Building C object ps2xRuntime/CMakeFiles/libmpeg2.dir/third_party/libmpeg2/cpu_state.c.o
+[30/117] Building C object ps2xRuntime/CMakeFiles/libmpeg2.dir/third_party/libmpeg2/decode.c.o
+[31/117] Building C object ps2xRuntime/CMakeFiles/libmpeg2.dir/third_party/libmpeg2/header.c.o
+[32/117] Building C object ps2xRuntime/CMakeFiles/libmpeg2.dir/third_party/libmpeg2/idct.c.o
+[33/117] Building C object ps2xRuntime/CMakeFiles/libmpeg2.dir/third_party/libmpeg2/motion_comp.c.o
+[34/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/modules/mcserv.cpp.o
+[35/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/native/iop_native_overrides.cpp.o
+[36/117] Building C object ps2xRuntime/CMakeFiles/libmpeg2.dir/third_party/libmpeg2/slice.c.o
+[37/117] Building CXX object ps2xIOP/CMakeFiles/ps2_iop.dir/src/modules/gow_stub_services.cpp.o
+[38/117] Building C object _deps/raylib-build/raylib/CMakeFiles/raylib.dir/rshapes.c.o
+[39/117] Building C object _deps/raylib-build/raylib/CMakeFiles/raylib.dir/rcore.c.o
+[40/117] Building C object _deps/raylib-build/raylib/CMakeFiles/raylib.dir/rtext.c.o
+[41/117] Building C object _deps/raylib-build/raylib/CMakeFiles/raylib.dir/utils.c.o
+[42/117] Building C object _deps/raylib-build/raylib/CMakeFiles/raylib.dir/workspace/android-ndk-r28c/sources/android/native_app_glue/android_native_app_glue.c.o
+[43/117] Linking CXX static library ps2xIOP/libps2_iop.a
+[44/117] Linking C static library ps2xRuntime/liblibmpeg2.a
+[45/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/game_overrides.cpp.o
+[46/117] Building C object _deps/raylib-build/raylib/CMakeFiles/raylib.dir/rmodels.c.o
+[47/117] Building C object _deps/raylib-build/raylib/CMakeFiles/raylib.dir/rtextures.c.o
+[48/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/ps2_gif_arbiter.cpp.o
+[49/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ps2_audio_vag.cpp.o
+[50/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ps2_audio.cpp.o
+[51/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/ps2_gs_memory.cpp.o
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/ps2_gs_memory.cpp:4:
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:68:11: warning: enumeration value 'Max' not handled in switch [-Wswitch]
+   68 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:92:11: warning: enumeration value 'Max' not handled in switch [-Wswitch]
+   92 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:169:11: warning: 9 enumeration values not handled in switch: 'C32', 'C24', 'C16'... [-Wswitch]
+  169 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:326:11: warning: no case matching constant switch condition '49'
+  326 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:237:47: note: in instantiation of member function 'GSMem::PixelStorageTraits<GSMem::PixelStorageMode::Z24>::ColumnExtent' requested here
+  237 |                 using ColumnLookupTableT = LookupTable<u16, ColumnExtent().x, ColumnExtent().y>;
+      |                                                             ^
+/workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/ps2_gs_memory.cpp:285:20: note: in instantiation of template class 'GSMem::PixelStorageTraits<GSMem::PixelStorageMode::Z24>' requested here
+  285 |             return PixelStorageTraits<Z24>::Read(PageTableZ32, data, bp, bw, x, y, &cache);
+      |                    ^
+4 warnings generated.
+[52/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_stage.cpp.o
+[53/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_display.cpp.o
+[54/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_host_present.cpp.o
+[55/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_frontend.cpp.o
+[56/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_swizzle.cpp.o
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gs_swizzle.cpp:4:
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:68:11: warning: enumeration value 'Max' not handled in switch [-Wswitch]
+   68 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:92:11: warning: enumeration value 'Max' not handled in switch [-Wswitch]
+   92 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:169:11: warning: 9 enumeration values not handled in switch: 'C32', 'C24', 'C16'... [-Wswitch]
+  169 |                 switch (psm)
+      |                         ^~~
+3 warnings generated.
+[57/117] Building C object _deps/raylib-build/raylib/CMakeFiles/raylib.dir/raudio.c.o
+[58/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gpu/gs_gl.cpp.o
+[59/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gpu/gs_texture_store.cpp.o
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gpu/gs_texture_store.cpp:3:
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gpu/../gs_gpu_helpers.h:8:
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:68:11: warning: enumeration value 'Max' not handled in switch [-Wswitch]
+   68 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:92:11: warning: enumeration value 'Max' not handled in switch [-Wswitch]
+   92 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:169:11: warning: 9 enumeration values not handled in switch: 'C32', 'C24', 'C16'... [-Wswitch]
+  169 |                 switch (psm)
+      |                         ^~~
+3 warnings generated.
+[60/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_threaded_backend.cpp.o
+FAILED: [code=1] ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_threaded_backend.cpp.o 
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DAGRESSIVE_LOGS=1 -DGRAPHICS_API_OPENGL_ES2 -DPLATFORM_ANDROID -DPS2X_ENABLE_IOP_RPC_TRACE=1 -DPS2X_HAS_FFMPEG=0 -DPS2_FUNCTION_LOG_TRACKER=1 -DPS2_RUNTIME_LOGS=1 -DUSE_SSE2NEON -I/workspace/ares-build/android/_deps/sse2neon-src -I/workspace/God-Of-War-Native-Port/ps2xRuntime/include -I/workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/Kernel -I/workspace/ares-build/android/_deps/raylib-src/src -I/workspace/God-Of-War-Native-Port/ps2xRuntime/third_party/libmpeg2 -I/workspace/God-Of-War-Native-Port/ps2xIOP/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -march=armv8-a+fp+simd+crypto+crc -O2 -g -DNDEBUG -std=gnu++20 -fPIC -march=armv8-a+fp+simd -MD -MT ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_threaded_backend.cpp.o -MF ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_threaded_backend.cpp.o.d -o ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gs_threaded_backend.cpp.o -c /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gs_threaded_backend.cpp
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gs_threaded_backend.cpp:15:
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/xmmintrin.h:14:2: error: "This header is only meant to be used on x86 and x64 architecture"
+   14 | #error "This header is only meant to be used on x86 and x64 architecture"
+      |  ^
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gs_threaded_backend.cpp:15:
+In file included from /workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/xmmintrin.h:17:
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:14:2: error: "This header is only meant to be used on x86 and x64 architecture"
+   14 | #error "This header is only meant to be used on x86 and x64 architecture"
+      |  ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:39:3: error: use of undeclared identifier '__builtin_ia32_emms'; did you mean '__builtin_isless'?
+   39 |   __builtin_ia32_emms();
+      |   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__math/traits.h:145:10: note: '__builtin_isless' declared here
+  145 |   return __builtin_isless((type)__x, (type)__y);
+      |          ^
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gs_threaded_backend.cpp:15:
+In file included from /workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/xmmintrin.h:17:
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:39:23: error: too few arguments to function call, expected 2, have 0
+   39 |   __builtin_ia32_emms();
+      |   ~~~~~~~~~~~~~~~~~~~~^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:56:19: error: use of undeclared identifier '__builtin_ia32_vec_init_v2si'
+   56 |     return (__m64)__builtin_ia32_vec_init_v2si(__i, 0);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:73:12: error: use of undeclared identifier '__builtin_ia32_vec_ext_v2si'
+   73 |     return __builtin_ia32_vec_ext_v2si((__v2si)__m, 0);
+      |            ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:130:19: error: use of undeclared identifier '__builtin_ia32_packsswb'
+  130 |     return (__m64)__builtin_ia32_packsswb((__v4hi)__m1, (__v4hi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:155:19: error: use of undeclared identifier '__builtin_ia32_packssdw'
+  155 |     return (__m64)__builtin_ia32_packssdw((__v2si)__m1, (__v2si)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:180:19: error: use of undeclared identifier '__builtin_ia32_packuswb'
+  180 |     return (__m64)__builtin_ia32_packuswb((__v4hi)__m1, (__v4hi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:207:19: error: use of undeclared identifier '__builtin_ia32_punpckhbw'
+  207 |     return (__m64)__builtin_ia32_punpckhbw((__v8qi)__m1, (__v8qi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:230:19: error: use of undeclared identifier '__builtin_ia32_punpckhwd'
+  230 |     return (__m64)__builtin_ia32_punpckhwd((__v4hi)__m1, (__v4hi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:251:19: error: use of undeclared identifier '__builtin_ia32_punpckhdq'
+  251 |     return (__m64)__builtin_ia32_punpckhdq((__v2si)__m1, (__v2si)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:278:19: error: use of undeclared identifier '__builtin_ia32_punpcklbw'
+  278 |     return (__m64)__builtin_ia32_punpcklbw((__v8qi)__m1, (__v8qi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:301:19: error: use of undeclared identifier '__builtin_ia32_punpcklwd'
+  301 |     return (__m64)__builtin_ia32_punpcklwd((__v4hi)__m1, (__v4hi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:322:19: error: use of undeclared identifier '__builtin_ia32_punpckldq'
+  322 |     return (__m64)__builtin_ia32_punpckldq((__v2si)__m1, (__v2si)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:343:19: error: use of undeclared identifier '__builtin_ia32_paddb'; did you mean '__builtin_arm_addg'?
+  343 |     return (__m64)__builtin_ia32_paddb((__v8qi)__m1, (__v8qi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:343:19: note: '__builtin_arm_addg' declared here
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:343:19: error: first argument of MTE builtin function must be a pointer ('__v8qi' (vector of 8 'char' values) invalid)
+  343 |     return (__m64)__builtin_ia32_paddb((__v8qi)__m1, (__v8qi)__m2);
+      |                   ^                    ~~~~~~~~~~~~
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:364:19: error: use of undeclared identifier '__builtin_ia32_paddw'; did you mean '__builtin_arm_addg'?
+  364 |     return (__m64)__builtin_ia32_paddw((__v4hi)__m1, (__v4hi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:343:19: note: '__builtin_arm_addg' declared here
+  343 |     return (__m64)__builtin_ia32_paddb((__v8qi)__m1, (__v8qi)__m2);
+      |                   ^
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/include/mmintrin.h:364:19: error: first argument of MTE builtin function must be a pointer ('__v4hi' (vector of 4 'short' values) invalid)
+  364 |     return (__m64)__builtin_ia32_paddw((__v4hi)__m1, (__v4hi)__m2);
+      |                   ^                    ~~~~~~~~~~~~
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+[61/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ps2_iop_host.cpp.o
+[62/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/gs/gpu/gs_hw_backend.cpp.o
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gpu/gs_hw_backend.cpp:6:
+In file included from /workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/gs/gpu/../gs_gpu_helpers.h:8:
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:68:11: warning: enumeration value 'Max' not handled in switch [-Wswitch]
+   68 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:92:11: warning: enumeration value 'Max' not handled in switch [-Wswitch]
+   92 |                 switch (psm)
+      |                         ^~~
+/workspace/God-Of-War-Native-Port/ps2xRuntime/include/runtime/gs/ps2_gs_memory.h:169:11: warning: 9 enumeration values not handled in switch: 'C32', 'C24', 'C16'... [-Wswitch]
+  169 |                 switch (psm)
+      |                         ^~~
+3 warnings generated.
+[63/117] Building CXX object ps2xRuntime/CMakeFiles/ps2_runtime.dir/src/lib/ps2_memory.cpp.o
+ninja: build stopped: subcommand failed.

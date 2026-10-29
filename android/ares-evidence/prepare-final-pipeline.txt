@@ -1,0 +1,3 @@
+Adapted decimal parsing and optional countdown optimization; generated game code unchanged.
+Generated local source bundle: /workspace/ares-game-generated-final/ares-game-sources
+Install into a clean runtime checkout and run check_game_sources.py before compiling.

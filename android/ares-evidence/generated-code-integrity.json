@@ -1,0 +1,9 @@
+{
+  "unchanged_generated_implementation_files": 6415,
+  "registration_matches_after_newline_normalization": true,
+  "handwritten_compatibility_files": [
+    "ps2xRuntime/include/gow_gs_replay.h",
+    "ps2xRuntime/src/runner/gow_overrides.cpp"
+  ],
+  "helper_sha256": "30c7ce74081cc30cdeb3a035795601a3b74479056bf28f21dc3627a48f43e9a5"
+}

@@ -12,7 +12,11 @@
 #include <cstdlib>
 #include <cstring>
 #if defined(_MSC_VER) || defined(__SSE4_1__)
+#if defined(USE_SSE2NEON)
+#include <sse2neon.h>
+#else
 #include <immintrin.h>
+#endif
 #define VU1C_SIMD 1
 #else
 #define VU1C_SIMD 0

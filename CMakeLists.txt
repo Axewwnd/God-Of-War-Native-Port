@@ -11,6 +11,26 @@ endif()
 
 project(PS2RetroX)
 
+# Android shared libraries link these static dependencies into the NativeActivity.
+if(ANDROID)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    option(PS2X_REQUIRE_GAME_SOURCES "Reject Android runners without generated game code" ON)
+    if(PS2X_REQUIRE_GAME_SOURCES)
+        foreach(header IN ITEMS ps2_recompiled_functions.h ps2_recompiled_stubs.h)
+            if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ps2xRuntime/include/${header}")
+                message(FATAL_ERROR "Missing generated game header: ${header}. See android/ARES.md. Runtime-only builds are not game builds.")
+            endif()
+        endforeach()
+        find_package(Python3 REQUIRED COMPONENTS Interpreter)
+        execute_process(
+            COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/ares/check_game_sources.py"
+            RESULT_VARIABLE PS2X_GAME_SOURCE_CHECK)
+        if(NOT PS2X_GAME_SOURCE_CHECK EQUAL 0)
+            message(FATAL_ERROR "Incomplete generated game sources. See android/ARES.md.")
+        endif()
+    endif()
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(PS2X_BUILD_RECOMP "Build ps2xRecomp" ON)
@@ -63,19 +83,9 @@ if(PS2X_IS_ARM_TARGET)
         # Windows ARM64 - MSVC already uses optimal defaults
         message(STATUS "Windows ARM64 (MSVC) - using default compiler flags")
     elseif(PS2X_IS_AARCH64_TARGET)
-        # Linux ARM64 - add NEON flags
-        message(STATUS "Non-Apple ARM64 - adding NEON compiler flags")
+        # NEON is part of the ARM64 baseline. Crypto/CRC are optional on Android.
+        message(STATUS "Non-Apple ARM64 - using baseline NEON compiler flags")
         add_compile_options(-march=armv8-a+fp+simd)
-
-        # Try to enable crypto and CRC extensions if supported
-        include(CheckCXXCompilerFlag)
-        check_cxx_compiler_flag("-march=armv8-a+fp+simd+crypto+crc" COMPILER_SUPPORTS_CRYPTO_CRC)
-        if(COMPILER_SUPPORTS_CRYPTO_CRC)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a+fp+simd+crypto+crc")
-            message(STATUS "Crypto and CRC extensions enabled")
-        else()
-            add_compile_options(-march=armv8-a+fp+simd)
-        endif()
     endif()
 endif()
 

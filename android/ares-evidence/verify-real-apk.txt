@@ -1,0 +1,16 @@
+{
+  "status": "apk-structure-and-game-symbols-verified",
+  "scope": "Packaging and linked code only; gameplay and rendering not tested",
+  "apk": "ProjectARES-GodOfWar-android-arm64.apk",
+  "apk_bytes": 54038192,
+  "apk_sha256": "2a0afa5a3b4a9224d57efb362103a3c65488ea19a3690cac8cb947a1791b13c8",
+  "runner_bytes": 54016248,
+  "runner_sha256": "73ad939a592032ae7378527b4562923074e02a31bde199692a4bc7eedfa2934a",
+  "elf_machine": "AArch64",
+  "registry_function_count": 6415,
+  "linked_game_function_count": 6415,
+  "missing_functions": [],
+  "native_libraries": [
+    "lib/arm64-v8a/libps2EntryRunner.so"
+  ]
+}

@@ -1,0 +1,11 @@
+[0/2] Re-checking globbed directories...
+[1/4] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/cmake_pch.hxx.pch
+[2/4] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_0_cxx.cxx.o
+FAILED: [code=1] ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_0_cxx.cxx.o 
+/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/workspace/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DAGRESSIVE_LOGS=1 -DGRAPHICS_API_OPENGL_ES2 -DPLATFORM_ANDROID -DPS2X_ENABLE_IOP_RPC_TRACE=1 -DPS2_FUNCTION_LOG_TRACKER=1 -DPS2_RUNTIME_LOGS=1 -DUSE_SSE2NEON -Dps2EntryRunner_EXPORTS -I/workspace/ares-build/android/_deps/sse2neon-src -I/workspace/God-Of-War-Native-Port/ps2xRuntime/src/runner -I/workspace/God-Of-War-Native-Port/ps2xRuntime/include -I/workspace/God-Of-War-Native-Port/ps2xRuntime/src/lib/Kernel -I/workspace/ares-build/android/_deps/raylib-src/src -I/workspace/God-Of-War-Native-Port/ps2xRuntime/third_party/libmpeg2 -I/workspace/God-Of-War-Native-Port/ps2xIOP/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O2 -g -DNDEBUG -std=gnu++20 -fPIC -march=armv8-a+fp+simd -Winvalid-pch -Xclang -include-pch -Xclang /workspace/ares-build/android/ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/cmake_pch.hxx.pch -Xclang -include -Xclang /workspace/ares-build/android/ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/cmake_pch.hxx -MD -MT ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_0_cxx.cxx.o -MF ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_0_cxx.cxx.o.d -o ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_0_cxx.cxx.o -c /workspace/ares-build/android/ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_0_cxx.cxx
+In file included from /workspace/ares-build/android/ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_0_cxx.cxx:4:
+/workspace/God-Of-War-Native-Port/ps2xRuntime/src/runner/register_functions.cpp:2:10: fatal error: 'ps2_recompiled_functions.h' file not found
+    2 | #include <ps2_recompiled_functions.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+ninja: build stopped: subcommand failed.

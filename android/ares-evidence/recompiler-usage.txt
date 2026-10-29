@@ -1,0 +1,3 @@
+PS2Recomp - A static recompiler for PlayStation 2 ELF files
+Usage: ps2recomp <config.toml>
+  config.toml: Configuration file for the recompiler

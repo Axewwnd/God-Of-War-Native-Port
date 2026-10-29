@@ -1,0 +1,36 @@
+[
+  {
+    "check": "actionlint",
+    "exit_code": 0
+  },
+  {
+    "check": "diff-check",
+    "exit_code": 0
+  },
+  {
+    "check": "assembleRelease with real game code",
+    "exit_code": 0,
+    "log": "gradle-real-game-04.txt"
+  },
+  {
+    "check": "packaged game definitions",
+    "expected": 6415,
+    "found": 6415,
+    "missing": 0,
+    "report": "apk-verification.json"
+  },
+  {
+    "check": "APK signature",
+    "status": "valid v2; Android Debug certificate",
+    "log": "apk-signature.txt"
+  },
+  {
+    "check": "runtime-only rejection",
+    "status": "passed",
+    "log": "apk-runtime-rejection-test.txt"
+  },
+  {
+    "check": "GitHub Actions",
+    "status": "not executed; authentication HTTP 401"
+  }
+]

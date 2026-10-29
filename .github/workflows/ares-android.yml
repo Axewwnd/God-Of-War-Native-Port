@@ -1,0 +1,133 @@
+name: ARES Android ARM64 (real game sources required)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Run in this repository containing the ares-game-sources artifact'
+        required: false
+        type: string
+      iso_url:
+        description: 'Alternatively: HTTPS ISO URL supporting byte ranges, to generate real sources'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  android-arm64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Record source revision and test incomplete-source rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ares-logs
+          git rev-parse HEAD > ares-logs/runtime-commit.txt
+          python3 tools/ares/test_source_guard.py 2>&1 | tee ares-logs/source-guard-tests.log
+          c++ -std=c++20 -Ips2xRuntime/include tools/ares/android_compat_test.cpp -o /tmp/ares-android-compat-test
+          /tmp/ares-android-compat-test 2>&1 | tee ares-logs/android-compat-test.log
+      # Artifact layout: include/*.h and runner/*.cpp, including all EE code,
+      # register_functions.cpp and build-matched game overrides. No fake registry.
+      - uses: actions/download-artifact@v4
+        if: inputs.source_run_id != ''
+        with:
+          name: ares-game-sources
+          path: game-sources
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+      - uses: actions/checkout@v4
+        if: inputs.source_run_id == '' && inputs.iso_url != ''
+        with:
+          ref: 514f89186f1926edaf4807696a59557679c7d517
+          path: ares-main
+      - uses: actions/checkout@v4
+        if: inputs.source_run_id == '' && inputs.iso_url != ''
+        with:
+          repository: KIexster/god-of-war-recomp
+          ref: 2d3c91dc173727058073c267bbfb27b3dab703a1
+          path: ares-reference
+      - name: Generate real game sources from the supplied ISO
+        if: inputs.source_run_id == '' && inputs.iso_url != ''
+        shell: bash
+        env:
+          ARES_ISO_URL: ${{ inputs.iso_url }}
+        run: |
+          set -euo pipefail
+          python3 tools/ares/extract_boot_elf.py --url "$ARES_ISO_URL" --main-checkout ares-main --output ares-original 2>&1 | tee ares-logs/extract-boot.log
+          cmake -S . -B ares-host -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPS2X_BUILD_RUNTIME=OFF -DPS2X_BUILD_ANALYZER=OFF -DPS2X_BUILD_STUDIO=OFF -DPS2X_BUILD_TEST=OFF -DCMAKE_CXX_FLAGS=-march=x86-64-v2 2>&1 | tee ares-logs/host-configure.log
+          cmake --build ares-host --target ps2_recomp --parallel 2 2>&1 | tee ares-logs/host-build.log
+          python3 tools/ares/prepare_game_sources.py --elf ares-original/SCUS_973.99 --recompiler ares-host/ps2xRecomp/ps2_recomp --main-checkout ares-main --reference-checkout ares-reference --output ares-generated 2>&1 | tee ares-logs/prepare-game.log
+          cp -r ares-generated/ares-game-sources game-sources
+      - name: Install and check generated game sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ares-logs
+          if [ ! -d game-sources ]; then
+            echo 'Provide source_run_id or an HTTPS iso_url to generate the real game code.' | tee ares-logs/missing-input.log
+            exit 1
+          fi
+          cp game-sources/include/*.h ps2xRuntime/include/
+          # Both input routes must produce actual sources before this step.
+          cp game-sources/runner/*.cpp ps2xRuntime/src/runner/
+          python3 tools/ares/adapt_game_sources.py --include ps2xRuntime/include --runner ps2xRuntime/src/runner
+          python3 tools/ares/check_game_sources.py --report ares-logs/game-sources.json 2>&1 | tee ares-logs/game-sources.log
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Install pinned Android toolchain
+        run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
+      - name: Build game APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle -p android --no-daemon --stacktrace --info assembleRelease 2>&1 | tee ares-logs/gradle.log
+      - name: Verify APK architecture and NativeActivity library
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          unzip -l "$APK" | tee ares-logs/apk-contents.txt
+          unzip -p "$APK" lib/arm64-v8a/libps2EntryRunner.so > ares-logs/libps2EntryRunner.so
+          LLVM="$ANDROID_HOME/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          python3 tools/ares/verify_apk.py "$APK" --llvm-bin "$LLVM" --output ares-logs
+          python3 tools/ares/test_apk_verifier.py --apk "$APK" --llvm-bin "$LLVM" --runtime-library "$LLVM/../sysroot/usr/lib/aarch64-linux-android/libc++_shared.so" 2>&1 | tee ares-logs/runtime-rejection-test.log
+          "$LLVM/llvm-readelf" -h ares-logs/libps2EntryRunner.so | tee ares-logs/elf-header.txt
+          grep -q AArch64 ares-logs/elf-header.txt
+          "$LLVM/llvm-nm" -D --defined-only ares-logs/libps2EntryRunner.so > ares-logs/symbols.txt
+          grep -q ' ANativeActivity_onCreate$' ares-logs/symbols.txt
+          grep -q g_ps2RecompiledFunctionTable ares-logs/symbols.txt
+          sha256sum "$APK" | tee ares-logs/apk-sha256.txt
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose "$APK" | tee ares-logs/apk-signature.txt
+      - name: Upload verified build (debug signing key)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ares-android-arm64-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ares-android-arm64-logs
+          path: |
+            ares-logs/*.txt
+            ares-logs/*.json
+            ares-logs/*.log
+            ares-generated/recompile.log
+            ares-generated/provenance.json
+            ares-original/remote-manifest.json
+            android/app/.cxx/**/CMakeCache.txt
+            android/app/.cxx/**/configure*.txt

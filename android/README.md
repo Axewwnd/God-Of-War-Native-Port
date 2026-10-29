@@ -1,5 +1,8 @@
 # Android runner
 
+PROJECT ARES / God of War ARM64: read [ARES.md](ARES.md) for required game sources,
+the Actions workflow and current blockers. The runtime alone is not a game build.
+
 ## Requirements
 
 - Android Studio (recommended) or a local Gradle 8.7+ / JDK 17 install
@@ -9,11 +12,10 @@
 ## Building
 
 Option A — Android Studio: open the `android/` folder and run the `app` configuration.
-Option B — command line (no wrapper is committed; generate it once):
+Option B — command line (Gradle 8.9 wrapper is committed):
 
 ```sh
 cd android
-gradle wrapper --gradle-version 8.9
 ./gradlew assembleRelease
 ```
 
@@ -32,5 +34,5 @@ adb shell mkdir -p /storage/emulated/0/Android/data/com.ps2x.runner/files
 adb push "path/to/game/." /storage/emulated/0/Android/data/com.ps2x.runner/files/
 ```
 
-Logs: raylib output goes to logcat (`adb logcat -s raylib`); runtime `std::cout`/`cerr`
-output is not redirected to logcat yet.
+Logs: raylib output goes to logcat (`adb logcat -s raylib`); the runner redirects
+runtime stdout/stderr under the `ps2x` tag (`adb logcat -s ps2x raylib`).
