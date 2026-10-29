@@ -1,0 +1,16 @@
+[0/2] Re-checking globbed directories...
+[1/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanClutLoad.cpp.o
+[2/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_Vulkan.cpp.o
+[3/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDeviceInfo.cpp.o
+[4/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDraw.cpp.o
+[5/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawDesktop.cpp.o
+[6/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawUtils.cpp.o
+[7/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawMobile.cpp.o
+[8/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanFrameCommandBuffer.cpp.o
+[9/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanOffscreen.cpp.o
+[10/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanMemoryUtils.cpp.o
+[11/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanTransferHost.cpp.o
+[12/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanPresent.cpp.o
+[13/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/ui_android/GSH_VulkanAndroid.cpp.o
+[14/16] Building CXX object CMakeFiles/ares_play_vulkan_compile_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanTransferLocal.cpp.o
+[15/16] Linking CXX static library libares_play_vulkan_compile_check.a

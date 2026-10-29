@@ -1,0 +1,16 @@
+{
+  "status": "apk-structure-and-game-symbols-verified",
+  "scope": "Packaging and linked code only; gameplay and rendering not tested",
+  "apk": "app-release.apk",
+  "apk_bytes": 54038192,
+  "apk_sha256": "2b1645ddf074a0530ffb57b37002de3af89c58565c592d302ee2f9bd075737f5",
+  "runner_bytes": 54016248,
+  "runner_sha256": "73ad939a592032ae7378527b4562923074e02a31bde199692a4bc7eedfa2934a",
+  "elf_machine": "AArch64",
+  "registry_function_count": 6415,
+  "linked_game_function_count": 6415,
+  "missing_functions": [],
+  "native_libraries": [
+    "lib/arm64-v8a/libps2EntryRunner.so"
+  ]
+}
