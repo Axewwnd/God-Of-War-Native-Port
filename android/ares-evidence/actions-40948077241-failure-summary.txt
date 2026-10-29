@@ -1,0 +1,4 @@
+android-arm64	Run android-actions/setup-android@v3	2026-10-29T20:21:58.7318670Z [command]/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager tools
+android-arm64	Run android-actions/setup-android@v3	2026-10-29T20:22:00.4988441Z Warning: Failed to find package 'tools'
+android-arm64	Run android-actions/setup-android@v3	2026-10-29T20:22:00.5685113Z                 error = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
+android-arm64	Run android-actions/setup-android@v3	2026-10-29T20:22:00.5687690Z Error: The process '/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager' failed with exit code 1
