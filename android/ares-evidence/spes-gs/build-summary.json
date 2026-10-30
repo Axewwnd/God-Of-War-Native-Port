@@ -1,0 +1,20 @@
+{
+  "kind": "isolated GS Android ARM64 link experiment, not an APK or gameplay test",
+  "library": "libares_play_vulkan_link_check.so",
+  "bytes": 24760464,
+  "sha256": "f825947f6d88a90b23dc4e8865d31ecb5fe7da98c64e17fbb77a7c90ffae6f0b",
+  "android_api": 28,
+  "abi": "arm64-v8a",
+  "ndk": "28.2.13676358",
+  "no_undefined": true,
+  "spirv10_mobile_adaptation": true,
+  "caller_selected_vulkan_loader": true,
+  "gs_integrated_in_ares": false,
+  "gpu_execution_tested": false,
+  "host_checks": [
+    "136/136 original modules validate under Vulkan 1.1; 0/136 under Vulkan 1.0",
+    "136/136 adapted modules validate under Vulkan 1.0 and 1.1",
+    "int8/int16/interlock rejected",
+    "null/unrelated loader handles rejected; supplied real Vulkan loader used"
+  ]
+}

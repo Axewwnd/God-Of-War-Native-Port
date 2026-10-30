@@ -1,0 +1,13 @@
+[1/13] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/builder/ShaderBuilder.cpp.o
+[2/13] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/generators/GlslShaderGenerator.cpp.o
+[3/13] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/builder/Operations.cpp.o
+[4/13] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/generators/HlslShaderGenerator.cpp.o
+[5/13] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/__/AresSpirvShaderGenerator10.cpp.o
+[6/13] Building CXX object CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o
+[7/13] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GsPixelFormats.cpp.o
+[8/13] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawUtils.cpp.o
+[9/13] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/deps/Framework/src/MemStream.cpp.o
+[10/13] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/deps/Framework/src/Stream.cpp.o
+[11/13] Linking CXX static library nuanceur/libNuanceur.a
+[12/13] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanMemoryUtils.cpp.o
+[13/13] Linking CXX executable ares_play_shader_check

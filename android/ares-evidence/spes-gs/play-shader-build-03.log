@@ -1,0 +1,15 @@
+[1/7] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawUtils.cpp.o
+[2/7] Building CXX object CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o
+[3/7] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/deps/Framework/src/MemStream.cpp.o
+[4/7] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/deps/Framework/src/Stream.cpp.o
+[5/7] Linking CXX static library nuanceur/libNuanceur.a
+[6/7] Building CXX object CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanMemoryUtils.cpp.o
+[7/7] Linking CXX executable ares_play_shader_check
+FAILED: [code=1] ares_play_shader_check 
+: && /usr/bin/c++ -I/workspace/ares-xcb-dev/usr/include -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/ares_play_shader_check.dir/link.d CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawUtils.cpp.o CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanMemoryUtils.cpp.o CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/deps/Framework/src/MemStream.cpp.o CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/deps/Framework/src/Stream.cpp.o -o ares_play_shader_check  nuanceur/libNuanceur.a && :
+/usr/bin/ld: CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawUtils.cpp.o: in function `GetClutColor(Nuanceur::CShaderBuilder&, unsigned int, unsigned int, Nuanceur::CUintValue, Nuanceur::CArrayUintValue, Nuanceur::CIntValue)':
+GSH_VulkanDrawUtils.cpp:(.text+0x17dc): undefined reference to `CGsPixelFormats::IsPsmIDTEX8(unsigned int)'
+/usr/bin/ld: CMakeFiles/ares_play_shader_check.dir/workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawUtils.cpp.o: in function `GSH_Vulkan::CDrawUtils::ExpandAlpha(Nuanceur::CShaderBuilder&, unsigned int, unsigned int, unsigned int, Nuanceur::CFloat4Lvalue&, Nuanceur::CFloatValue, Nuanceur::CFloatValue)':
+GSH_VulkanDrawUtils.cpp:(.text+0x2c66): undefined reference to `CGsPixelFormats::IsPsmIDTEX(unsigned int)'
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.

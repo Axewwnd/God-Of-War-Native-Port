@@ -1,0 +1,13 @@
+[1/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/builder/ShaderBuilder.cpp.o
+[2/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/generators/GlslShaderGenerator.cpp.o
+[3/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/builder/Operations.cpp.o
+[4/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/generators/HlslShaderGenerator.cpp.o
+[5/12] Building CXX object CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o
+FAILED: [code=1] CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o 
+/usr/bin/c++  -I/workspace/ares-vulkan-headers -I/workspace/ares-play-reference/Source/gs/GSH_Vulkan -I/workspace/ares-play-reference/Source -I/workspace/ares-play-reference/deps/Framework/include -I/workspace/ares-play-reference/deps/Dependencies/ghc_filesystem/include -I/workspace/ares-play-reference/deps/Nuanceur/build_cmake/../include -I/workspace/ares-play-reference/deps/Nuanceur/build_cmake/../../Framework/include -I/workspace/ares-xcb-dev/usr/include -O3 -DNDEBUG -MD -MT CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o -MF CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o.d -o CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o -c /workspace/ares-build/play-shader-check/shaders.cpp
+/workspace/ares-build/play-shader-check/shaders.cpp: In function ‘void Save(const Framework::CMemStream&)’:
+/workspace/ares-build/play-shader-check/shaders.cpp:41:15: error: invalid ‘static_cast’ from type ‘uint8*’ {aka ‘unsigned char*’} to type ‘const char*’
+   41 |     out.write(static_cast<const char*>(stream.GetBuffer()), stream.GetSize());
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[6/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/generators/SpirvShaderGenerator.cpp.o
+ninja: build stopped: subcommand failed.

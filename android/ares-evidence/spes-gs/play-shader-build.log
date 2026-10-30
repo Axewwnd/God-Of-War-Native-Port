@@ -1,0 +1,18 @@
+[1/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/builder/ShaderBuilder.cpp.o
+[2/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/generators/GlslShaderGenerator.cpp.o
+[3/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/builder/Operations.cpp.o
+[4/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/generators/HlslShaderGenerator.cpp.o
+[5/12] Building CXX object CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o
+FAILED: [code=1] CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o 
+/usr/bin/c++  -I/workspace/ares-vulkan-headers -I/workspace/ares-play-reference/Source/gs/GSH_Vulkan -I/workspace/ares-play-reference/Source -I/workspace/ares-play-reference/deps/Framework/include -I/workspace/ares-play-reference/deps/Dependencies/ghc_filesystem/include -I/workspace/ares-play-reference/deps/Nuanceur/build_cmake/../include -I/workspace/ares-play-reference/deps/Nuanceur/build_cmake/../../Framework/include -O3 -DNDEBUG -MD -MT CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o -MF CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o.d -o CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o -c /workspace/ares-build/play-shader-check/shaders.cpp
+In file included from /workspace/ares-play-reference/deps/Framework/include/vulkan/VulkanDef.h:47,
+                 from /workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanContext.h:3,
+                 from /workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDraw.h:4,
+                 from /workspace/ares-play-reference/Source/gs/GSH_Vulkan/GSH_VulkanDrawMobile.h:4,
+                 from /workspace/ares-build/play-shader-check/shaders.cpp:1:
+/workspace/ares-vulkan-headers/vulkan/vulkan.h:52:10: fatal error: xcb/xcb.h: No such file or directory
+   52 | #include <xcb/xcb.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+[6/12] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/workspace/ares-play-reference/deps/Nuanceur/src/generators/SpirvShaderGenerator.cpp.o
+ninja: build stopped: subcommand failed.

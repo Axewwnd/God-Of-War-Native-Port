@@ -156,7 +156,7 @@ FMV y sincronización EE/VU/IOP. Los resultados de Windows del proyecto original
 
 ## Hitos que permiten declarar resultados concretos
 
-1. **Driver:** el SPES exporta un informe con Turnip confirmado y dispositivo lógico creado. Pendiente de teléfono.
+1. **Driver: confirmado en el teléfono.** El JSON aportado por el usuario identifica Turnip Adreno 610 y creación de dispositivo con VK_SUCCESS. Esto no valida renderizado.
 2. **GS aislado:** subir/leer patrones en PSMCT32/24/16, PSMT8/4 y CLUT; comprobar puntos, triángulos, sprites,
    Z, alpha, máscaras y transferencias local-to-local/host. Comparar bytes/capturas con la implementación conocida.
 3. **Presentación:** framebuffer del GS visible y correcto; lifecycle probado sin perder datos ni competir por la ventana.
@@ -213,6 +213,54 @@ requerido por adrenotools: el runner descomprimido sigue midiendo 54058008 bytes
 Pasaron: firma Android v2, zipalign, arquitectura AArch64, NativeActivity, cobertura de funciones, rechazo de
 sustitución por runtime vacío, hash del asset Turnip, hooks ARM64, DEX del launcher y extractNativeLibs.
 Las dependencias nativas del runner y hooks están satisfechas por las bibliotecas empaquetadas y del sistema.
-`adb devices -l` no encontró dispositivos: **no se ha probado esta APK en Android ni en la Adreno 610**.
-El siguiente dato necesario para confirmar la integración del controlador es el informe exportado por el SPES.
-Eso no sustituye la implementación y prueba posteriores del puente GS.
+`adb devices -l` no encontró dispositivos en el contenedor. Posteriormente, el usuario aportó el informe de su
+SPES: la carga de Turnip y la creación del dispositivo sí quedaron confirmadas en Android. No se ha probado
+renderizado, superficie ni jugabilidad; ese informe no sustituye la implementación y prueba del puente GS.
+
+
+## Resultado del SPES y adaptación comprobada de shaders
+
+El informe aportado identifica Xiaomi 2201117TG / SPES, Android 14 API 34, selección Turnip sin fallback,
+GPU `Turnip Adreno (TM) 610`, driver ID 18 y `logical_device_result: 0` (VK_SUCCESS).
+El loader anuncia **1.3.0**, pero el dispositivo físico anuncia **1.0.335**. No se debe programar contra
+Vulkan 1.3/1.4 del dispositivo a partir de la versión del loader o de la metadata del ZIP.
+R32_UINT incluye color attachment; hay cola graphics/compute, fragmentStoresAndAtomics,
+128 MiB de rango de storage buffer y 8 input attachments por etapa. El informe no incluye ejecución GPU.
+
+Khronos distingue las versiones de instancia/dispositivo y establece SPIR-V 1.0 para Vulkan 1.0:
+https://docs.vulkan.org/guide/latest/versions.html
+El Nuanceur fijado emitía incondicionalmente SPIR-V 1.3 incluso para el renderer móvil.
+La prueba reproducible `tools/ares/play-shader-check/` extrajo los cuatro generadores reales de draw móvil,
+conservando sus expresiones y reemplazando únicamente la subida del módulo al driver por escritura a disco.
+
+- Original: **0/136** módulos válidos para Vulkan 1.0; **136/136** para Vulkan 1.1.
+- Adaptación móvil: **136/136** válidos para ambos entornos con `spirv-val` 2023.1.
+- El generador adaptado rechaza int8/int16 e interlock: pasaron las tres pruebas negativas.
+- El loader adaptado rechazó handle ausente y biblioteca ajena; consultó el loader Vulkan real seleccionado.
+- La adaptación usa el almacenamiento Uniform/BufferBlock de 32 bits del generador original, limita el
+  subconjunto admitido y valida los módulos completos; no se considera suficiente cambiar la versión del encabezado.
+
+La matriz incluye vértice load/store y 45 combinaciones de draw/load/store con CT32/24/16 y texturas
+CT32/24/16/T8/T4, con efectos seleccionados. No cubre todos los estados GS, shaders de transferencia,
+presentación ni todas las variantes CLUT. Tampoco prueba creación de pipelines o ejecución en el SPES.
+
+El experimento Android ARM64 `play-vulkan-link-check` incorpora opcionalmente el generador adaptado
+(`ARES_PLAY_SPIRV10=ON`) y un Framework loader que exige recibir el handle elegido por ARES.
+Ya no abre silenciosamente otro `libvulkan.so`. La fábrica recibe un handle prestado de vida de proceso;
+se rechazan cambios de loader. Este código sigue aislado de la APK y del contrato GSRasterBackend.
+
+Errores de preparación y correcciones de esta comprobación:
+
+1. Host sin headers XCB: se obtuvieron los headers reales de libxcb del paquete Debian; no se falsificaron tipos.
+2. Conversión incorrecta del buffer uint8 a char en el sink: se corrigió a reinterpret_cast.
+3. Enlace host sin IsPsmIDTEX/8: se añadió GsPixelFormats.cpp real.
+4. Reutilizar el directorio CMake de otra ruta fuente fue rechazado: se creó un directorio de build nuevo.
+5. Nombre de fuente loader_test sin sufijo .cpp: corregido antes de ejecutar la prueba.
+
+Los logs de fallos y builds posteriores y los JSON por módulo se conservan en `android/ares-evidence/spes-gs/`.
+El siguiente bloqueo funcional es ejecutar pipelines/transferencias reales en el dispositivo y desarrollar
+el adaptador de registros, VRAM, sincronización y presentación. El recomp EE ya compilado no proporciona
+esas operaciones por sí mismo. No hay una nueva APK jugable derivada de estas comprobaciones.
+
+Biblioteca GS aislada adaptada: 24760464 bytes, ELF AArch64, SHA256
+`f825947f6d88a90b23dc4e8865d31ecb5fe7da98c64e17fbb77a7c90ffae6f0b`. Enlace completo con `--no-undefined`; no se empaquetó como APK.

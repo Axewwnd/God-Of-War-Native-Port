@@ -1,0 +1,1642 @@
+{
+  "shader_count": 136,
+  "gpu_execution_tested": false,
+  "shaders": [
+    {
+      "file": "0-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "0-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "0-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "1-draw.frag.spv",
+      "sha256": "474413d9d63fb980858f86f9de097f79f4b497f69e8ba041fe30836c77f626d6",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "1-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "1-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "10-draw.frag.spv",
+      "sha256": "f0d79764522a42ae65849938c09965abb698879e84ac233a0529366df860e790",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "10-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "10-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "11-draw.frag.spv",
+      "sha256": "3ec60edc948b6683916ca99e5387925a7499d049453b9a26cdf352e92b4e4b3f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "11-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "11-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "12-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "12-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "12-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "13-draw.frag.spv",
+      "sha256": "8bcd30037c7533b04a7232c4e784839a92392d0bb298b376f02066edc90b8572",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "13-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "13-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "14-draw.frag.spv",
+      "sha256": "6cc4d0190a74a7d5448e695e1908e031c17c1018864aa3569b50db2641c8d765",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "14-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "14-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "15-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "15-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "15-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "16-draw.frag.spv",
+      "sha256": "474413d9d63fb980858f86f9de097f79f4b497f69e8ba041fe30836c77f626d6",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "16-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "16-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "17-draw.frag.spv",
+      "sha256": "f9219db4a9005532d013b780f3cc1f7f4eec17d6984d22a2f272f82152ec9eac",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "17-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "17-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "18-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "18-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "18-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "19-draw.frag.spv",
+      "sha256": "f77c4c2fba2f29fbb0f4728e530f74d90b004fa025b002c59c36a66bcee69268",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "19-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "19-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "2-draw.frag.spv",
+      "sha256": "e3a1a17f7e5b6f7a9b642b8c4e217b72185742b45a6734ef1fe0a641cc1f203a",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "2-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "2-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "20-draw.frag.spv",
+      "sha256": "f6321fa9bfe105ee1c067322b9458bf24639b9960e70b6efcdfac1e31a862593",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "20-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "20-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "21-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "21-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "21-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "22-draw.frag.spv",
+      "sha256": "dfc1d98ab8bb8296e5d7dea8402321af3f25d617ea35c871a3f46decaf0fbd6e",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "22-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "22-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "23-draw.frag.spv",
+      "sha256": "219eebd4444f39d94442c7749d442aab5762d8122aed4651487addf477dd4a4f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "23-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "23-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "24-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "24-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "24-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "25-draw.frag.spv",
+      "sha256": "f0d79764522a42ae65849938c09965abb698879e84ac233a0529366df860e790",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "25-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "25-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "26-draw.frag.spv",
+      "sha256": "e52f0c3d508de2890a842ad78d662146d86d8dbdabfb0cd29ee8dcb843d8ea1c",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "26-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "26-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "27-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "27-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "27-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "28-draw.frag.spv",
+      "sha256": "8bcd30037c7533b04a7232c4e784839a92392d0bb298b376f02066edc90b8572",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "28-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "28-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "29-draw.frag.spv",
+      "sha256": "14a6b627d41ef9c0a9f826cbcaa6bfc323ac58e357c7db93d7666dfd651b4e7c",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "29-load.frag.spv",
+      "sha256": "50a2002f545b213af4cb71b86a52aed196b258065e500dd63bf2055ca17df5d3",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "29-store.frag.spv",
+      "sha256": "a9df65203435e4898e6cd1f1d54e376fc98797e961fef6ef81e71acacecde8f9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "3-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "3-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "3-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "30-draw.frag.spv",
+      "sha256": "cb7c8c7634f3f60d2f9f9f31919e4d34f463cc5e5b7f74ccf8d802759418710d",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "30-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "30-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "31-draw.frag.spv",
+      "sha256": "26c6cb46fa85db56f24c5556fac123a7da67b341dc644f1245fec7b232ffdf72",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "31-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "31-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "32-draw.frag.spv",
+      "sha256": "6ba35efa718e8269d5515e661626f57eff866cf7926659797d10743a283fd93b",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "32-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "32-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "33-draw.frag.spv",
+      "sha256": "cb7c8c7634f3f60d2f9f9f31919e4d34f463cc5e5b7f74ccf8d802759418710d",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "33-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "33-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "34-draw.frag.spv",
+      "sha256": "6b3548764bbd14f19aa92e90effed5a9d6a0e58b323a0bd05b1d27c38aa36ebc",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "34-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "34-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "35-draw.frag.spv",
+      "sha256": "19b47e04d902e5a2f9731d7b2d98324cd890bb7a9d669d27333627757eb360a7",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "35-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "35-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "36-draw.frag.spv",
+      "sha256": "cb7c8c7634f3f60d2f9f9f31919e4d34f463cc5e5b7f74ccf8d802759418710d",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "36-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "36-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "37-draw.frag.spv",
+      "sha256": "e5164e46a54cd35faf236179af278a7e616adee5f2f535d3d1e2d34f09ad5309",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "37-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "37-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "38-draw.frag.spv",
+      "sha256": "9ffbd12111f044e389def0fd437bea80f6175deeb03355272ee691d0467268d0",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "38-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "38-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "39-draw.frag.spv",
+      "sha256": "cb7c8c7634f3f60d2f9f9f31919e4d34f463cc5e5b7f74ccf8d802759418710d",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "39-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "39-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "4-draw.frag.spv",
+      "sha256": "f77c4c2fba2f29fbb0f4728e530f74d90b004fa025b002c59c36a66bcee69268",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "4-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "4-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "40-draw.frag.spv",
+      "sha256": "97e654d55f1a19a0fbaf4a498da668e44ff556279fed01c25fe32cfac4080388",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "40-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "40-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "41-draw.frag.spv",
+      "sha256": "c91376f2adeb0ebc5dc33550947d637deeb5080785950e0c35562bde90446c0e",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "41-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "41-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "42-draw.frag.spv",
+      "sha256": "cb7c8c7634f3f60d2f9f9f31919e4d34f463cc5e5b7f74ccf8d802759418710d",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "42-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "42-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "43-draw.frag.spv",
+      "sha256": "00e429c35aad5a5dbf075d07cb9717fd566a9964e53b6b80b490150b269ecc6c",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "43-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "43-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "44-draw.frag.spv",
+      "sha256": "78a09efaa8e64509248f6828f6776efbe36963c766dd8f7acd3d209df41f1c8e",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "44-load.frag.spv",
+      "sha256": "f36686446b707dc3abb077665b51655ae4395aafbb36efff7c16a7e387aee551",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "44-store.frag.spv",
+      "sha256": "5ed517ba89c4b1cc5e4c4c969af7dcf84d2ead3347d2cdcef34933b6b09bc940",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "5-draw.frag.spv",
+      "sha256": "f651ab9d0b0a608c0ac9ee91871c796b58c41cf3a1809c469e7a18455d059f73",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "5-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "5-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "6-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "6-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "6-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "7-draw.frag.spv",
+      "sha256": "dfc1d98ab8bb8296e5d7dea8402321af3f25d617ea35c871a3f46decaf0fbd6e",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "7-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "7-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "8-draw.frag.spv",
+      "sha256": "c1cae26939a1c9009850901bc88aa1aa075a5f8e39b7666a35bd7facec11145c",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "8-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "8-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "9-draw.frag.spv",
+      "sha256": "8ccef0035aea6fe9db230b85c905cb3df830b413ade7b788782314b18e7081cd",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "9-load.frag.spv",
+      "sha256": "8fe6a5d0e325c3a61763294d714e77db29ae66aaf76fceb5d19c2ddda49e089f",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "9-store.frag.spv",
+      "sha256": "2afb22c14678acc5fc5398757afa60127468fc4c4699371cfce1dd8eaefef1e9",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "load-store.vert.spv",
+      "sha256": "625798243ef4a4bbdee1d1a9e7adac5f5e9c7dcab6f6893d0cb9c78cd3c5da8b",
+      "vulkan1.0": {
+        "exit_code": 0,
+        "diagnostic": ""
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    }
+  ],
+  "passed": {
+    "vulkan1.0": 136,
+    "vulkan1.1": 136
+  }
+}

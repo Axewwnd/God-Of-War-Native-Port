@@ -1,0 +1,11 @@
+[1/11] Building CXX object CMakeFiles/ares_play_shader_check.dir/shaders.cpp.o
+[2/11] Building CXX object nuanceur/CMakeFiles/Nuanceur.dir/__/AresSpirvShaderGenerator10.cpp.o
+[3/11] Building CXX object CMakeFiles/ares_play_shader_reject.dir/workspace/ares-play-reference/deps/Framework/src/MemStream.cpp.o
+[4/11] Building CXX object CMakeFiles/ares_play_shader_reject.dir/workspace/ares-play-reference/deps/Framework/src/Stream.cpp.o
+[5/11] Building CXX object CMakeFiles/ares_play_shader_reject.dir/reject.cpp.o
+[6/11] Building CXX object CMakeFiles/ares_play_loader_test.dir/AresPlayLoader.cpp.o
+[7/11] Linking CXX static library nuanceur/libNuanceur.a
+[8/11] Linking CXX executable ares_play_shader_check
+[9/11] Linking CXX executable ares_play_shader_reject
+[10/11] Building CXX object CMakeFiles/ares_play_loader_test.dir/loader_test.cpp.o
+[11/11] Linking CXX executable ares_play_loader_test

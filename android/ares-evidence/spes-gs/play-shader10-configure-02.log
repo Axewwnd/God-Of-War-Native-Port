@@ -1,0 +1,12 @@
+-- Configuring done (0.3s)
+CMake Error at CMakeLists.txt:34 (add_executable):
+  Cannot find source file:
+
+    loader_test
+
+
+CMake Error at CMakeLists.txt:34 (add_executable):
+  No SOURCES given to target: ares_play_loader_test
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.

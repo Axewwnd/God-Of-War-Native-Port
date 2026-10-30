@@ -1,0 +1,1642 @@
+{
+  "shader_count": 136,
+  "gpu_execution_tested": false,
+  "shaders": [
+    {
+      "file": "0-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "0-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "0-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "1-draw.frag.spv",
+      "sha256": "b675e79418d609f2c8a460216d042bf38d2efe6705ebfd3b16ae4c6b573eac07",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "1-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "1-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "10-draw.frag.spv",
+      "sha256": "53359eab8330386484e588c9eca0d0a353cb3bd66205bbb51d0d79fd3d3b000e",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "10-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "10-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "11-draw.frag.spv",
+      "sha256": "e08f88e1c9d9de30ff799e035c88347fc1166efa97187d22693742bf3a81feaf",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "11-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "11-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "12-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "12-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "12-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "13-draw.frag.spv",
+      "sha256": "40f0c5ca507f6965ea31084436e5c703436e2312778b1236078c01383dd5dc7a",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "13-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "13-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "14-draw.frag.spv",
+      "sha256": "db5c87d1abc9e456c25ff40898aa50f055da38a6ccb49bc1caeccae6b1821629",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "14-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "14-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "15-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "15-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "15-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "16-draw.frag.spv",
+      "sha256": "b675e79418d609f2c8a460216d042bf38d2efe6705ebfd3b16ae4c6b573eac07",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "16-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "16-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "17-draw.frag.spv",
+      "sha256": "e79b33b2b2f17662eb2043b09c24ac87303204d8d15f051119247d800a2f4b57",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "17-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "17-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "18-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "18-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "18-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "19-draw.frag.spv",
+      "sha256": "da471e2c21c5c0371a26e1116327415949c97fb5ecfc55510d4b41bf15966b4e",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "19-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "19-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "2-draw.frag.spv",
+      "sha256": "129ff14b337bbc6da0db8c3e4b39bd66c55305df834c7dacf3b4cba5e56117f4",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "2-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "2-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "20-draw.frag.spv",
+      "sha256": "b4813c8a0c24c57d31121cd9ee056b87ae09e2f96b3d37e21bd0bb89adb2c56e",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "20-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "20-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "21-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "21-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "21-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "22-draw.frag.spv",
+      "sha256": "66345658b284958d8554797e52deca48b65b98138f0256dd630c9e797c3b99e1",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "22-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "22-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "23-draw.frag.spv",
+      "sha256": "9c9b74e1098f24b1f1bef7282d9ac1eef24fdde6550be96d9a58cf7b72a1e2a3",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "23-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "23-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "24-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "24-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "24-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "25-draw.frag.spv",
+      "sha256": "53359eab8330386484e588c9eca0d0a353cb3bd66205bbb51d0d79fd3d3b000e",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "25-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "25-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "26-draw.frag.spv",
+      "sha256": "416ce3f0c6f7056360f0ee16fbd0729d3910d28898db724ff738666558353131",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "26-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "26-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "27-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "27-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "27-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "28-draw.frag.spv",
+      "sha256": "40f0c5ca507f6965ea31084436e5c703436e2312778b1236078c01383dd5dc7a",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "28-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "28-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "29-draw.frag.spv",
+      "sha256": "39d66f91003a2de7474b8e869f684b800595928fac02f02ecd7b8767a2ea89b6",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "29-load.frag.spv",
+      "sha256": "3243bca1837a28db3a66651cecb320034bd9fc9c9aae32979558591187f5af85",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "29-store.frag.spv",
+      "sha256": "c71801bcb052d661921a2c077f25b95018bae4405692f6b29a817fa209f3918d",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "3-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "3-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "3-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "30-draw.frag.spv",
+      "sha256": "410c6938e0af1ccd55d9988aa10303b98efbe6635de0cace12811b0f39f0ad46",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "30-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "30-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "31-draw.frag.spv",
+      "sha256": "ff069da95196e55d4c738f2f0ed56a6a72a2dad45712556234daafef3ac7c795",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "31-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "31-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "32-draw.frag.spv",
+      "sha256": "86b11459a8bbf418e54b48bca93b31eba309fc86cec0a8cae4cf486dfd14fb11",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "32-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "32-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "33-draw.frag.spv",
+      "sha256": "410c6938e0af1ccd55d9988aa10303b98efbe6635de0cace12811b0f39f0ad46",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "33-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "33-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "34-draw.frag.spv",
+      "sha256": "449c1c289639af940347cd28fef70cea77a928e389e8eb4b241430731529f670",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "34-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "34-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "35-draw.frag.spv",
+      "sha256": "48459560a1e200675dfadeeb67fd18ca2f739126b20a6b055d490766ce3874d3",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "35-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "35-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "36-draw.frag.spv",
+      "sha256": "410c6938e0af1ccd55d9988aa10303b98efbe6635de0cace12811b0f39f0ad46",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "36-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "36-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "37-draw.frag.spv",
+      "sha256": "e89c510b9704742c7cd835f9e550ce22f495e952f2f4f6ba886b21a768971209",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "37-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "37-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "38-draw.frag.spv",
+      "sha256": "e7bec5438ab2c268704ec6fac2416c3ac264c0a8b9ad621129093d0a137fce00",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "38-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "38-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "39-draw.frag.spv",
+      "sha256": "410c6938e0af1ccd55d9988aa10303b98efbe6635de0cace12811b0f39f0ad46",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "39-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "39-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "4-draw.frag.spv",
+      "sha256": "da471e2c21c5c0371a26e1116327415949c97fb5ecfc55510d4b41bf15966b4e",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "4-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "4-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "40-draw.frag.spv",
+      "sha256": "1b3c1cb754985b175291d6da2820f8d10b1926f85796d78adf5f69b4d83d495e",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "40-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "40-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "41-draw.frag.spv",
+      "sha256": "58c3161336d5749e23025919d122bbdb96a676ea12b136a11a3cf344c7b136f6",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "41-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "41-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "42-draw.frag.spv",
+      "sha256": "410c6938e0af1ccd55d9988aa10303b98efbe6635de0cace12811b0f39f0ad46",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "42-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "42-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "43-draw.frag.spv",
+      "sha256": "310690763b28235d50ad703bc995e73486218c27a865c23918b8cf632324543c",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "43-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "43-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "44-draw.frag.spv",
+      "sha256": "ed2da06fe69bfdad076add6b98e23103bfaad76ac24da876268eff39a12837ed",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "44-load.frag.spv",
+      "sha256": "0c155dcbc3fa88916883a17ca2cb9f2a3539a4ba941b5b54b3b9e1db9a37b5fe",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "44-store.frag.spv",
+      "sha256": "fce4d0fd5472d69d5dc4f015d842be9b831bd0615cfddd63a0bf3d56974e50c8",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "5-draw.frag.spv",
+      "sha256": "e842c43bb7cb270396aade2fb9e57e2433139f1d98b61dae016daf5521b33a99",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "5-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "5-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "6-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "6-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "6-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "7-draw.frag.spv",
+      "sha256": "66345658b284958d8554797e52deca48b65b98138f0256dd630c9e797c3b99e1",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "7-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "7-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "8-draw.frag.spv",
+      "sha256": "7b3836af34597e6affe94afd92d6733632e2ce6e51db4364d629b2faf223f956",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "8-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "8-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "9-draw.frag.spv",
+      "sha256": "b80d9a5af5ab6a873d60fac2c7d7cecd30b03b58c57c8881b84e9305d74df903",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "9-load.frag.spv",
+      "sha256": "791b11ffd671db3132056c1aa42ffebfc301e73cd165bd7ac957ae9d9b39e913",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "9-store.frag.spv",
+      "sha256": "694f74686b20704dddaa074bc5e1a6d5d741e9cb71a8a4d8d56cc979cb3b0fae",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    },
+    {
+      "file": "load-store.vert.spv",
+      "sha256": "a4d133bd56c3e6db4e64146541102b64b6da2745415c6ad83058255cd20ae924",
+      "vulkan1.0": {
+        "exit_code": 1,
+        "diagnostic": "error: line 0: Invalid SPIR-V binary version 1.3 for target environment SPIR-V 1.0 (under Vulkan 1.0 semantics)."
+      },
+      "vulkan1.1": {
+        "exit_code": 0,
+        "diagnostic": ""
+      }
+    }
+  ],
+  "passed": {
+    "vulkan1.0": 0,
+    "vulkan1.1": 136
+  }
+}

@@ -29,3 +29,17 @@ add_library(ares_play_vulkan_link_check SHARED
 target_include_directories(ares_play_vulkan_link_check PRIVATE "${PLAY_ROOT}/deps/CodeGen/include" "${PLAY_ROOT}/Source" "${PLAY_ROOT}/Source/gs/GSH_Vulkan")
 target_link_libraries(ares_play_vulkan_link_check PRIVATE gsh_vulkan)
 target_link_options(ares_play_vulkan_link_check PRIVATE -Wl,--no-undefined)
+option(ARES_PLAY_SPIRV10 "Use the guarded mobile SPIR-V 1.0 adaptation" OFF)
+if(ARES_PLAY_SPIRV10)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/../play-vulkan-spirv10.cmake")
+    ares_enable_play_spirv10()
+endif()
+# Route Framework through the caller's already selected loader, with no hidden fallback.
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/../prepare_play_loader.py"
+    "${PLAY_ROOT}/deps/Framework/src/vulkan/Loader.cpp" "${CMAKE_CURRENT_BINARY_DIR}/AresPlayLoader.cpp"
+    COMMAND_ERROR_IS_FATAL ANY)
+get_target_property(framework_sources Framework_Vulkan SOURCES)
+list(FILTER framework_sources EXCLUDE REGEX "(^|/)Loader\\.cpp$")
+list(APPEND framework_sources "${CMAKE_CURRENT_BINARY_DIR}/AresPlayLoader.cpp")
+set_property(TARGET Framework_Vulkan PROPERTY SOURCES "${framework_sources}")

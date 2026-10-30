@@ -1,0 +1,2 @@
+PASS: int8, int16 and fragment interlock rejected by mobile-only adaptation
+PASS: absent/unrelated handles rejected; real selected Vulkan loader used
