@@ -1,0 +1,18 @@
+{
+  "zip_sha256": "8c9fe5e357ddfe4970840cf91e2244b81e4dfbedf627d4f855db9f522ef7dd65",
+  "driver_sha256": "ab879bc6605b81bc790eb3519608a998a681d0c47b2d957ea8219f2e6eaa6082",
+  "driver_bytes": 17161105,
+  "metadata": {
+    "schemaVersion": 1,
+    "name": "Mesa Turnip driver v26.0.0 - R7 - SYSMEM",
+    "description": "Compiled from Source + gpu hacks and advertise DECK_EMU",
+    "author": "KIMCHI",
+    "packageVersion": "1",
+    "vendor": "Mesa",
+    "driverVersion": "Vulkan 1.4.335",
+    "minApi": 27,
+    "libraryName": "vulkan.ad07xx.so"
+  },
+  "upstream": "https://github.com/K11MCH1/AdrenoToolsDrivers/releases/tag/v26.0.0-rc07",
+  "scope": "Bundled driver; device compatibility and GS rendering not verified"
+}

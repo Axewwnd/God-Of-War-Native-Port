@@ -1,0 +1,3 @@
+Loader API 1.4.309
+Enumerated GPU SwiftShader Device (Subzero); driver SwiftShader driver
+GPU SwiftShader Device (Subzero); Vulkan 1.3.0; driver SwiftShader driver; device result 0

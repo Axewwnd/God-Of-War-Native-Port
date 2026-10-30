@@ -26,3 +26,7 @@ android/app/.cxx/
 android/local.properties
 android/.gradle/ 
 .idea/
+# Prepared from the user's pinned archive; not generated game code.
+android/app/src/main/assets/drivers/
+android/app/src/main/assets/licenses/ares-driver/
+__pycache__/

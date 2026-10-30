@@ -2,10 +2,36 @@ plugins {
     id 'com.android.application'
 }
 
+def verifyBundledTurnip = tasks.register('verifyBundledTurnip') {
+    def driver = layout.projectDirectory.file('src/main/assets/drivers/turnip-r7-sysmem/vulkan.ad07xx.so')
+    inputs.file(driver).optional()
+    doLast {
+        if (!driver.asFile.isFile()) {
+            throw new GradleException('Prepare the pinned driver with tools/ares/prepare_turnip.py before packaging ARES.')
+        }
+        def digest = java.security.MessageDigest.getInstance('SHA-256')
+        driver.asFile.withInputStream { input ->
+            byte[] buffer = new byte[65536]
+            int count
+            while ((count = input.read(buffer)) != -1) digest.update(buffer, 0, count)
+        }
+        if (digest.digest().encodeHex().toString() != 'ab879bc6605b81bc790eb3519608a998a681d0c47b2d957ea8219f2e6eaa6082') {
+            throw new GradleException('Bundled Turnip hash mismatch; refusing to package a different driver.')
+        }
+    }
+}
+tasks.named('preBuild').configure { dependsOn verifyBundledTurnip }
+
 // Override with: gradlew assembleRelease -Pps2xBootElf=/absolute/path/on/device.elf
 def ps2xBootElf = project.findProperty('ps2xBootElf') ?: '/storage/emulated/0/Android/data/com.ps2x.runner/files/SCUS_973.99'
 
 android {
+    packagingOptions {
+        jniLibs {
+            // adrenotools needs real files in ApplicationInfo.nativeLibraryDir.
+            useLegacyPackaging true
+        }
+    }
     namespace 'com.ps2x.runner'
     compileSdk 34
     ndkVersion '28.2.13676358'
@@ -14,8 +40,8 @@ android {
         applicationId 'com.ps2x.runner'
         minSdk 28
         targetSdk 34
-        versionCode 1
-        versionName '0.1.0'
+        versionCode 2
+        versionName '0.2.0-driver-test'
 
         externalNativeBuild {
             cmake {
@@ -27,7 +53,7 @@ android {
                         '-DPS2X_RUNNER_UNITY_BUILD_BATCH_SIZE=32',
                         '-DANDROID_CPP_FEATURES=rtti exceptions',
                         "-DPS2X_DEFAULT_BOOT_ELF=${ps2xBootElf}"
-                targets 'ps2EntryRunner'
+                targets 'ps2EntryRunner', 'main_hook', 'hook_impl'
             }
         }
 

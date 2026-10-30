@@ -1,0 +1,9 @@
+{
+  "status": "isolated-ps2-vulkan-renderer-linked",
+  "arch": "AArch64",
+  "bytes": 24766576,
+  "sha256": "3c09fded532761e7b83ac5d631d1a4622848a069aeb20a828e0b54ecceee8065",
+  "renderer_symbols": 75,
+  "linker_no_undefined": true,
+  "scope": "Standalone renderer linkage only; not linked to ARES or executed on a GPU"
+}

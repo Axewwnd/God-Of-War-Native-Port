@@ -717,6 +717,22 @@ endif()
 
 if(PS2X_IS_ANDROID)
     target_sources(ps2EntryRunner PRIVATE src/lib/ps2_android_runtime.cpp)
+    FetchContent_Declare(ares_adrenotools
+        GIT_REPOSITORY https://github.com/bylaws/libadrenotools.git
+        GIT_TAG 8fae8ce254dfc1344527e05301e43f37dea2df80
+        GIT_SUBMODULES lib/linkernsbypass
+    )
+    FetchContent_MakeAvailable(ares_adrenotools)
+    add_library(ares_android_vulkan STATIC
+        src/lib/android/ares_vulkan_loader.cpp
+        src/lib/android/ares_vulkan_probe.cpp)
+    target_include_directories(ares_android_vulkan PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        "${ANDROID_NDK}/sources/android/native_app_glue")
+    # Keep driver headers isolated from thousands of generated game units.
+    target_link_libraries(ares_android_vulkan PRIVATE adrenotools dl log android)
+    target_link_libraries(ps2EntryRunner PRIVATE ares_android_vulkan)
+    add_dependencies(ps2EntryRunner main_hook hook_impl)
 endif()
 
 install(TARGETS ps2_runtime ps2EntryRunner

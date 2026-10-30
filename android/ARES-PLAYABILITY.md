@@ -20,12 +20,13 @@ Con el teléfono conectado y depuración USB autorizada:
 adb devices
 adb logcat -c
 adb shell am force-stop com.ps2x.runner
-adb shell am start -n com.ps2x.runner/android.app.NativeActivity
+adb shell am start -n com.ps2x.runner/com.ps2x.runner.LauncherActivity
 # Esperar a que se produzca el problema y ejecutar:
 adb logcat -d -v threadtime > ares-arranque.log
 ```
 
-El runtime escribe stdout/stderr con la etiqueta `ps2x`. Conservar también mensajes del cargador, AndroidRuntime y señales nativas.
+En la versión de diagnóstico, iniciar la prueba desde la pantalla de ARES. NativeActivity vive en un proceso privado `:runtime`.
+El runtime escribe stdout/stderr con la etiqueta `ps2x`, y el cargador usa `ares-vulkan`. Conservar también mensajes del cargador, AndroidRuntime y señales nativas.
 No hay acceso directo a un teléfono del usuario desde este entorno.
 
 ## GitHub Actions

@@ -1,0 +1,12 @@
+[1/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/check.cpp.o
+[2/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/gs/GSHandler.cpp.o
+[3/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/gs/GsPixelFormats.cpp.o
+[4/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/gs/GsCachedArea.cpp.o
+[5/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/MailBox.cpp.o
+[6/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/FrameDump.cpp.o
+[7/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/states/MemoryStateFile.cpp.o
+[8/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/states/RegisterStateFile.cpp.o
+[9/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/states/RegisterState.cpp.o
+[10/12] Building CXX object CMakeFiles/ares_play_vulkan_link_check.dir/workspace/ares-play-reference/Source/ee/INTC.cpp.o
+[11/12] Linking CXX static library gsh/libgsh_vulkan.a
+[12/12] Linking CXX shared library libares_play_vulkan_link_check.so

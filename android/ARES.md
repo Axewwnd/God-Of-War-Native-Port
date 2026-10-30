@@ -1,5 +1,8 @@
 # PROJECT ARES: Android ARM64
 
+La iteración con Turnip y pantalla de diagnóstico se describe en [ARES-TURNIP-PORT.md](ARES-TURNIP-PORT.md).
+Incluye el controlador y la prueba de carga; el puente del renderer Vulkan GS todavía no está implementado.
+
 Estado: **APK Android ARM64 compilada localmente con el código real del juego y verificada**.
 El build incluye las 6.415 funciones del registro. La firma de pruebas, la arquitectura y la cobertura del código
 empaquetado se comprobaron; el arranque/renderizado no se ha validado y el backend gráfico Android sigue pendiente.

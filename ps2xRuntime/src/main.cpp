@@ -1,4 +1,5 @@
 #include "ps2_runtime.h"
+#include "ares_android_vulkan.h"
 
 void ps2InstallEeDiff(PS2Runtime &runtime); // src/lib/ee_ref/ee_diff.cpp
 void ps2InstallEeWatch(PS2Runtime &runtime);
@@ -172,6 +173,14 @@ int main(int argc, char *argv[])
 {
 #if defined(__ANDROID__)
     redirectStdioToLogcat();
+    const bool driverDiagnosticOnly = aresAndroidConsumeDiagnosticRequest();
+    // The launcher remains in the main process. Each test gets a fresh Vulkan
+    // namespace and stdio redirect in :runtime, including after driver crashes.
+    if (driverDiagnosticOnly)
+    {
+        aresAndroidRunDriverDiagnostic();
+        std::_Exit(0);
+    }
 #endif
     setupTerminateLogger();
 

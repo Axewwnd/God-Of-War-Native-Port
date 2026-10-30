@@ -96,6 +96,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          curl --fail --location --retry 3 'https://github.com/K11MCH1/AdrenoToolsDrivers/releases/download/v26.0.0-rc07/Turnip_v26.0.0_R7_Sysmem.zip' -o Turnip.zip
+          python3 tools/ares/prepare_turnip.py --zip Turnip.zip --assets android/app/src/main/assets 2>&1 | tee ares-logs/turnip-package.log
+          python3 tools/ares/test_turnip_package.py --zip Turnip.zip 2>&1 | tee ares-logs/turnip-package-tests.log
           gradle -p android --no-daemon --stacktrace --info assembleRelease 2>&1 | tee ares-logs/gradle.log
       - name: Verify APK architecture and NativeActivity library
         shell: bash
@@ -106,6 +109,7 @@ jobs:
           unzip -p "$APK" lib/arm64-v8a/libps2EntryRunner.so > ares-logs/libps2EntryRunner.so
           LLVM="$ANDROID_HOME/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin"
           python3 tools/ares/verify_apk.py "$APK" --llvm-bin "$LLVM" --output ares-logs
+          python3 tools/ares/verify_turnip_apk.py "$APK" --build-tools "$ANDROID_HOME/build-tools/34.0.0" --output ares-logs
           python3 tools/ares/test_apk_verifier.py --apk "$APK" --llvm-bin "$LLVM" --runtime-library "$LLVM/../sysroot/usr/lib/aarch64-linux-android/libc++_shared.so" 2>&1 | tee ares-logs/runtime-rejection-test.log
           "$LLVM/llvm-readelf" -h ares-logs/libps2EntryRunner.so | tee ares-logs/elf-header.txt
           grep -q AArch64 ares-logs/elf-header.txt

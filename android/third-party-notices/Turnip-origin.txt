@@ -1,0 +1,9 @@
+Unmodified binary supplied by the user: Turnip_v26.0.0_R7_Sysmem.zip
+Build: KIMCHI / K11MCH1; Mesa contributors retain their respective copyrights.
+Release: https://github.com/K11MCH1/AdrenoToolsDrivers/releases/tag/v26.0.0-rc07
+Mesa source base reported by the publisher: 68fb3a601c63 (26.0.0-devel).
+Mesa license information: https://docs.mesa3d.org/license.html
+Mesa source and per-file copyright notices: https://gitlab.freedesktop.org/mesa/mesa/-/tree/68fb3a601c63
+Package SHA256: 8c9fe5e357ddfe4970840cf91e2244b81e4dfbedf627d4f855db9f522ef7dd65
+Driver SHA256: ab879bc6605b81bc790eb3519608a998a681d0c47b2d957ea8219f2e6eaa6082
+No binary modifications were made. The packaged version string is metadata, not a compatibility claim for every GPU.
