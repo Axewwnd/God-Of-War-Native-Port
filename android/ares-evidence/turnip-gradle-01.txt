@@ -1,0 +1,451 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :app:processReleaseMainManifest
+> Task :app:processReleaseManifest
+> Task :app:extractProguardFiles UP-TO-DATE
+
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]-2
+C/C++: > Enabling optimization for: ps2_runtime
+C/C++: CMake Warning at ps2xRuntime/cmake/ReleaseMode.cmake:40 (message):
+C/C++:   Interprocedural optimization not supported:
+C/C++: Call Stack (most recent call first):
+C/C++:   ps2xRuntime/CMakeLists.txt:686 (EnableFastReleaseMode)
+C/C++: > Enabling optimization for: ps2EntryRunner
+C/C++: CMake Warning at ps2xRuntime/cmake/ReleaseMode.cmake:40 (message):
+C/C++:   Interprocedural optimization not supported:
+C/C++: Call Stack (most recent call first):
+C/C++:   ps2xRuntime/CMakeLists.txt:687 (EnableFastReleaseMode)
+C/C++: Cloning into 'ares_adrenotools-src'...
+C/C++: HEAD is now at 8fae8ce Update linkernsbypass
+C/C++: Submodule 'lib/linkernsbypass' (https://github.com/bylaws/liblinkernsbypass/) registered for path 'lib/linkernsbypass'
+C/C++: Cloning into '/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass'...
+
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a][hook_impl,main_hook,etc]-2
+C/C++: ninja: Entering directory `/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a'
+C/C++: /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:68:5: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+C/C++:    68 |     };
+C/C++:       |     ^
+C/C++: /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:116:5: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+C/C++:   116 |     };
+C/C++:       |     ^
+C/C++: /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:106:5: warning: 'snprintf' will always be truncated; specified size is 3, but format string expands to at least 4 [-Wformat-truncation]
+C/C++:   106 |     snprintf(sonameOverwrite.data(), sonameOverwrite.size(), "%03u", TargetId++);
+C/C++:       |     ^
+C/C++: 3 warnings generated.
+C/C++: /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/driver.cpp:109:5: warning: missing field 'id' initializer [-Wmissing-designated-field-initializers]
+C/C++:   109 |     };
+C/C++:       |     ^
+C/C++: /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/driver.cpp:145:5: warning: missing field 'va_len' initializer [-Wmissing-designated-field-initializers]
+C/C++:   145 |     };
+C/C++:       |     ^
+C/C++: 2 warnings generated.
+C/C++: /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:151:13: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+C/C++:   151 |             };
+C/C++:       |             ^
+C/C++: /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:211:9: warning: missing field 'id' initializer [-Wmissing-designated-field-initializers]
+C/C++:   211 |         };
+C/C++:       |         ^
+C/C++: /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:220:9: warning: missing field 'flags' initializer [-Wmissing-designated-field-initializers]
+C/C++:   220 |         };
+C/C++:       |         ^
+C/C++: 3 warnings generated.
+
+> Task :app:processReleaseManifestForPackage
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a][hook_impl,main_hook,etc]-2 FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:buildCMakeRelWithDebInfo[arm64-v8a][hook_impl,main_hook,etc]-2'.
+> com.android.ide.common.process.ProcessException: ninja: Entering directory `/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a'
+  [0/2] Re-checking globbed directories...
+  [1/214] Building CXX object _deps/ares_adrenotools-build/lib/linkernsbypass/CMakeFiles/linkernsbypass.dir/elf_soname_patcher.cpp.o
+  [2/214] Building CXX object _deps/ares_adrenotools-build/lib/linkernsbypass/CMakeFiles/linkernsbypass.dir/android_linker_ns.cpp.o
+  /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:68:5: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+     68 |     };
+        |     ^
+  /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:116:5: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+    116 |     };
+        |     ^
+  /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:106:5: warning: 'snprintf' will always be truncated; specified size is 3, but format string expands to at least 4 [-Wformat-truncation]
+    106 |     snprintf(sonameOverwrite.data(), sonameOverwrite.size(), "%03u", TargetId++);
+        |     ^
+  3 warnings generated.
+  [3/214] Linking CXX static library _deps/ares_adrenotools-build/lib/linkernsbypass/liblinkernsbypass.a
+  [4/214] Building C object _deps/ares_adrenotools-build/src/hook/CMakeFiles/main_hook.dir/main_hook.c.o
+  [5/214] Building CXX object _deps/ares_adrenotools-build/CMakeFiles/adrenotools.dir/src/driver.cpp.o
+  /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/driver.cpp:109:5: warning: missing field 'id' initializer [-Wmissing-designated-field-initializers]
+    109 |     };
+        |     ^
+  /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/driver.cpp:145:5: warning: missing field 'va_len' initializer [-Wmissing-designated-field-initializers]
+    145 |     };
+        |     ^
+  2 warnings generated.
+  [6/214] Building CXX object _deps/ares_adrenotools-build/src/hook/CMakeFiles/hook_impl.dir/hook_impl.cpp.o
+  /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:151:13: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+    151 |             };
+        |             ^
+  /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:211:9: warning: missing field 'id' initializer [-Wmissing-designated-field-initializers]
+    211 |         };
+        |         ^
+  /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:220:9: warning: missing field 'flags' initializer [-Wmissing-designated-field-initializers]
+    220 |         };
+        |         ^
+  3 warnings generated.
+  [7/214] Linking CXX shared library ../../../../build/intermediates/cxx/RelWithDebInfo/716h3c1c/obj/arm64-v8a/libhook_impl.so
+  [8/214] Linking CXX shared library ../../../../build/intermediates/cxx/RelWithDebInfo/716h3c1c/obj/arm64-v8a/libmain_hook.so
+  [9/214] Building CXX object _deps/ares_adrenotools-build/CMakeFiles/adrenotools.dir/src/bcenabler.cpp.o
+  [10/214] Linking CXX static library _deps/ares_adrenotools-build/libadrenotools.a
+  [11/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/cmake_pch.hxx.pch
+  [12/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_133_cxx.cxx.o
+  [13/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_198_cxx.cxx.o
+  [14/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/src/lib/android/ares_vulkan_loader.cpp.o
+  [15/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_195_cxx.cxx.o
+  [16/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_194_cxx.cxx.o
+  [17/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_200_cxx.cxx.o
+  [18/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_199_cxx.cxx.o
+  [19/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_197_cxx.cxx.o
+  [20/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_193_cxx.cxx.o
+  [21/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_196_cxx.cxx.o
+  [22/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_188_cxx.cxx.o
+  [23/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_187_cxx.cxx.o
+  [24/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_189_cxx.cxx.o
+  [25/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_190_cxx.cxx.o
+  ninja: build stopped: interrupted by user.
+  
+  C++ build system [build] failed while executing:
+      /workspace/android-sdk/cmake/3.22.1/bin/ninja \
+        -C \
+        /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a \
+        hook_impl \
+        main_hook \
+        ps2EntryRunner
+    from /workspace/God-Of-War-Native-Port/android/app
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':app:buildCMakeRelWithDebInfo[arm64-v8a][hook_impl,main_hook,etc]-2'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:130)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:293)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:128)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:116)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:42)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:331)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:318)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:314)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:85)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:314)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:303)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:48)
+Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a'
+[0/2] Re-checking globbed directories...
+[1/214] Building CXX object _deps/ares_adrenotools-build/lib/linkernsbypass/CMakeFiles/linkernsbypass.dir/elf_soname_patcher.cpp.o
+[2/214] Building CXX object _deps/ares_adrenotools-build/lib/linkernsbypass/CMakeFiles/linkernsbypass.dir/android_linker_ns.cpp.o
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:68:5: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+   68 |     };
+      |     ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:116:5: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+  116 |     };
+      |     ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:106:5: warning: 'snprintf' will always be truncated; specified size is 3, but format string expands to at least 4 [-Wformat-truncation]
+  106 |     snprintf(sonameOverwrite.data(), sonameOverwrite.size(), "%03u", TargetId++);
+      |     ^
+3 warnings generated.
+[3/214] Linking CXX static library _deps/ares_adrenotools-build/lib/linkernsbypass/liblinkernsbypass.a
+[4/214] Building C object _deps/ares_adrenotools-build/src/hook/CMakeFiles/main_hook.dir/main_hook.c.o
+[5/214] Building CXX object _deps/ares_adrenotools-build/CMakeFiles/adrenotools.dir/src/driver.cpp.o
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/driver.cpp:109:5: warning: missing field 'id' initializer [-Wmissing-designated-field-initializers]
+  109 |     };
+      |     ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/driver.cpp:145:5: warning: missing field 'va_len' initializer [-Wmissing-designated-field-initializers]
+  145 |     };
+      |     ^
+2 warnings generated.
+[6/214] Building CXX object _deps/ares_adrenotools-build/src/hook/CMakeFiles/hook_impl.dir/hook_impl.cpp.o
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:151:13: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+  151 |             };
+      |             ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:211:9: warning: missing field 'id' initializer [-Wmissing-designated-field-initializers]
+  211 |         };
+      |         ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:220:9: warning: missing field 'flags' initializer [-Wmissing-designated-field-initializers]
+  220 |         };
+      |         ^
+3 warnings generated.
+[7/214] Linking CXX shared library ../../../../build/intermediates/cxx/RelWithDebInfo/716h3c1c/obj/arm64-v8a/libhook_impl.so
+[8/214] Linking CXX shared library ../../../../build/intermediates/cxx/RelWithDebInfo/716h3c1c/obj/arm64-v8a/libmain_hook.so
+[9/214] Building CXX object _deps/ares_adrenotools-build/CMakeFiles/adrenotools.dir/src/bcenabler.cpp.o
+[10/214] Linking CXX static library _deps/ares_adrenotools-build/libadrenotools.a
+[11/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/cmake_pch.hxx.pch
+[12/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_133_cxx.cxx.o
+[13/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_198_cxx.cxx.o
+[14/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/src/lib/android/ares_vulkan_loader.cpp.o
+[15/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_195_cxx.cxx.o
+[16/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_194_cxx.cxx.o
+[17/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_200_cxx.cxx.o
+[18/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_199_cxx.cxx.o
+[19/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_197_cxx.cxx.o
+[20/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_193_cxx.cxx.o
+[21/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_196_cxx.cxx.o
+[22/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_188_cxx.cxx.o
+[23/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_187_cxx.cxx.o
+[24/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_189_cxx.cxx.o
+[25/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_190_cxx.cxx.o
+ninja: build stopped: interrupted by user.
+
+C++ build system [build] failed while executing:
+    /workspace/android-sdk/cmake/3.22.1/bin/ninja \
+      -C \
+      /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a \
+      hook_impl \
+      main_hook \
+      ps2EntryRunner
+  from /workspace/God-Of-War-Native-Port/android/app
+	at org.gradle.internal.UncheckedException.throwAsUncheckedException(UncheckedException.java:69)
+	at org.gradle.internal.UncheckedException.throwAsUncheckedException(UncheckedException.java:42)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:128)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:244)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:229)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:212)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:195)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:162)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:67)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:37)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:40)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:29)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Right.fold(Either.java:175)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:46)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:35)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:49)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:27)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:65)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:36)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:105)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:54)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:64)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:43)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmptyWorkStep.java:125)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:56)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:36)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:23)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep.java:35)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:289)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:48)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:35)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:61)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:127)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:116)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:42)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:331)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:318)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:314)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:85)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:314)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:303)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:48)
+Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a'
+[0/2] Re-checking globbed directories...
+[1/214] Building CXX object _deps/ares_adrenotools-build/lib/linkernsbypass/CMakeFiles/linkernsbypass.dir/elf_soname_patcher.cpp.o
+[2/214] Building CXX object _deps/ares_adrenotools-build/lib/linkernsbypass/CMakeFiles/linkernsbypass.dir/android_linker_ns.cpp.o
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:68:5: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+   68 |     };
+      |     ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:116:5: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+  116 |     };
+      |     ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/lib/linkernsbypass/android_linker_ns.cpp:106:5: warning: 'snprintf' will always be truncated; specified size is 3, but format string expands to at least 4 [-Wformat-truncation]
+  106 |     snprintf(sonameOverwrite.data(), sonameOverwrite.size(), "%03u", TargetId++);
+      |     ^
+3 warnings generated.
+[3/214] Linking CXX static library _deps/ares_adrenotools-build/lib/linkernsbypass/liblinkernsbypass.a
+[4/214] Building C object _deps/ares_adrenotools-build/src/hook/CMakeFiles/main_hook.dir/main_hook.c.o
+[5/214] Building CXX object _deps/ares_adrenotools-build/CMakeFiles/adrenotools.dir/src/driver.cpp.o
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/driver.cpp:109:5: warning: missing field 'id' initializer [-Wmissing-designated-field-initializers]
+  109 |     };
+      |     ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/driver.cpp:145:5: warning: missing field 'va_len' initializer [-Wmissing-designated-field-initializers]
+  145 |     };
+      |     ^
+2 warnings generated.
+[6/214] Building CXX object _deps/ares_adrenotools-build/src/hook/CMakeFiles/hook_impl.dir/hook_impl.cpp.o
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:151:13: warning: missing field 'reserved_addr' initializer [-Wmissing-designated-field-initializers]
+  151 |             };
+      |             ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:211:9: warning: missing field 'id' initializer [-Wmissing-designated-field-initializers]
+  211 |         };
+      |         ^
+/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/_deps/ares_adrenotools-src/src/hook/hook_impl.cpp:220:9: warning: missing field 'flags' initializer [-Wmissing-designated-field-initializers]
+  220 |         };
+      |         ^
+3 warnings generated.
+[7/214] Linking CXX shared library ../../../../build/intermediates/cxx/RelWithDebInfo/716h3c1c/obj/arm64-v8a/libhook_impl.so
+[8/214] Linking CXX shared library ../../../../build/intermediates/cxx/RelWithDebInfo/716h3c1c/obj/arm64-v8a/libmain_hook.so
+[9/214] Building CXX object _deps/ares_adrenotools-build/CMakeFiles/adrenotools.dir/src/bcenabler.cpp.o
+[10/214] Linking CXX static library _deps/ares_adrenotools-build/libadrenotools.a
+[11/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/cmake_pch.hxx.pch
+[12/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_133_cxx.cxx.o
+[13/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_198_cxx.cxx.o
+[14/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/src/lib/android/ares_vulkan_loader.cpp.o
+[15/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_195_cxx.cxx.o
+[16/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_194_cxx.cxx.o
+[17/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_200_cxx.cxx.o
+[18/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_199_cxx.cxx.o
+[19/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_197_cxx.cxx.o
+[20/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_193_cxx.cxx.o
+[21/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_196_cxx.cxx.o
+[22/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_188_cxx.cxx.o
+[23/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_187_cxx.cxx.o
+[24/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_189_cxx.cxx.o
+[25/214] Building CXX object ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_190_cxx.cxx.o
+ninja: build stopped: interrupted by user.
+
+C++ build system [build] failed while executing:
+    /workspace/android-sdk/cmake/3.22.1/bin/ninja \
+      -C \
+      /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a \
+      hook_impl \
+      main_hook \
+      ps2EntryRunner
+  from /workspace/God-Of-War-Native-Port/android/app
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.execute(ExecuteProcess.kt:288)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt$executeProcess$1.invoke(ExecuteProcess.kt:108)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt$executeProcess$1.invoke(ExecuteProcess.kt:106)
+	at com.android.build.gradle.internal.cxx.timing.TimingEnvironmentKt.time(TimingEnvironment.kt:32)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.executeProcess(ExecuteProcess.kt:106)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.executeProcess$default(ExecuteProcess.kt:85)
+	at com.android.build.gradle.internal.cxx.build.CxxRegularBuilder.executeProcessBatch(CxxRegularBuilder.kt:332)
+	at com.android.build.gradle.internal.cxx.build.CxxRegularBuilder.build(CxxRegularBuilder.kt:129)
+	at com.android.build.gradle.tasks.ExternalNativeBuildTask$doTaskAction$$inlined$recordTaskAction$1.invoke(BaseTask.kt:71)
+	at com.android.build.gradle.internal.tasks.Blocks.recordSpan(Blocks.java:51)
+	at com.android.build.gradle.tasks.ExternalNativeBuildTask.doTaskAction(ExternalNativeBuildTask.kt:144)
+	at com.android.build.gradle.internal.tasks.UnsafeOutputsTask$taskAction$$inlined$recordTaskAction$1.invoke(BaseTask.kt:66)
+	at com.android.build.gradle.internal.tasks.Blocks.recordSpan(Blocks.java:51)
+	at com.android.build.gradle.internal.tasks.UnsafeOutputsTask.taskAction(UnsafeOutputsTask.kt:81)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:125)
+	... 116 more
+Caused by: com.android.ide.common.process.ProcessException: Error while executing process /workspace/android-sdk/cmake/3.22.1/bin/ninja with arguments {-C /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a hook_impl main_hook ps2EntryRunner}
+	at com.android.build.gradle.internal.process.GradleProcessResult.buildProcessException(GradleProcessResult.java:73)
+	at com.android.build.gradle.internal.process.GradleProcessResult.assertNormalExitValue(GradleProcessResult.java:48)
+	at com.android.build.gradle.internal.cxx.process.ExecuteProcessKt.execute(ExecuteProcess.kt:277)
+	... 131 more
+Caused by: org.gradle.process.internal.ExecException: Process 'command '/workspace/android-sdk/cmake/3.22.1/bin/ninja'' finished with non-zero exit value 2
+	at org.gradle.process.internal.DefaultExecHandle$ExecResultImpl.assertNormalExitValue(DefaultExecHandle.java:442)
+	at com.android.build.gradle.internal.process.GradleProcessResult.assertNormalExitValue(GradleProcessResult.java:46)
+	... 132 more
+
+
+BUILD FAILED in 1m 4s
+16 actionable tasks: 5 executed, 11 up-to-date

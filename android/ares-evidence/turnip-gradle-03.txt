@@ -1,0 +1,77 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:verifyBundledTurnip
+> Task :app:preBuild
+> Task :app:preReleaseBuild
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :app:processReleaseMainManifest
+> Task :app:processReleaseManifest
+> Task :app:extractProguardFiles UP-TO-DATE
+
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]-2
+C/C++: > Enabling optimization for: ps2_runtime
+C/C++: CMake Warning at ps2xRuntime/cmake/ReleaseMode.cmake:40 (message):
+C/C++:   Interprocedural optimization not supported:
+C/C++: Call Stack (most recent call first):
+C/C++:   ps2xRuntime/CMakeLists.txt:686 (EnableFastReleaseMode)
+C/C++: > Enabling optimization for: ps2EntryRunner
+C/C++: CMake Warning at ps2xRuntime/cmake/ReleaseMode.cmake:40 (message):
+C/C++:   Interprocedural optimization not supported:
+C/C++: Call Stack (most recent call first):
+C/C++:   ps2xRuntime/CMakeLists.txt:687 (EnableFastReleaseMode)
+
+> Task :app:processReleaseManifestForPackage
+> Task :app:processReleaseResources
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a][hook_impl,main_hook,etc]-2
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:generateReleaseLintVitalReportModel
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :app:mergeReleaseNativeLibs
+> Task :app:stripReleaseDebugSymbols
+> Task :app:extractReleaseNativeSymbolTables
+> Task :app:mergeReleaseNativeDebugMetadata
+> Task :app:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :app:lintVitalAnalyzeRelease
+
+> Task :app:dexBuilderRelease
+Failed to read desugaring graph. Cause: FileNotFoundException, message: /workspace/God-Of-War-Native-Port/android/app/build/intermediates/desugar_graph/release/dexBuilderRelease/out/currentProject/dirs_bucket_0/graph.bin (No such file or directory).
+Fall back to non-incremental mode.
+
+> Task :app:desugarReleaseFileDependencies UP-TO-DATE
+> Task :app:mergeReleaseStartupProfile UP-TO-DATE
+> Task :app:mergeExtDexRelease UP-TO-DATE
+> Task :app:lintVitalReportRelease
+> Task :app:lintVitalRelease
+> Task :app:mergeReleaseArtProfile UP-TO-DATE
+> Task :app:mergeReleaseGlobalSynthetics UP-TO-DATE
+> Task :app:mergeReleaseShaders UP-TO-DATE
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets
+> Task :app:mergeDexRelease
+> Task :app:compressReleaseAssets
+> Task :app:compileReleaseArtProfile
+> Task :app:extractReleaseVersionControlInfo UP-TO-DATE
+> Task :app:processReleaseJavaRes NO-SOURCE
+> Task :app:mergeReleaseJavaResource UP-TO-DATE
+> Task :app:collectReleaseDependencies UP-TO-DATE
+> Task :app:sdkReleaseDependencyData UP-TO-DATE
+> Task :app:validateSigningRelease UP-TO-DATE
+> Task :app:writeReleaseAppMetadata UP-TO-DATE
+> Task :app:writeReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:optimizeReleaseResources
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect
+> Task :app:assembleRelease
+
+BUILD SUCCESSFUL in 30s
+50 actionable tasks: 25 executed, 25 up-to-date

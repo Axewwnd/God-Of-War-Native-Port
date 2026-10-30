@@ -1,0 +1,6 @@
+{
+  "source_commit": "ff60dc49b402722890950fc9a056cd33103ddccb",
+  "checked_tracked_build_inputs": 286,
+  "differences": [],
+  "scope": "Tracked runtime/IOP, CMake and Android app inputs; generated game inputs recorded separately"
+}

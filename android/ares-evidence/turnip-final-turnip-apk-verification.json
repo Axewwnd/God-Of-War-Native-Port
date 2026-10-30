@@ -1,0 +1,11 @@
+{
+  "status": "turnip-assets-hooks-and-launcher-verified",
+  "apk_sha256": "e1a310bde7346a61967ba2f6b3942fe4e24ff4482b2e32accd06c1e3f8310b7a",
+  "driver_sha256": "ab879bc6605b81bc790eb3519608a998a681d0c47b2d957ea8219f2e6eaa6082",
+  "driver_bytes": 17161105,
+  "hooks": [
+    "lib/arm64-v8a/libmain_hook.so",
+    "lib/arm64-v8a/libhook_impl.so"
+  ],
+  "scope": "Packaging verification only; Turnip activation and GS rendering require device tests"
+}

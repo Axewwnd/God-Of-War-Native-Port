@@ -1,0 +1,36 @@
+[
+  {
+    "library": "libhook_impl.so",
+    "needed": [
+      "liblog.so",
+      "libandroid.so",
+      "libdl.so",
+      "libm.so",
+      "libc.so"
+    ]
+  },
+  {
+    "library": "libmain_hook.so",
+    "needed": [
+      "libhook_impl.so",
+      "libandroid.so",
+      "libdl.so",
+      "liblog.so",
+      "libm.so",
+      "libc.so"
+    ]
+  },
+  {
+    "library": "libps2EntryRunner.so",
+    "needed": [
+      "libm.so",
+      "libEGL.so",
+      "libGLESv2.so",
+      "libOpenSLES.so",
+      "libc.so",
+      "libdl.so",
+      "liblog.so",
+      "libandroid.so"
+    ]
+  }
+]

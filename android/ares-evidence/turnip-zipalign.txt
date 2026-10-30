@@ -1,0 +1,17 @@
+Verifying alignment of /workspace/God-Of-War-Native-Port/android/app/build/outputs/apk/release/app-release.apk (4)...
+      87 META-INF/com/android/build/gradle/app-metadata.properties (OK - compressed)
+     207 META-INF/version-control-info.textproto (OK - compressed)
+     296 classes.dex (OK)
+    9547 lib/arm64-v8a/libhook_impl.so (OK - compressed)
+   98349 lib/arm64-v8a/libmain_hook.so (OK - compressed)
+   99803 lib/arm64-v8a/libps2EntryRunner.so (OK - compressed)
+14658353 assets/drivers/turnip-r7-sysmem/meta.json (OK - compressed)
+14658647 assets/drivers/turnip-r7-sysmem/provenance.json (OK - compressed)
+14659189 assets/drivers/turnip-r7-sysmem/vulkan.ad07xx.so (OK - compressed)
+18139176 assets/licenses/ares-driver/Mesa-MIT.txt (OK - compressed)
+18140023 assets/licenses/ares-driver/Turnip-origin.txt (OK - compressed)
+18140593 assets/licenses/ares-driver/libadrenotools-BSD-2-Clause.txt (OK - compressed)
+18141369 assets/licenses/ares-driver/liblinkernsbypass-BSD-2-Clause.txt (OK - compressed)
+18142102 AndroidManifest.xml (OK - compressed)
+18143076 resources.arsc (OK)
+Verification succesful

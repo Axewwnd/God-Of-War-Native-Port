@@ -1,0 +1,88 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:processReleaseManifest UP-TO-DATE
+> Task :app:processReleaseManifestForPackage UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:processReleaseResources
+
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]-2
+C/C++: > Enabling optimization for: ps2_runtime
+C/C++: CMake Warning at ps2xRuntime/cmake/ReleaseMode.cmake:40 (message):
+C/C++:   Interprocedural optimization not supported:
+C/C++: Call Stack (most recent call first):
+C/C++:   ps2xRuntime/CMakeLists.txt:686 (EnableFastReleaseMode)
+C/C++: > Enabling optimization for: ps2EntryRunner
+C/C++: CMake Warning at ps2xRuntime/cmake/ReleaseMode.cmake:40 (message):
+C/C++:   Interprocedural optimization not supported:
+C/C++: Call Stack (most recent call first):
+C/C++:   ps2xRuntime/CMakeLists.txt:687 (EnableFastReleaseMode)
+
+> Task :app:compileReleaseJavaWithJavac NO-SOURCE
+> Task :app:generateReleaseLintVitalReportModel
+> Task :app:lintVitalAnalyzeRelease
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a][hook_impl,main_hook,etc]-2
+C/C++: ninja: Entering directory `/workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a'
+C/C++: In file included from /workspace/God-Of-War-Native-Port/android/app/.cxx/RelWithDebInfo/716h3c1c/arm64-v8a/ps2xRuntime/CMakeFiles/ps2EntryRunner.dir/Unity/unity_0_cxx.cxx:5:
+C/C++: /workspace/God-Of-War-Native-Port/ps2xRuntime/src/runner/gow_overrides.cpp:2410:25: warning: 'u8path<const char *, 0>' is deprecated [-Wdeprecated-declarations]
+C/C++:  2410 |             image = fs::u8path(env);
+C/C++:       |                         ^
+C/C++: /workspace/android-sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__filesystem/u8path.h:79:23: note: 'u8path<const char *, 0>' has been explicitly marked deprecated here
+C/C++:    79 | _LIBCPP_HIDE_FROM_ABI _LIBCPP_DEPRECATED_WITH_CHAR8_T path u8path(const _Source& __s) {
+C/C++:       |                       ^
+C/C++: /workspace/android-sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:1006:45: note: expanded from macro '_LIBCPP_DEPRECATED_WITH_CHAR8_T'
+C/C++:  1006 | #    define _LIBCPP_DEPRECATED_WITH_CHAR8_T _LIBCPP_DEPRECATED
+C/C++:       |                                             ^
+C/C++: /workspace/android-sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:955:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+C/C++:   955 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+C/C++:       |                                                 ^
+C/C++: 1 warning generated.
+
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :app:lintVitalReportRelease
+> Task :app:lintVitalRelease
+> Task :app:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :app:dexBuilderRelease UP-TO-DATE
+> Task :app:desugarReleaseFileDependencies UP-TO-DATE
+> Task :app:mergeReleaseStartupProfile UP-TO-DATE
+> Task :app:mergeExtDexRelease UP-TO-DATE
+> Task :app:mergeDexRelease UP-TO-DATE
+> Task :app:mergeReleaseArtProfile UP-TO-DATE
+> Task :app:mergeReleaseGlobalSynthetics UP-TO-DATE
+> Task :app:compileReleaseArtProfile UP-TO-DATE
+> Task :app:mergeReleaseShaders UP-TO-DATE
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets
+> Task :app:compressReleaseAssets
+> Task :app:extractReleaseVersionControlInfo UP-TO-DATE
+> Task :app:processReleaseJavaRes NO-SOURCE
+> Task :app:mergeReleaseJavaResource UP-TO-DATE
+> Task :app:optimizeReleaseResources
+> Task :app:collectReleaseDependencies UP-TO-DATE
+> Task :app:sdkReleaseDependencyData UP-TO-DATE
+> Task :app:validateSigningRelease UP-TO-DATE
+> Task :app:writeReleaseAppMetadata UP-TO-DATE
+> Task :app:writeReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:mergeReleaseNativeLibs
+> Task :app:stripReleaseDebugSymbols
+> Task :app:extractReleaseNativeSymbolTables
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect UP-TO-DATE
+> Task :app:mergeReleaseNativeDebugMetadata
+> Task :app:assembleRelease
+
+BUILD SUCCESSFUL in 21m 13s
+48 actionable tasks: 15 executed, 33 up-to-date

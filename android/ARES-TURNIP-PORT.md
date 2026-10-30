@@ -197,3 +197,22 @@ El diagnóstico procesa los eventos de NativeActivity mientras un worker consult
 onStart/onResume pueden quedarse esperando al hilo nativo y causar un ANR durante la inicialización del driver.
 Ese bucle se usa solo para la prueba aislada: no consume eventos de ventana antes de que raylib los necesite
 para crear su contexto cuando se implemente la ruta del juego.
+
+## Entrega verificada
+
+Compilación nativa completa: Gradle exitoso en 21m13s. Empaquetado final y recompilación de módulos modificados
+con JDK 17: Gradle exitoso en 30s. Los 286 archivos rastreados de runtime/IOP, CMake y app usados en el build
+coinciden byte a byte con el commit de código `ff60dc49b402722890950fc9a056cd33103ddccb`; las entradas del juego
+se registran separadamente por hash porque son generadas y no se incluyen en Git.
+
+APK `ProjectARES-Turnip-driver-test-arm64.apk`: 18148498 bytes; SHA256
+`e1a310bde7346a61967ba2f6b3942fe4e24ff4482b2e32accd06c1e3f8310b7a`.
+La reducción de tamaño respecto a la APK anterior se debe al empaquetado comprimido/extracción de bibliotecas
+requerido por adrenotools: el runner descomprimido sigue midiendo 54058008 bytes y contiene 6415/6415 funciones.
+
+Pasaron: firma Android v2, zipalign, arquitectura AArch64, NativeActivity, cobertura de funciones, rechazo de
+sustitución por runtime vacío, hash del asset Turnip, hooks ARM64, DEX del launcher y extractNativeLibs.
+Las dependencias nativas del runner y hooks están satisfechas por las bibliotecas empaquetadas y del sistema.
+`adb devices -l` no encontró dispositivos: **no se ha probado esta APK en Android ni en la Adreno 610**.
+El siguiente dato necesario para confirmar la integración del controlador es el informe exportado por el SPES.
+Eso no sustituye la implementación y prueba posteriores del puente GS.
